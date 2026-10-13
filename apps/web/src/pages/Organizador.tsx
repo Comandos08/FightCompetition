@@ -61,7 +61,7 @@ export function Organizador() {
                 .sort((a, b) => b[1] - a[1]).slice(0, 8).map(([equipe, n], _, arr) => (
                   <div key={equipe} className="mb-1.5 flex items-center gap-3 text-sm">
                     <span className="w-40 truncate">{equipe}</span>
-                    <div className="h-2 flex-1 rounded-full bg-papel"><div className="h-2 rounded-full bg-tinta" style={{ width: `${(n / arr[0]![1]) * 100}%` }} /></div>
+                    <div className="h-2 flex-1 rounded-full bg-papel"><div className="h-2 rounded-full bg-marinho" style={{ width: `${(n / arr[0]![1]) * 100}%` }} /></div>
                     <span className="w-8 text-right font-mono text-xs">{n}</span>
                   </div>
                 ))}
@@ -224,7 +224,7 @@ function Programacao() {
           const bs = doDia.filter((b) => b.tatame === t);
           return (
             <div key={t} className="cartao overflow-hidden">
-              <div className="bg-tinta px-3 py-2 text-white"><div className="font-display font-bold">Tatame {t}</div><div className="font-mono text-[11px] opacity-70">{bs.reduce((s, b) => s + b.chave.lutas.length, 0)} lutas · até {hhmm(bs[bs.length - 1]?.fim ?? 0)}</div></div>
+              <div className="bg-marinho px-3 py-2 text-white"><div className="font-display font-bold">Tatame {t}</div><div className="font-mono text-[11px] opacity-70">{bs.reduce((s, b) => s + b.chave.lutas.length, 0)} lutas · até {hhmm(bs[bs.length - 1]?.fim ?? 0)}</div></div>
               <div className="max-h-[58vh] space-y-1.5 overflow-auto p-2">
                 {bs.map((b) => (
                   <div key={b.categoria.id} className="rounded border border-linha bg-papel/50 p-2 text-xs">

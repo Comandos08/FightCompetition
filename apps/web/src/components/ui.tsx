@@ -14,8 +14,8 @@ const tons = {
   neutro: "bg-papel text-tinta-2 border-linha",
   ok: "bg-tatame-claro text-tatame border-tatame/20",
   aviso: "bg-aviso-claro text-aviso border-aviso/25",
-  acao: "bg-acao-claro text-acao-escuro border-acao/25",
-  escuro: "bg-tinta text-white border-tinta",
+  acao: "bg-perigo-claro text-perigo border-perigo/25",
+  escuro: "bg-marinho text-white border-marinho",
 } as const;
 
 export function Selo({ tom = "neutro", children }: { tom?: keyof typeof tons; children: ReactNode }) {
@@ -26,7 +26,7 @@ export function Indicador({ rotulo, valor, detalhe }: { rotulo: string; valor: R
   return (
     <div className="cartao p-4">
       <div className="rotulo">{rotulo}</div>
-      <div className="mt-1 font-display text-3xl font-extrabold tabular-nums" style={{ fontStretch: "80%" }}>{valor}</div>
+      <div className="mt-1 font-display text-3xl font-semibold tabular-nums text-marinho">{valor}</div>
       {detalhe && <div className="mt-0.5 text-xs text-tinta-3">{detalhe}</div>}
     </div>
   );
@@ -37,7 +37,7 @@ export function Titulo({ sobre, children, acoes }: { sobre?: string; children: R
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
         {sobre && <div className="rotulo mb-1">{sobre}</div>}
-        <h1 className="text-3xl font-extrabold leading-none sm:text-4xl">{children}</h1>
+        <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{children}</h1>
       </div>
       {acoes && <div className="flex flex-wrap gap-2">{acoes}</div>}
     </div>
@@ -46,10 +46,10 @@ export function Titulo({ sobre, children, acoes }: { sobre?: string; children: R
 
 export function Abas<T extends string>({ abas, ativa, aoMudar }: { abas: readonly { id: T; nome: string; conta?: number }[]; ativa: T; aoMudar: (id: T) => void }) {
   return (
-    <div className="mb-5 flex gap-1 overflow-x-auto border-b border-linha">
+    <div className="cartao mb-5 flex gap-1 overflow-x-auto px-2">
       {abas.map((a) => (
         <button key={a.id} onClick={() => aoMudar(a.id)}
-          className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition ${ativa === a.id ? "border-acao text-tinta" : "border-transparent text-tinta-3 hover:text-tinta"}`}>
+          className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${ativa === a.id ? "border-marinho text-marinho" : "border-transparent text-tinta-2 hover:text-marinho"}`}>
           {a.nome}{a.conta !== undefined && <span className="ml-1.5 font-mono text-xs text-tinta-3">{a.conta}</span>}
         </button>
       ))}
