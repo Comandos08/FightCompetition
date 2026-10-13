@@ -7,6 +7,7 @@ import { Avatar, Campo, EnviarImagem, Faixa, Secao, Selo, SubNav, Titulo, Vazio,
 
 export const navConta = [
   { para: "/app/atleta", nome: "Minhas lutas", fim: true },
+  { para: "/app/desempenho", nome: "Meu desempenho" },
   { para: "/app/perfil", nome: "Perfil esportivo" },
   { para: "/app/dependentes", nome: "Dependentes" },
   { para: "/app/pedidos", nome: "Pedidos e pagamentos" },

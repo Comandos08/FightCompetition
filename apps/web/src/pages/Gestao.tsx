@@ -7,6 +7,7 @@ import { quadroDeMedalhas } from "@/lib/resultados";
 
 export const navOrganizacao = [
   { para: "/app/organizacao", nome: "Eventos", fim: true },
+  { para: "/app/organizacao/ranking", nome: "Ranking" },
   { para: "/app/organizacao/membros", nome: "Membros e papéis" },
   { para: "/app/organizacao/dados", nome: "Dados da organização" },
 ];

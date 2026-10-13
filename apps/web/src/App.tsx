@@ -7,6 +7,7 @@ import { Arena, Mesa, Placar, TV } from "@/pages/Mesa";
 import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
 import { Cadastro, Dependentes, Pedidos, Perfil } from "@/pages/Conta";
 import { PaginaEquipe, PerfilAtleta, Rankings } from "@/pages/Vitrine";
+import { EquipeDesempenho, MeuDesempenho, RankingDaOrganizacao } from "@/pages/Desempenho";
 import { Plataforma } from "@/pages/Plataforma";
 import { Ajuda, ParaOrganizadores, Precos } from "@/pages/Institucional";
 import { DadosOrganizacao, ListaEventos, Membros, NovoEvento } from "@/pages/Gestao";
@@ -39,14 +40,17 @@ export default function App() {
             <Route index element={<Navigate to="/app/atleta" replace />} />
             <Route path="atleta" element={<Atleta />} />
             <Route path="inscricao/:id" element={<Inscricao />} />
+            <Route path="desempenho" element={<MeuDesempenho />} />
             <Route path="perfil" element={<Perfil />} />
             <Route path="dependentes" element={<Dependentes />} />
             <Route path="pedidos" element={<Pedidos />} />
             <Route path="equipe" element={<Professor />} />
+            <Route path="equipe/desempenho" element={<EquipeDesempenho />} />
             <Route path="equipe/atletas" element={<EquipeAtletas />} />
             <Route path="equipe/inscrever" element={<EquipeInscrever />} />
             <Route path="organizacao" element={<ListaEventos />} />
             <Route path="organizacao/novo" element={<NovoEvento />} />
+            <Route path="organizacao/ranking" element={<RankingDaOrganizacao />} />
             <Route path="organizacao/membros" element={<Membros />} />
             <Route path="organizacao/dados" element={<DadosOrganizacao />} />
             <Route path="organizacao/eventos/:id" element={<Organizador />} />
