@@ -63,30 +63,31 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | A súmula da luta traz todas as pontuações, vantagens, punições e faltas (com o tipo: falta grave ou falta de combatividade), início, fim e resultado. A súmula do campeonato traz todas as lutas com esses detalhes e os casos extraordinários (falta de luz, acidente, incidente e outros), com parecer registrado pela organização | Fundador | Requisito do documento oficial |
 | 13/10/2026 | O tipo da falta é deduzido pela mesa: punição dada com a contagem de combatividade correndo é falta de combatividade; as demais são falta grave | Claude | Evita um clique a mais do mesário em cada punição. Se a súmula precisar da falta específica (qual infração), o placar passa a perguntar |
 | 13/10/2026 | O mesário relata ocorrências do próprio tatame (na fila e no placar); o relato fica aguardando o organizador, que aprova ou não. Aprovado e pendente saem na súmula do campeonato com a situação; não aprovado fica guardado no registro e não sai na impressão | Fundador | Quem vê o problema primeiro relata; quem responde pelo documento decide |
+| 13/10/2026 | Protótipo mostrado ao presidente da CBJJS e a outro mestre de Jiu-Jitsu: aprovado sem pedido de alteração | Fundador | Validação com gente de fora. Foi uma demonstração; o uso sem ajuda por um mesário e um organizador segue recomendado antes do primeiro evento real |
+| 13/10/2026 | A súmula segue o modelo da própria plataforma, desenhado por Claude com foco em transparência: número sequencial, árbitro e mesário identificados, todos os lances com tempo, início e fim, e retificação registrada sem apagar o número | Fundador | Não há modelo externo a seguir |
+| 13/10/2026 | Relato não aprovado pela organização sai na súmula do campeonato, em anexo próprio | Fundador | O registro de quem relatou não pode sumir do documento |
+| 13/10/2026 | Tabela de categorias (idade, faixa e peso) pode variar por organização. O produto precisa gravar e reaproveitar modelos de categorias; a tabela da IBJJF é o modelo inicial | Fundador | Não vale conferir a folha de 2023 nem buscar as faixas infantis oficiais: cada organização terá a sua |
+| 13/10/2026 | Regras esportivas em aberto ficam como estão no protótipo, no modelo mais simples: atleta sozinho recebe sugestão de mudança de categoria, bye por sorteio com semente, remanejamento sem aprovação prévia e com registro | Fundador | Simplicidade para a primeira versão |
+| 13/10/2026 | Marca resolvida: nome Arena, logo e símbolo enviados, cores atuais mantidas | Fundador | Pendente só a logo com o texto em curvas |
+| 13/10/2026 | Preço, taxa e provedor de pagamento não bloqueiam o desenvolvimento | Fundador | Serão definidos depois; as telas seguem com valores de exemplo |
+| 13/10/2026 | Dados pessoais seguem LGPD e GDPR; avatares padrão são de banco gratuito | Fundador | Encerra as pendências jurídicas do protótipo |
+| 13/10/2026 | Quando o protótipo estiver completo, o projeto é criado no Lovable em sequência lógica e conectado a este repositório do GitHub; o fundador avisa | Fundador | Define o momento da construção |
 
 ## Em aberto
 
-- Paleta definitiva: manter azul-marinho e amarelo ou adotar cores próprias com a mesma estrutura.
+- Modelos de categorias por organização: tela para criar, salvar e reaproveitar a tabela de idades, faixas e pesos em novos eventos.
+- Escala de árbitros: hoje o mesário digita o árbitro central do tatame; falta a escala feita pela organização e a troca de árbitro durante o dia.
+- LGPD e GDPR na construção: base legal e consentimento do responsável para menores, exportação e exclusão de dados a pedido, registro de acesso.
 
 - Logo: o arquivo recebido traz a palavra ARENA como texto na fonte Neoverse Sans, que não está no projeto. Falta a versão com o texto convertido em curvas, ou a licença da fonte para a web. Até lá o cabeçalho usa o símbolo oficial com a palavra em Inter.
-- Verificar registro da marca "Arena" no INPI para software e eventos esportivos, e domínio.
-- Sistema de faixas por idade: não veio no livro de regras; as faixas infantis seguem ilustrativas.
-- A tabela de pesos recebida é de 2023: conferir com a versão vigente.
 - Na pesagem, registrar o peso medido e o tipo de quimono (liso ou trançado, até 15 anos) e comparar com o limite; hoje a pesagem só marca aprovado ou reprovado.
-- Regra para atleta sozinho na categoria e para inscrição no absoluto.
-- Se byes devem ser sorteados ou seguir ranking ou ordem de inscrição.
-- Provedor de pagamento e enquadramento do repasse.
-- Revisão jurídica para dados de menores.
-- Preço por inscrição e taxa da plataforma (as telas de financeiro e plano mostram valores de exemplo).
+- Provedor de pagamento e enquadramento do repasse (não bloqueia).
+- Preço por inscrição e taxa da plataforma (não bloqueia; as telas de financeiro e plano mostram valores de exemplo).
 - Quais formatos de chave entram primeiro no motor além da eliminatória simples.
 - Provedor de mapa (Google Maps é pago acima da franquia; OpenStreetMap é gratuito) e regra de moderação de imagens enviadas.
-- Súmulas: confirmar com a CBJJS o modelo oficial (campos obrigatórios, quem assina, nome do árbitro por luta, que hoje não é registrado) e se a súmula precisa de numeração e trava contra edição depois de assinada.
 - Registro do método de vitória por luta (pontos, finalização e qual, vantagens, decisão): exige que a mesa informe isso a cada luta; decidir o nível de detalhe.
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
-- Origem e licença dos avatares padrão (`apps/web/src/assets/avatar-*.webp`): anotar o banco de imagens e a licença.
-- Remanejamento de luta entre tatames: o mesário faz sozinho ou precisa de aprovação da coordenação? Hoje faz sozinho, com registro.
 - Tela do público em outro aparelho: no protótipo a sincronia vale entre janelas do mesmo navegador (um computador com dois monitores). Entre aparelhos diferentes depende do tempo real do Supabase, na construção.
 - Se o operador fecha o placar no meio da luta, o estado da luta se perde; no produto ele precisa ficar gravado.
-- Cores do telão: hoje seguem a referência (amarelo e verde contra preto e branco); definir cores próprias junto com a marca.
 - Como o produto ajuda o organizador a juntar categorias: com as categorias de idade oficiais, a maioria fica com um atleta só.
 - Desclassificações em semifinais e finais (Regulamento Geral, art. 2.4): exigem distinguir falta técnica de disciplinar no resultado.

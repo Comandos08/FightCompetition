@@ -203,6 +203,7 @@ function BotoesDaTela({ tatame, escuro }: { tatame: number; escuro?: boolean }) 
 
 /** Na fila: o que a tela virada para o público mostra e o que o mesário pode ligar nela entre uma luta e outra. */
 function TelaDoPublico({ tatame, dia }: { tatame: number; dia: number }) {
+  const d = useDados();
   const tela = useTela(tatame);
   useEffect(() => { if (tela.dia !== dia) publicarTela(tatame, { dia }); }, [tatame, dia, tela.dia]);
   return (
@@ -211,6 +212,7 @@ function TelaDoPublico({ tatame, dia }: { tatame: number; dia: number }) {
         <div className="rotulo">Tela do público do Tatame {tatame}</div>
         <div className="text-sm text-tinta-2">{tela.luta ? "Mostrando o placar da luta em andamento." : tela.proximas ? "Entre lutas: chamada da próxima luta e lista das seguintes." : "Entre lutas: só a chamada da próxima luta."}</div>
       </div>
+      <label className="flex items-center gap-2 text-sm">Árbitro central<input id="arbitro-do-tatame" className="campo !w-44 !py-1.5" placeholder="nome do árbitro" value={d.estado.arbitros[tatame] ?? ""} onChange={(e) => d.despachar({ tipo: "arbitro", tatame, nome: e.target.value })} /></label>
       <label className="flex items-center gap-2 text-sm"><input id="tela-proximas" type="checkbox" checked={tela.proximas} onChange={(e) => publicarTela(tatame, { proximas: e.target.checked })} />Mostrar próximas lutas ao lado, entre uma luta e outra</label>
       <BotoesDaTela tatame={tatame} />
     </div>
@@ -387,7 +389,7 @@ export function Placar() {
   const confirmar = () => {
     if (!vencedor) return;
     d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro, perdedorSemDireitoASegundaLuta: vencedor.semSegundaLuta || undefined },
-      sumula: { tatame: noTatame, mesario: pessoa.nome, encerradaEm: new Date().toISOString(), iniciadaEm: iniciadaEm.current, duracao: total - resta, regulamentar: total, placar: m, metodo: vencedor.metodo, lances: lances.current } });
+      sumula: { tatame: noTatame, mesario: pessoa.nome, encerradaEm: new Date().toISOString(), arbitro: d.estado.arbitros[noTatame] || undefined, iniciadaEm: iniciadaEm.current, duracao: total - resta, regulamentar: total, placar: m, metodo: vencedor.metodo, lances: lances.current } });
     nav(voltar);
   };
   // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro

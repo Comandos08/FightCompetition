@@ -63,7 +63,8 @@ export function SumulaDaLuta() {
   const numero = `${tatame}-${bloco.chave.lutas.findIndex((l) => l.id === luta.id) + 1}`;
   const rem = d.estado.remanejadas[chave];
   return (
-    <Documento titulo={`Súmula da luta ${numero}`} voltar="/app/mesa">
+    <Documento titulo={`Súmula nº ${s?.numero ? String(s.numero).padStart(4, "0") : "sem número"} · luta ${numero}`} voltar="/app/mesa">
+      {!!s?.retificacoes && <p className="mb-4 rounded-md bg-ouro/15 px-3 py-2 text-sm"><b>Súmula retificada {s.retificacoes} {s.retificacoes === 1 ? "vez" : "vezes"}.</b> O resultado foi regravado depois da primeira confirmação; a última gravação é a que vale.</p>}
       <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
         <Campo rotulo="Categoria">{cat.modalidade} · {cat.nome}</Campo>
         <Campo rotulo="Fase">{nomeRodada(luta.rodada, bloco.chave.totalRodadas)}</Campo>
@@ -86,7 +87,7 @@ export function SumulaDaLuta() {
         <Campo rotulo="Vencedor">{d.nomeDe(luta.vencedorId)}</Campo>
         <Campo rotulo="Método">{s?.metodo ?? luta.metodo ?? "não informado"}</Campo>
         <Campo rotulo="Tempo de luta">{s ? `${mmss(s.duracao)} de ${mmss(s.regulamentar)}` : `regulamentar de ${cat.minutos} min`}</Campo>
-        <Campo rotulo="Mesário">{s?.mesario ?? "não registrado"}</Campo>
+        <Campo rotulo="Mesário e árbitro">{s?.mesario ?? "não registrado"} · árbitro: {s?.arbitro ?? "não informado"}</Campo>
       </div>
       <h3 className="mb-2 mt-6 text-sm font-semibold">Pontuações, vantagens, punições e faltas, na ordem em que a mesa marcou</h3>
       {s?.lances.length ? (
@@ -96,7 +97,8 @@ export function SumulaDaLuta() {
       {s && <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">{lados.map((id, k) => { const f = s.lances.filter((l) => l.lado === k && l.texto.includes("punição")); return <Campo key={k} rotulo={`Faltas de ${d.nomeDe(id)}`}>{f.length ? f.map((l) => `${l.texto.replace(/ \(.*\)$/, "")} (${mmss(l.t)})`).join("; ") : "nenhuma"}</Campo>; })}</div>}
       {rem && <p className="mt-4 text-sm"><b>Ocorrência:</b> luta trazida do Tatame {rem.origem} por {rem.quem}. Motivo: {rem.motivo}.</p>}
       <div className="mt-6"><div className="rotulo">Observações do árbitro</div><div className="mt-1 h-16 rounded border border-linha" /></div>
-      <Assinaturas quem={["Árbitro central", "Mesário", "Coordenação"]} />
+      <p className="mt-6 text-xs text-tinta-3">Documento gerado pela plataforma a partir do que a mesa marcou durante a luta. Correções posteriores ficam registradas como retificação e não apagam o número da súmula.</p>
+      <Assinaturas quem={[`Árbitro central${s?.arbitro ? `: ${s.arbitro}` : ""}`, `Mesário${s?.mesario ? `: ${s.mesario}` : ""}`, "Coordenação"]} />
     </Documento>
   );
 }
@@ -117,6 +119,23 @@ export function SumulaDoCampeonato() {
   const atletas = new Set(d.inscricoes.map((i) => i.atletaId)).size;
   const equipes = new Set(d.inscricoes.map((i) => d.equipeDe(i.id))).size;
   const sozinhos = d.categorias.length - comChave.length;
+  const tabelaDeOcorrencias = (lista: typeof d.estado.ocorrencias, vazio: string) => lista.length ? (
+    <table className="tabela text-sm">
+      <thead><tr><th>Tipo</th><th>Início</th><th>Fim</th><th>Onde</th><th>Parecer</th><th>Relatado por</th><th>Situação</th></tr></thead>
+      <tbody>{lista.map((o) => (
+        <tr key={o.id}>
+          <td className="font-medium">{o.tipo}</td><td>{o.inicio || "·"}</td><td>{o.fim || "·"}</td><td>{o.tatame}</td><td>{o.descricao}</td><td>{o.quem}</td>
+          <td>
+            <div>{o.situacao === "aprovada" ? "Aprovada" : o.situacao === "pendente" ? "Aguardando a organização" : "Não aprovada"}</div>
+            <div className="nao-imprimir mt-1 flex flex-wrap gap-2 text-xs">
+              {o.situacao !== "aprovada" && <button className="text-tatame hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-situacao", id: o.id, situacao: "aprovada" })}>aprovar</button>}
+              {o.situacao !== "recusada" && <button className="text-perigo hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-situacao", id: o.id, situacao: "recusada" })}>não aprovar</button>}
+            </div>
+          </td>
+        </tr>
+      ))}</tbody>
+    </table>
+  ) : <p className="text-sm text-tinta-3">{vazio}</p>;
   const numeros: [string, string | number][] = [["Atletas", atletas], ["Inscrições", d.inscricoes.length], ["Equipes", equipes], ["Categorias com chave", comChave.length], ["Categorias encerradas", concluidas.length], ["Lutas realizadas", `${feitas.length} de ${lutas.length}`]];
   return (
     <Documento titulo="Súmula do campeonato" voltar={`/app/organizacao/eventos/${EVENTO_ID}/resultados`}>
@@ -165,7 +184,7 @@ export function SumulaDoCampeonato() {
                     const faltas = (lado: number) => s?.lances.filter((x) => x.lado === lado && x.texto.includes("punição")).map((x) => x.texto.replace(/^\dª punição por /, "").replace(/ \(.*\)$/, "")) ?? [];
                     return [l.a, l.b].map((id, lado) => (
                       <tr key={l.id + lado} className={lado === 1 ? "border-b-2 border-linha" : ""}>
-                        {lado === 0 && <><td rowSpan={2} className="align-top font-medium">{tatame}-{ch.lutas.findIndex((x) => x.id === l.id) + 1}<Link className="nao-imprimir block font-normal text-marinho hover:underline" to={`/app/mesa/sumula/${encodeURIComponent(c.id)}/${l.id}`}>súmula</Link></td><td rowSpan={2} className="align-top">{nomeRodada(l.rodada, ch.totalRodadas)}</td></>}
+                        {lado === 0 && <><td rowSpan={2} className="align-top font-medium">{s?.numero ? `nº ${String(s.numero).padStart(4, "0")} · ` : ""}{tatame}-{ch.lutas.findIndex((x) => x.id === l.id) + 1}<Link className="nao-imprimir block font-normal text-marinho hover:underline" to={`/app/mesa/sumula/${encodeURIComponent(c.id)}/${l.id}`}>súmula</Link></td><td rowSpan={2} className="align-top">{nomeRodada(l.rodada, ch.totalRodadas)}</td></>}
                         <td><span className={l.vencedorId === id ? "font-semibold" : ""}>{d.nomeDe(id)}</span> <span className="text-tinta-3">{d.equipeDe(id)}</span>{faltas(lado).length > 0 && <div className="text-tinta-3">Faltas: {faltas(lado).join(", ")}</div>}</td>
                         <td>{s ? s.placar[lado]!.pontos : "·"}</td><td>{s ? s.placar[lado]!.vantagens : "·"}</td><td>{s ? s.placar[lado]!.punicoes : "·"}</td>
                         <td>{l.vencedorId === id ? `Venceu por ${(s?.metodo ?? l.metodo ?? "método não informado").toLowerCase()}` : ""}</td>
@@ -181,30 +200,17 @@ export function SumulaDoCampeonato() {
       })}
 
       <h3 className="mb-2 mt-8 text-sm font-semibold">Casos extraordinários</h3>
-      {d.estado.ocorrencias.length ? (
-        <table className="tabela text-sm">
-          <thead><tr><th>Tipo</th><th>Início</th><th>Fim</th><th>Onde</th><th>Parecer</th><th>Relatado por</th><th>Situação</th></tr></thead>
-          <tbody>{d.estado.ocorrencias.map((o) => (
-            <tr key={o.id} className={o.situacao === "recusada" ? "nao-imprimir opacity-60" : ""}>
-              <td className="font-medium">{o.tipo}</td><td>{o.inicio || "·"}</td><td>{o.fim || "·"}</td><td>{o.tatame}</td><td>{o.descricao}</td><td>{o.quem}</td>
-              <td>
-                <div>{o.situacao === "aprovada" ? "Aprovada" : o.situacao === "pendente" ? "Aguardando a organização" : "Não aprovada"}</div>
-                <div className="nao-imprimir mt-1 flex flex-wrap gap-2 text-xs">
-                  {o.situacao !== "aprovada" && <button className="text-tatame hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-situacao", id: o.id, situacao: "aprovada" })}>aprovar</button>}
-                  {o.situacao !== "recusada" && <button className="text-perigo hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-situacao", id: o.id, situacao: "recusada" })}>não aprovar</button>}
-                </div>
-              </td>
-            </tr>
-          ))}</tbody>
-        </table>
-      ) : <p className="text-sm text-tinta-3">Nenhum caso extraordinário registrado.</p>}
-      <p className="nao-imprimir mt-2 text-xs text-tinta-3">Relatos dos mesários chegam aqui aguardando a organização. Os não aprovados ficam guardados no registro, mas não saem na súmula impressa.</p>
+      {tabelaDeOcorrencias(d.estado.ocorrencias.filter((o) => o.situacao !== "recusada"), "Nenhum caso extraordinário registrado.")}
       <NovaOcorrencia />
 
       <h3 className="mb-2 mt-8 text-sm font-semibold">Lutas que mudaram de tatame</h3>
       {remanejos.length ? <ul className="list-disc space-y-1 pl-5 text-sm">{remanejos.map(([k, r]) => <li key={k}>Luta levada do Tatame {r.origem} para o Tatame {r.tatame} por {r.quem}. Motivo: {r.motivo}.</li>)}</ul> : <p className="text-sm text-tinta-3">Nenhuma.</p>}
       <div className="mt-6"><div className="rotulo">Parecer final da organização</div><div className="mt-1 h-20 rounded border border-linha" /></div>
       <Assinaturas quem={["Diretor técnico", "Organização"]} />
+
+      <h3 className="mb-1 mt-12 border-t-2 border-tinta pt-4 text-sm font-semibold">Anexo: relatos não aprovados pela organização</h3>
+      <p className="mb-2 text-xs text-tinta-3">Relatos feitos durante o evento que a organização decidiu não incluir no corpo da súmula. Constam aqui para preservar o registro de quem relatou.</p>
+      {tabelaDeOcorrencias(d.estado.ocorrencias.filter((o) => o.situacao === "recusada"), "Nenhum relato deixou de ser aprovado.")}
     </Documento>
   );
 }

@@ -12,7 +12,7 @@ O objetivo do estresse é achar o que falta ou está errado enquanto mudar custa
 | 2. Cenários ponta a ponta | Os cenários A01 a A14 do caderno funcional, percorridos tela a tela por papel | A fazer |
 | 3. Casos de borda da competição | Categoria com 2, 3 e 64 atletas, W.O., desclassificação, atleta que não bate o peso, troca de categoria depois da chave publicada, atleta em duas categorias com horários colados | A fazer |
 | 4. Volume | Evento com 1.500 e 3.000 inscrições: tempo de geração das chaves e legibilidade das telas | A fazer |
-| 5. Pessoas de fora | Um organizador, um professor e um mesário usando sem ajuda | Depende do fundador |
+| 5. Pessoas de fora | Um organizador, um professor e um mesário usando sem ajuda | Demonstração ao presidente da CBJJS e a outro mestre em 13/10: aprovado sem alterações. Uso sem ajuda ainda não feito |
 
 ## Critério de saída
 

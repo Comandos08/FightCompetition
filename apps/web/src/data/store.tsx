@@ -9,6 +9,11 @@ export interface Parceiro { id: string; nome: string; url: string; logo: string;
 /** Registro oficial de uma luta, gravado quando a mesa confirma o resultado. */
 export interface Sumula {
   tatame: number; mesario: string; encerradaEm: string;
+  /** número sequencial no evento, dado quando a súmula é gravada pela primeira vez */
+  numero?: number;
+  arbitro?: string;
+  /** quantas vezes o resultado foi regravado depois da primeira confirmação */
+  retificacoes?: number;
   /** momento em que o relógio foi iniciado pela primeira vez */
   iniciadaEm?: string;
   /** segundos de luta decorridos e tempo regulamentar da categoria */
@@ -44,6 +49,8 @@ interface Estado {
   remanejadas: Record<string, Remanejo>;
   sumulas: Record<string, Sumula>;
   ocorrencias: Ocorrencia[];
+  /** árbitro central escalado em cada tatame, informado pela mesa */
+  arbitros: Record<string, string>;
   capaEvento: string;
   sessao: Persona | null;
   novosAtletas: Atleta[];
@@ -73,7 +80,7 @@ const vazio: Estado = {
     { id: "p3", nome: "Tatames Litoral", url: "", logo: "", ativo: true },
     { id: "p4", nome: "Instituto Guarda Viva", url: "", logo: "", ativo: true },
   ],
-  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {}, ocorrencias: [],
+  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {}, ocorrencias: [], arbitros: {},
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
@@ -96,6 +103,7 @@ type Acao =
   | { tipo: "parceiro-remover"; id: string }
   | { tipo: "org-suspender"; nome: string; valor: boolean }
   | { tipo: "remanejar"; chave: string; remanejo: Remanejo | null }
+  | { tipo: "arbitro"; tatame: number; nome: string }
   | { tipo: "ocorrencia"; ocorrencia: Ocorrencia }
   | { tipo: "ocorrencia-remover"; id: string }
   | { tipo: "ocorrencia-situacao"; id: string; situacao: Ocorrencia["situacao"] }
@@ -127,7 +135,7 @@ function reduzir(e: Estado, a: Acao): Estado {
       for (const id of a.categoriaIds) publicadas[id] = a.valor;
       return { ...e, publicadas };
     }
-    case "resultado": return { ...e, resultados: { ...e.resultados, [a.chave]: a.resultado }, sumulas: a.sumula ? { ...e.sumulas, [a.chave]: a.sumula } : e.sumulas };
+    case "resultado": return { ...e, resultados: { ...e.resultados, [a.chave]: a.resultado }, sumulas: a.sumula ? { ...e.sumulas, [a.chave]: { ...a.sumula, numero: e.sumulas[a.chave]?.numero ?? Object.keys(e.sumulas).length + 1, retificacoes: e.sumulas[a.chave] ? (e.sumulas[a.chave]!.retificacoes ?? 0) + 1 : 0 } } : e.sumulas };
     case "config": return { ...e, config: { ...e.config, [a.chave]: a.valor } };
     case "membro": return { ...e, membros: [...e.membros, a.membro] };
     case "cupom": return { ...e, cupons: [...e.cupons, a.cupom] };
@@ -140,6 +148,7 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "parceiro-remover": return { ...e, parceiros: e.parceiros.filter((p) => p.id !== a.id) };
     case "org-suspender": return { ...e, orgsSuspensas: { ...e.orgsSuspensas, [a.nome]: a.valor } };
     case "sincronizar": return a.estado;
+    case "arbitro": return { ...e, arbitros: { ...e.arbitros, [a.tatame]: a.nome } };
     case "ocorrencia": return { ...e, ocorrencias: [...e.ocorrencias, a.ocorrencia] };
     case "ocorrencia-situacao": return { ...e, ocorrencias: e.ocorrencias.map((o) => (o.id === a.id ? { ...o, situacao: a.situacao } : o)) };
     case "ocorrencia-remover": return { ...e, ocorrencias: e.ocorrencias.filter((o) => o.id !== a.id) };
