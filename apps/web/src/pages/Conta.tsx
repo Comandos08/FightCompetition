@@ -4,8 +4,6 @@ import { useDados } from "@/data/store";
 import { usePessoa } from "@/data/sessao";
 import { ANO_EVENTO, EVENTO_ID, divisaoPorIdade, equipes, type Atleta } from "@/data/seed";
 import { Avatar, Campo, EnviarImagem, Faixa, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo } from "@/components/ui";
-import { quadroDeMedalhas, lutasDoAtleta } from "@/lib/resultados";
-import { nomeRodada } from "@/lib/competicao";
 
 export const navConta = [
   { para: "/app/atleta", nome: "Minhas lutas", fim: true },
@@ -184,96 +182,5 @@ export function Cadastro() {
       </div>
       <p className="mt-3 text-center text-xs text-tinta-3">No protótipo, o cadastro é simulado e entra com a conta de atleta de demonstração.</p>
     </div>
-  );
-}
-
-/** Perfil público do atleta: só dados esportivos. Menores podem ser ocultados pelo organizador. */
-export function PerfilAtleta() {
-  const { id } = useParams();
-  const d = useDados();
-  const a = d.atletas.get(id ?? "");
-  if (!a) return <Vazio>Atleta não encontrado.</Vazio>;
-  if (a.menor && d.estado.config.ocultarMenores) return <Vazio>O perfil de atletas menores de idade não é público neste evento.</Vazio>;
-  const lutas = lutasDoAtleta(d, a.id);
-  const feitas = lutas.filter((l) => l.venceu !== undefined);
-  const vitorias = feitas.filter((l) => l.venceu).length;
-  const inscricoes = d.inscricoes.filter((i) => i.atletaId === a.id);
-  return (
-    <>
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-tinta-3">
-        <Link to="/" className="font-medium text-marinho hover:underline">Eventos</Link><span>›</span>
-        <Link to={`/eventos/${EVENTO_ID}`} className="font-medium text-marinho hover:underline">Copa Horizonte de Jiu-Jitsu 2026</Link><span>›</span><span>{a.nome}</span>
-      </nav>
-      <h1 className="mb-5 text-2xl font-semibold sm:text-3xl">{a.nome}</h1>
-      <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
-        <div className="cartao p-6">
-          <div className="mb-5 flex justify-center"><Avatar atletaId={a.id} nome={a.nome} /></div>
-          {[["Equipe", <Link key="e" to={`/equipes/${encodeURIComponent(a.equipe)}`} className="text-marinho hover:underline">{a.equipe}</Link>], ["Faixa", <Faixa key="f" cor={a.faixa} />], ["Divisão", divisaoPorIdade(ANO_EVENTO - a.anoNascimento)?.nome ?? ""], ["Inscrições", String(inscricoes.length)]].map(([k, v]) => (
-            <div key={String(k)} className="flex items-center justify-between border-b border-linha/70 py-2.5 text-sm last:border-0"><span className="text-tinta-3">{k}</span><span className="font-medium">{v}</span></div>
-          ))}
-          <p className="mt-4 text-xs text-tinta-3">Data de nascimento, contato e documentos não são exibidos.</p>
-        </div>
-        <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[["Lutas", feitas.length], ["Vitórias", vitorias], ["Derrotas", feitas.length - vitorias]].map(([k, v]) => (
-              <div key={k} className="cartao p-4"><div className="rotulo">{k}</div><div className="mt-1 text-3xl font-semibold text-marinho">{v}</div></div>
-            ))}
-          </div>
-          <Secao titulo="Lutas neste evento">
-            {!lutas.length ? <Vazio>Nenhuma luta definida ainda.</Vazio> : (
-              <table className="tabela">
-                <thead><tr><th>Categoria</th><th>Fase</th><th>Oponente</th><th>Resultado</th></tr></thead>
-                <tbody>
-                  {lutas.map((l, k) => (
-                    <tr key={k}><td>{l.categoria}</td><td>{nomeRodada(l.rodada, l.total)}</td><td>{l.oponente ?? <span className="italic text-tinta-3">a definir</span>}</td>
-                      <td>{l.venceu === undefined ? <Selo>a realizar</Selo> : l.venceu ? <Selo tom="ok">vitória · {l.metodo}</Selo> : <Selo tom="acao">derrota · {l.metodo}</Selo>}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Secao>
-        </div>
-      </div>
-    </>
-  );
-}
-
-export function PaginaEquipe() {
-  const { nome } = useParams();
-  const d = useDados();
-  const equipe = decodeURIComponent(nome ?? "");
-  const atletas = [...d.atletas.values()].filter((a) => a.equipe === equipe);
-  if (!atletas.length) return <Vazio>Equipe não encontrada.</Vazio>;
-  const quadro = quadroDeMedalhas(d);
-  const posicao = quadro.findIndex((l) => l.equipe === equipe);
-  const linha = quadro[posicao];
-  const visiveis = atletas.filter((a) => !(a.menor && d.estado.config.ocultarMenores));
-  return (
-    <>
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-tinta-3">
-        <Link to="/" className="font-medium text-marinho hover:underline">Eventos</Link><span>›</span>
-        <Link to={`/eventos/${EVENTO_ID}`} className="font-medium text-marinho hover:underline">Copa Horizonte de Jiu-Jitsu 2026</Link><span>›</span><span>{equipe}</span>
-      </nav>
-      <h1 className="mb-5 text-2xl font-semibold sm:text-3xl">{equipe}</h1>
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {[["Atletas", atletas.length], ["Posição", posicao >= 0 ? `${posicao + 1}º` : "sem pontos"], ["Ouros", linha?.ouro ?? 0], ["Pratas", linha?.prata ?? 0], ["Bronzes", linha?.bronze ?? 0]].map(([k, v]) => (
-          <div key={k} className="cartao p-4"><div className="rotulo">{k}</div><div className="mt-1 text-3xl font-semibold text-marinho">{v}</div></div>
-        ))}
-      </div>
-      <Secao titulo="Atletas inscritos">
-        <div className="max-h-[60vh] overflow-auto">
-          <table className="tabela">
-            <thead><tr><th>Atleta</th><th>Faixa</th><th>Divisão</th><th>Inscrições</th></tr></thead>
-            <tbody>
-              {visiveis.map((a) => (
-                <tr key={a.id}><td><Link to={`/atletas/${a.id}`} className="font-medium text-marinho hover:underline">{a.nome}</Link></td><td><Faixa cor={a.faixa} /></td>
-                  <td>{divisaoPorIdade(ANO_EVENTO - a.anoNascimento)?.nome}</td><td>{d.inscricoes.filter((i) => i.atletaId === a.id).length}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {visiveis.length < atletas.length && <p className="mt-3 text-xs text-tinta-3">{atletas.length - visiveis.length} atletas menores de idade não são listados publicamente.</p>}
-      </Secao>
-    </>
   );
 }

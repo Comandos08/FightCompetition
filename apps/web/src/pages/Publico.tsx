@@ -6,6 +6,7 @@ import { Abas, Faixa, Selo, Vazio } from "@/components/ui";
 import { Chave, Podio } from "@/components/Chave";
 import { hhmm, idCategoria } from "@/lib/competicao";
 import { quadroDeMedalhas } from "@/lib/resultados";
+import { RankingDestaque } from "@/pages/Vitrine";
 
 const Icone = ({ d }: { d: string }) => (
   <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
@@ -104,6 +105,7 @@ export function Agenda() {
         ))}
         {!lista.length && <Vazio>Nenhum evento encontrado.</Vazio>}
       </div>
+      <RankingDestaque />
       {estado.parceiros.some((p) => p.ativo) && (
         <section className="mt-16">
           <h2 className="mb-6 text-center text-2xl font-semibold">Nossos parceiros</h2>

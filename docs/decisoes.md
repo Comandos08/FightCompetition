@@ -32,6 +32,9 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Página inicial ganha a seção "Nossos parceiros", administrada pela equipe da plataforma. No protótipo aparecem SportCombat e três nomes fictícios | Fundador (pedido) e Claude (execução) | Parceria e autoridade. Marca de terceiro só entra com autorização por escrito |
 | 13/10/2026 | Criada a área de administração da plataforma (papel interno do SaaS): visão geral, organizações, eventos, usuários, parceiros, equipe interna e auditoria | Fundador (pedido) e Claude (desenho) | O SaaS precisa de operação própria: suporte, moderação, parceiros e controle |
 | 13/10/2026 | O administrador vê e intervém em tudo, mas com três travas: dados pessoais ocultos até serem revelados, toda ação registrada em auditoria que ninguém edita, e papéis internos separados (administrador, suporte, financeiro, conteúdo) | Claude | A plataforma guarda dados de menores e dinheiro de terceiros; poder irrestrito e sem rastro é risco jurídico e de confiança. A validar com o fundador |
+| 13/10/2026 | Perfil do atleta e ranking viram a vitrine do produto: ranking na página inicial, página de rankings (atletas e equipes), cartel com vitórias e derrotas por método, finalizações, pontos por evento e página da equipe com pódios | Fundador (direção e referência) e Claude (execução) | Vaidade e reconhecimento são o motor de engajamento do atleta; segue o estudo "IBJJF Redesign" |
+| 13/10/2026 | O ranking pertence à federação ou ao circuito, que define a própria regra de pontos; a plataforma não mantém ranking único por enquanto | Claude | É o argumento de venda para federações e evita a plataforma arbitrar mérito entre entidades. A validar |
+| 13/10/2026 | Histórico de temporadas, regra de pontos do ranking e nomes de finalizações no protótipo são fictícios e ilustrativos; menores não aparecem em ranking individual | Claude | Não há dados reais nem regra definida; proteção de menores por padrão |
 
 ## Em aberto
 
@@ -46,3 +49,5 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Preço por inscrição e taxa da plataforma (as telas de financeiro e plano mostram valores de exemplo).
 - Quais formatos de chave entram primeiro no motor além da eliminatória simples.
 - Provedor de mapa (Google Maps é pago acima da franquia; OpenStreetMap é gratuito) e regra de moderação de imagens enviadas.
+- Registro do método de vitória por luta (pontos, finalização e qual, vantagens, decisão): exige que a mesa informe isso a cada luta; decidir o nível de detalhe.
+- Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
