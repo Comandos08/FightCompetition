@@ -15,8 +15,12 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 12/10/2026 | Tabela de divisões, pesos e tempos do protótipo é ilustrativa | Claude | O livro de regras oficial ainda não foi lido; nada disso é regra do produto |
 | 13/10/2026 | Site público separado da área logada; a área logada mostra só os contextos em que a conta tem papel (minha área, equipe, organização, mesa) | Fundador (apontou a mistura) e Claude (execução) | O protótipo expunha painel do organizador e mesa a qualquer visitante |
 | 13/10/2026 | Público sem login: agenda, página do evento, chaves publicadas, programação, resultados e painel do ginásio. Inscrição exige conta | Claude | Segue o bloco 1 do caderno funcional; a validar |
+| 13/10/2026 | Direção visual sóbria, inspirada no estudo "IBJJF Redesign" de Ruslan Iulaev (Behance): fundo #F7F9FC, cartões brancos, azul-marinho #1A447D, amarelo #FAAB19, cabeçalho em dois níveis, abas e cartões com o mesmo ritmo | Fundador (referência) e Claude (execução) | Substitui a primeira direção visual. A fonte da referência (TT Norms Pro) é paga; o protótipo usa Outfit, a alternativa gratuita mais próxima |
+| 13/10/2026 | A referência orienta estrutura e ritmo; marca, logotipo e nome do produto precisam ser próprios | Claude | Azul-marinho com amarelo é a identidade da IBJJF; um produto de terceiros com a mesma cara pode ser lido como oficial dela |
 
 ## Em aberto
+
+- Paleta definitiva: manter azul-marinho e amarelo ou adotar cores próprias com a mesma estrutura.
 
 - Nome do produto.
 - Livro de regras e tabela de pesos oficiais (PDF), para o pacote de regras.

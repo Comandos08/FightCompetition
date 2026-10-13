@@ -2,51 +2,72 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDados } from "@/data/store";
 import { ANO_EVENTO, EVENTO_ID, VALOR_INSCRICAO, divisaoPorIdade, eventos, equipes, type Atleta, type Inscricao as TInscricao, type Modalidade } from "@/data/seed";
-import { Abas, Faixa, Selo, Titulo, Vazio } from "@/components/ui";
+import { Abas, Faixa, Selo, Vazio } from "@/components/ui";
 import { Chave, Podio } from "@/components/Chave";
 import { hhmm, idCategoria } from "@/lib/competicao";
+
+const Icone = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
+);
+const CALENDARIO = "M7 3v3M17 3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z";
+const LOCAL = "M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z";
+
+/** Arte do evento: um bloco de cor com o nome, no lugar do logotipo que cada organizador enviará. */
+function Arte({ nome, tom, alta }: { nome: string; tom: number; alta?: boolean }) {
+  const tons = ["from-[#1A447D] to-[#0F2B52]", "from-[#1F8A5B] to-[#12583A]", "from-[#C97A0A] to-[#8F5303]", "from-[#5B3A8C] to-[#3A2260]"];
+  return (
+    <div className={`relative overflow-hidden bg-gradient-to-br ${tons[tom % tons.length]} ${alta ? "h-56 rounded-lg" : "h-32 rounded-t-lg"}`}>
+      <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full border-[28px] border-white/10" />
+      <div className="absolute -right-24 -top-28 h-96 w-96 rounded-full border-[28px] border-white/5" />
+      <div className={`absolute inset-0 flex items-center px-5 font-semibold leading-tight text-white ${alta ? "text-4xl sm:px-10" : "text-lg"}`}>
+        <span className={alta ? "max-w-xl" : "max-w-[14rem]"}>{nome}</span>
+      </div>
+    </div>
+  );
+}
 
 export function Agenda() {
   const { inscricoes } = useDados();
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState("Todos");
-  const lista = eventos
-    .map((e) => (e.id === EVENTO_ID ? { ...e, inscritos: inscricoes.length } : e))
-    .filter((e) => (filtro === "Todos" || e.status === filtro) && `${e.nome} ${e.cidade} ${e.organizador}`.toLowerCase().includes(busca.toLowerCase()));
+  const todos = eventos.map((e) => (e.id === EVENTO_ID ? { ...e, inscritos: inscricoes.length } : e));
+  const lista = todos.filter((e) => (filtro === "Todos" || e.status === filtro) && `${e.nome} ${e.cidade} ${e.organizador}`.toLowerCase().includes(busca.toLowerCase()));
+  const destaque = todos[0]!;
   return (
     <>
-      <section className="mb-8 grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:items-end">
-        <div>
-          <div className="rotulo mb-2">Agenda de competições</div>
-          <h1 className="text-5xl font-black uppercase leading-[0.92] sm:text-6xl" style={{ fontStretch: "76%" }}>
-            Do cadastro<br />ao pódio,<br /><span className="text-acao">sem planilha.</span>
-          </h1>
+      <Link to={`/eventos/${destaque.id}`} className="relative mb-10 block overflow-hidden rounded-lg bg-gradient-to-br from-[#1A447D] to-[#0F2B52] px-6 py-10 text-white sm:px-10 sm:py-14">
+        <div className="absolute -right-16 -top-24 h-[28rem] w-[28rem] rounded-full border-[40px] border-white/10" />
+        <div className="absolute -right-40 -top-48 h-[44rem] w-[44rem] rounded-full border-[40px] border-white/5" />
+        <div className="relative max-w-xl">
+          <span className="rounded bg-ouro px-2 py-1 text-xs font-medium text-tinta">Inscrições abertas</span>
+          <h1 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl">{destaque.nome}</h1>
+          <p className="mt-2 text-white/80">{destaque.datas} · {destaque.local}, {destaque.cidade}</p>
+          <span className="mt-6 inline-flex rounded-md bg-white px-4 py-2.5 text-sm font-medium text-marinho">Ver evento e inscrever-se</span>
         </div>
-        <p className="max-w-md text-tinta-2">
-          Encontre um evento, inscreva-se em poucos passos e acompanhe sua chave e o horário estimado da sua luta pelo celular.
-        </p>
-      </section>
-      <div className="mb-5 flex flex-wrap gap-2">
-        <input className="campo max-w-xs" placeholder="Buscar evento, cidade ou organizador" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        {["Todos", "Inscrições abertas", "Em breve", "Encerrado"].map((f) => (
-          <button key={f} onClick={() => setFiltro(f)} className={filtro === f ? "botao-primario" : "botao-contorno"}>{f}</button>
-        ))}
+      </Link>
+
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-2xl font-semibold">Próximos eventos</h2>
+        <div className="flex flex-wrap gap-2">
+          <input className="campo w-64" placeholder="Buscar evento ou cidade" value={busca} onChange={(e) => setBusca(e.target.value)} />
+          <div className="flex rounded-md border border-linha bg-white p-1">
+            {["Todos", "Inscrições abertas", "Em breve", "Encerrado"].map((f) => (
+              <button key={f} onClick={() => setFiltro(f)} className={`rounded px-3 py-1.5 text-sm font-medium transition ${filtro === f ? "bg-marinho text-white" : "text-tinta-2 hover:text-marinho"}`}>{f}</button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {lista.map((e) => (
-          <Link key={e.id} to={e.demo ? `/eventos/${e.id}` : "#"} className={`cartao group relative overflow-hidden p-5 transition ${e.demo ? "hover:-translate-y-0.5 hover:border-tinta" : "opacity-70"}`}>
-            <div className="listra absolute inset-y-0 left-0 w-1.5" />
-            <div className="flex items-start justify-between gap-3 pl-3">
-              <div>
-                <div className="rotulo">{e.datas} · {e.cidade}</div>
-                <h2 className="mt-1 text-2xl font-extrabold leading-tight">{e.nome}</h2>
-                <div className="mt-1 text-sm text-tinta-2">{e.organizador} · {e.local}</div>
-              </div>
-              <Selo tom={e.status === "Inscrições abertas" ? "ok" : e.status === "Em breve" ? "aviso" : "neutro"}>{e.status}</Selo>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {lista.map((e, k) => (
+          <Link key={e.id} to={e.demo ? `/eventos/${e.id}` : "/"} className={`cartao group flex flex-col overflow-hidden transition ${e.demo ? "hover:-translate-y-0.5 hover:shadow-lg" : "opacity-75"}`}>
+            <Arte nome={e.nome} tom={todos.indexOf(e) + (k < 0 ? 0 : 0)} />
+            <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-tinta-2">
+              <div className="flex items-center gap-2"><Icone d={CALENDARIO} />{e.datas}</div>
+              <div className="flex items-center gap-2"><Icone d={LOCAL} />{e.cidade}</div>
+              <div className="text-xs text-tinta-3">{e.modalidades}{e.inscritos ? ` · ${e.inscritos} inscrições` : ""}</div>
             </div>
-            <div className="mt-4 flex items-center justify-between pl-3 text-sm">
-              <span className="text-tinta-2">{e.modalidades}{e.inscritos ? ` · ${e.inscritos} inscrições` : ""}</span>
-              <span className="font-medium text-acao">{e.demo ? "Abrir evento →" : "Só o primeiro evento é navegável"}</span>
+            <div className={`border-t border-linha py-3 text-center text-sm font-medium transition ${e.demo ? "text-marinho group-hover:bg-marinho group-hover:text-white" : "text-tinta-3"}`}>
+              {e.status === "Encerrado" ? "Ver resultados" : e.status === "Em breve" ? "Em breve" : "Inscreva-se"}{!e.demo && " (demonstração)"}
             </div>
           </Link>
         ))}
@@ -76,7 +97,20 @@ export function Evento() {
 
   return (
     <>
-      <Titulo sobre={`${ev.datas} · ${ev.cidade}`} acoes={<><Link to="/tv" className="botao-contorno">Painel do ginásio</Link><Link to={`/app/inscricao/${ev.id}`} className="botao-acao">Inscrever-se</Link></>}>{ev.nome}</Titulo>
+      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-tinta-3">
+        <Link to="/" className="font-medium text-marinho hover:underline">Eventos</Link><span>›</span><span>{ev.nome}</span>
+      </nav>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold sm:text-3xl">{ev.nome}</h1>
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-tinta-2">
+            <span className="flex items-center gap-2"><Icone d={CALENDARIO} />{ev.datas}</span>
+            <span className="flex items-center gap-2 text-marinho"><Icone d={LOCAL} />{ev.local}, {ev.cidade}</span>
+          </div>
+        </div>
+        <Link to="/tv" className="botao-contorno">Painel do ginásio</Link>
+      </div>
+      <div className="mb-5"><Arte nome={ev.nome} tom={0} alta /></div>
       <Abas<AbaEvento> ativa={aba} aoMudar={setAba} abas={[
         { id: "info", nome: "Informações" }, { id: "inscritos", nome: "Inscritos", conta: dados.inscricoes.length },
         { id: "chaves", nome: "Chaves", conta: publicadas.length }, { id: "programacao", nome: "Programação" },
@@ -84,24 +118,43 @@ export function Evento() {
       ]} />
 
       {aba === "info" && (
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="cartao p-5 lg:col-span-2">
-            <h2 className="mb-2 text-xl font-bold">Sobre o evento</h2>
-            <p className="text-tinta-2">Competição aberta a todas as equipes, com categorias de Mirim a Master, masculino e feminino, nas modalidades Gi (sábado) e No-Gi (domingo). Atletas podem se inscrever nas duas modalidades.</p>
-            <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-              {[["Local", ev.local], ["Organização", ev.organizador], ["Inscrição", `R$ ${VALOR_INSCRICAO},00 por modalidade`], ["Pesagem", "Antes da primeira luta, no tatame de aquecimento"], ["Formato", "Eliminatória simples"], ["Tatames", "6 áreas simultâneas"]].map(([k, v]) => (
-                <div key={k}><dt className="rotulo">{k}</dt><dd className="mt-0.5 font-medium">{v}</dd></div>
-              ))}
-            </dl>
+        <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+          <div className="space-y-4">
+            <div className="cartao p-6">
+              <h2 className="mb-4 text-lg font-semibold">{ev.nome}</h2>
+              <dl className="grid gap-5 sm:grid-cols-2">
+                {[["Data", ev.datas], ["Local", `${ev.local}, ${ev.cidade}`], ["Organização", ev.organizador], ["Formato", "Eliminatória simples"], ["Pesagem", "Antes da primeira luta"], ["Áreas de luta", "6 tatames simultâneos"]].map(([k, v]) => (
+                  <div key={k}><dt className="rotulo">{k}</dt><dd className="mt-1 font-medium">{v}</dd></div>
+                ))}
+              </dl>
+            </div>
+            <div className="cartao p-6">
+              <h2 className="mb-2 text-lg font-semibold">Sobre o evento</h2>
+              <p className="text-tinta-2">Competição aberta a todas as equipes, com categorias de Mirim a Master, masculino e feminino, nas modalidades Gi (sábado) e No-Gi (domingo). Atletas podem se inscrever nas duas modalidades.</p>
+            </div>
           </div>
-          <div className="cartao p-5">
-            <div className="rotulo mb-3">Prazos</div>
-            {[["Lote 1", "até 31 out", "encerrado"], ["Lote 2", "até 14 nov", "aberto"], ["Correções", "até 17 nov", ""], ["Chaves publicadas", "19 nov", ""]].map(([a, b, c]) => (
-              <div key={a} className="flex items-center justify-between border-b border-linha/70 py-2 last:border-0">
-                <span className="font-medium">{a}</span>
-                <span className="text-sm text-tinta-2">{b} {c && <Selo tom={c === "aberto" ? "ok" : "neutro"}>{c}</Selo>}</span>
+          <div className="space-y-4">
+            <div className="cartao p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Participe do campeonato</h2>
+                <span className="rounded bg-ouro px-2 py-1 text-xs font-medium text-tinta">Lote 2 até 14 nov</span>
               </div>
-            ))}
+              {[["Uma modalidade (Gi ou No-Gi)", `R$ ${VALOR_INSCRICAO},00`], ["Gi e No-Gi", `R$ ${VALOR_INSCRICAO * 2},00`], ["Entrada de público", "Gratuita"]].map(([a2, b2]) => (
+                <div key={a2} className="flex items-center justify-between border-b border-linha/70 py-3 text-sm last:border-0">
+                  <span>{a2}</span><span className="font-semibold text-marinho">{b2}</span>
+                </div>
+              ))}
+              <Link to={`/app/inscricao/${ev.id}`} className="botao-primario mt-5 w-full">Inscrição e pagamento</Link>
+            </div>
+            <div className="cartao p-6">
+              <h2 className="mb-3 text-lg font-semibold">Prazos</h2>
+              {[["Lote 1", "até 31 out", "encerrado"], ["Lote 2", "até 14 nov", "aberto"], ["Correções", "até 17 nov", ""], ["Chaves publicadas", "19 nov", ""]].map(([a2, b2, c2]) => (
+                <div key={a2} className="flex items-center justify-between border-b border-linha/70 py-2.5 text-sm last:border-0">
+                  <span className="font-medium">{a2}</span>
+                  <span className="text-tinta-2">{b2} {c2 && <Selo tom={c2 === "aberto" ? "ok" : "neutro"}>{c2}</Selo>}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -144,7 +197,7 @@ export function Evento() {
               const bs = dados.blocos.filter((b) => b.dia === dia && b.tatame === t);
               return (
                 <div key={t} className="cartao overflow-hidden">
-                  <div className="flex items-center justify-between bg-tinta px-3 py-2 text-white">
+                  <div className="flex items-center justify-between bg-marinho px-3 py-2 text-white">
                     <span className="font-display font-bold">Tatame {t}</span>
                     <span className="font-mono text-xs opacity-70">{bs.length ? `${hhmm(bs[0]!.inicio)} – ${hhmm(bs[bs.length - 1]!.fim)}` : ""}</span>
                   </div>
@@ -174,7 +227,7 @@ export function Evento() {
                 <div className="rotulo">{c.modalidade}</div>
                 <div className="mb-2 font-semibold">{c.nome}</div>
                 {[["1º", r.campeaoId], ["2º", r.viceId], ...r.semifinalistasDerrotados.map((x) => ["3º", x] as const)].map(([p, x], k) => (
-                  <div key={k} className="flex gap-3 text-sm"><span className="w-6 font-display font-extrabold">{p}</span><span>{dados.nomeDe(x)}</span><span className="text-tinta-3">{dados.equipeDe(x)}</span></div>
+                  <div key={k} className="flex gap-3 text-sm"><span className="w-6 font-display font-semibold">{p}</span><span>{dados.nomeDe(x)}</span><span className="text-tinta-3">{dados.equipeDe(x)}</span></div>
                 ))}
               </div>
             );
@@ -210,7 +263,7 @@ export function Inscricao() {
 
   const Passo = ({ n, nome }: { n: number; nome: string }) => (
     <div className={`flex items-center gap-2 ${passo >= n ? "text-tinta" : "text-tinta-3"}`}>
-      <span className={`grid h-6 w-6 place-items-center rounded-full font-mono text-xs ${passo > n ? "bg-tatame text-white" : passo === n ? "bg-tinta text-white" : "border border-linha"}`}>{passo > n ? "✓" : n}</span>
+      <span className={`grid h-6 w-6 place-items-center rounded-full font-mono text-xs ${passo > n ? "bg-tatame text-white" : passo === n ? "bg-marinho text-white" : "border border-linha"}`}>{passo > n ? "✓" : n}</span>
       <span className="text-sm font-medium">{nome}</span>
     </div>
   );
@@ -218,7 +271,7 @@ export function Inscricao() {
   return (
     <div className="mx-auto max-w-2xl">
       <Link to={`/eventos/${id}`} className="rotulo hover:text-tinta">← Voltar ao evento</Link>
-      <h1 className="mb-5 mt-2 text-3xl font-extrabold">Inscrição</h1>
+      <h1 className="mb-5 mt-2 text-3xl font-semibold">Inscrição</h1>
       <div className="mb-6 flex flex-wrap gap-5"><Passo n={1} nome="Atleta" /><Passo n={2} nome="Categoria" /><Passo n={3} nome="Pagamento" /></div>
 
       {passo === 1 && (
@@ -239,7 +292,7 @@ export function Inscricao() {
           <label className="block"><span className="rotulo">Equipe</span><select className="campo mt-1" value={f.equipe} onChange={(e) => mudar("equipe", e.target.value)}>{equipes.map((e) => <option key={e}>{e}</option>)}</select></label>
           {f.ano.length === 4 && (div
             ? <div className="rounded-md bg-tatame-claro px-3 py-2 text-sm text-tatame">Divisão de idade: <b>{div.nome}</b> ({idade} anos em {ANO_EVENTO}).</div>
-            : <div className="rounded-md bg-acao-claro px-3 py-2 text-sm text-acao-escuro">Não há divisão para {idade} anos neste evento.</div>)}
+            : <div className="rounded-md bg-perigo-claro px-3 py-2 text-sm text-perigo">Não há divisão para {idade} anos neste evento.</div>)}
           {menor && div && (
             <label className="block"><span className="rotulo">Nome do responsável legal</span><input className="campo mt-1" value={f.responsavel} onChange={(e) => mudar("responsavel", e.target.value)} />
               <span className="mt-1 block text-xs text-tinta-3">A inscrição de menor só é confirmada com responsável identificado. O nome do responsável nunca aparece em telas públicas.</span></label>
@@ -267,7 +320,7 @@ export function Inscricao() {
 
       {passo === 3 && (
         <div className="cartao space-y-4 p-5">
-          <div className="flex items-center justify-between"><span>{modalidades.length} inscrição(ões) · {f.nome}</span><span className="font-display text-2xl font-extrabold">R$ {total},00</span></div>
+          <div className="flex items-center justify-between"><span>{modalidades.length} inscrição(ões) · {f.nome}</span><span className="font-display text-2xl font-semibold">R$ {total},00</span></div>
           <div className="grid gap-4 rounded-md border border-linha p-4 sm:grid-cols-[auto_1fr] sm:items-center">
             <div className="grid h-32 w-32 place-items-center rounded bg-[repeating-conic-gradient(#15191E_0_25%,#fff_0_50%)] bg-[length:14px_14px]"><span className="bg-white px-1 font-mono text-[10px]">PIX demo</span></div>
             <div className="text-sm text-tinta-2">No produto, o Pix é confirmado automaticamente e a taxa da plataforma é descontada no repasse ao organizador. Aqui o pagamento é simulado.</div>
@@ -280,7 +333,7 @@ export function Inscricao() {
       {passo === 4 && (
         <div className="cartao p-6 text-center">
           <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-tatame text-xl text-white">✓</div>
-          <h2 className="text-2xl font-extrabold">Inscrição confirmada</h2>
+          <h2 className="text-2xl font-semibold">Inscrição confirmada</h2>
           <p className="mt-1 text-tinta-2">{f.nome} já aparece na lista de inscritos e entra na categoria quando as chaves forem geradas.</p>
           <div className="mt-4 flex justify-center gap-2"><button className="botao-primario" onClick={() => nav(`/eventos/${id}`)}>Ver evento</button><button className="botao-contorno" onClick={() => nav("/app/atleta")}>Ir para minha área</button></div>
         </div>

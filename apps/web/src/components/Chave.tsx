@@ -18,7 +18,7 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
     <div className={`flex items-center justify-between gap-2 px-2.5 py-1.5 ${vencedor ? "bg-tatame-claro" : ""}`}>
       <div className="min-w-0">
         <div className={`truncate text-[13px] leading-tight ${id ? (vencedor ? "font-semibold" : "") : "italic text-tinta-3"}`}>{nomeDe(id)}</div>
-        {id && <div className="truncate text-[10px] uppercase tracking-wide text-tinta-3">{equipeDe(id)}{bye ? " · bye" : ""}</div>}
+        {id && <div className="truncate text-[10px] text-tinta-3">{equipeDe(id)}{bye ? " · bye" : ""}</div>}
       </div>
       {vencedor && <span className="font-mono text-[10px] font-semibold text-tatame">V</span>}
     </div>
@@ -41,12 +41,12 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
         <button
           onClick={() => aoAbrirLuta?.(def.id)}
           disabled={!aoAbrirLuta}
-          className={`w-52 shrink-0 overflow-hidden rounded-md border bg-white text-left transition ${est.pronta ? "border-acao/60 shadow-cartao" : "border-linha"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}
+          className={`w-52 shrink-0 overflow-hidden rounded-md border bg-white text-left transition ${est.pronta ? "border-ouro shadow-cartao" : "border-linha"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}
         >
           <div className="flex items-center justify-between border-b border-linha/70 bg-papel/60 px-2.5 py-0.5">
             <span className="font-mono text-[10px] text-tinta-3">{def.id} · {nomeRodada(def.rodada, chave.totalRodadas)}</span>
             {est.metodo && <span className="font-mono text-[10px] text-tinta-3">{est.metodo}</span>}
-            {est.pronta && <span className="font-mono text-[10px] font-semibold text-acao">pronta</span>}
+            {est.pronta && <span className="font-mono text-[10px] font-semibold text-ouro-escuro">pronta</span>}
           </div>
           <Lado id={est.a} vencedor={!!est.vencedorId && est.vencedorId === est.a} bye={def.ladoA.tipo === "participante" && def.rodada > 1} />
           <div className="h-px bg-linha/70" />
@@ -78,7 +78,7 @@ export function Podio({ resolvida }: { resolvida: ChaveResolvida }) {
       <div className="rotulo mb-2">Pódio</div>
       {linhas.map((l, i) => (
         <div key={i} className="flex items-baseline gap-3 py-1">
-          <span className="w-7 font-display text-lg font-extrabold">{l.pos}</span>
+          <span className="w-7 font-display text-lg font-semibold">{l.pos}</span>
           <span className="font-medium">{nomeDe(l.id)}</span>
           <span className="text-xs text-tinta-3">{equipeDe(l.id)}</span>
         </div>

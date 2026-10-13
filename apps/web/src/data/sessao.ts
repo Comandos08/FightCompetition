@@ -13,11 +13,11 @@ export const contextos: Record<ContextoId, { rota: string; nome: string; papel: 
   mesa: { rota: "/app/mesa", nome: "Copa Horizonte 2026", papel: "Mesa do tatame" },
 };
 
-export const personas: Record<Persona, { rotulo: string; descricao: string; nome?: string; contextos: ContextoId[] }> = {
-  atleta: { rotulo: "Atleta", descricao: "Vê as próprias inscrições, a chave e o horário previsto da próxima luta.", contextos: ["atleta"] },
-  professor: { rotulo: "Professor", descricao: "Além da área pessoal, acompanha a agenda e as pendências da equipe.", nome: "Marcos Teles Brandão", contextos: ["atleta", "equipe"] },
-  organizador: { rotulo: "Organizador", descricao: "Administra o evento: inscritos, categorias, chaves, programação e pesagem.", nome: "Renata Coutinho Lins", contextos: ["atleta", "organizacao", "mesa"] },
-  mesario: { rotulo: "Mesário", descricao: "Opera a fila e o placar do tatame em que foi escalado. Não vê inscrições nem financeiro.", nome: "Diego Antunes Paiva", contextos: ["atleta", "mesa"] },
+export const personas: Record<Persona, { rotulo: string; descricao: string; nome?: string; contextos: ContextoId[]; inicial: ContextoId }> = {
+  atleta: { rotulo: "Atleta", descricao: "Vê as próprias inscrições, a chave e o horário previsto da próxima luta.", contextos: ["atleta"], inicial: "atleta" },
+  professor: { rotulo: "Professor", descricao: "Além da área pessoal, acompanha a agenda e as pendências da equipe.", nome: "Marcos Teles Brandão", contextos: ["atleta", "equipe"], inicial: "equipe" },
+  organizador: { rotulo: "Organizador", descricao: "Administra o evento: inscritos, categorias, chaves, programação e pesagem.", nome: "Renata Coutinho Lins", contextos: ["atleta", "organizacao", "mesa"], inicial: "organizacao" },
+  mesario: { rotulo: "Mesário", descricao: "Opera a fila e o placar do tatame em que foi escalado. Não vê inscrições nem financeiro.", nome: "Diego Antunes Paiva", contextos: ["atleta", "mesa"], inicial: "mesa" },
 };
 
 /** Quem está logado: nome exibido e, para o atleta, o cadastro esportivo ligado à conta. */

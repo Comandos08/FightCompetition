@@ -56,9 +56,9 @@ export function Atleta() {
                 : p.eliminado ? <div className="px-4 py-4 text-sm text-tinta-2">A participação nesta categoria terminou.</div>
                 : p.luta ? (
                   <div className="grid gap-4 px-4 py-4 sm:grid-cols-[auto_1fr] sm:items-center">
-                    <div className="rounded-md bg-tinta px-5 py-3 text-center text-white">
-                      <div className="font-mono text-[10px] uppercase tracking-widest opacity-60">{p.bloco.dia === 1 ? "Sábado" : "Domingo"} · previsto</div>
-                      <div className="font-display text-4xl font-black tabular-nums" style={{ fontStretch: "78%" }}>{hhmm(horarioDaLuta(p.bloco, p.luta.id))}</div>
+                    <div className="rounded-md bg-marinho px-5 py-3 text-center text-white">
+                      <div className="font-mono text-[10px] opacity-60">{p.bloco.dia === 1 ? "Sábado" : "Domingo"} · previsto</div>
+                      <div className="font-display text-4xl font-bold tabular-nums">{hhmm(horarioDaLuta(p.bloco, p.luta.id))}</div>
                       <div className="font-mono text-xs">Tatame {p.bloco.tatame}</div>
                     </div>
                     <div>
@@ -117,7 +117,7 @@ export function Professor() {
               return (
                 <div key={i.id} className="flex items-center gap-3 px-3 py-2.5 text-sm">
                   <span className="w-12 font-mono font-semibold">{hhmm(hora)}</span>
-                  <span className="w-10 rounded bg-tinta py-0.5 text-center font-mono text-xs text-white">T{p.bloco!.tatame}</span>
+                  <span className="w-10 rounded bg-marinho py-0.5 text-center font-mono text-xs text-white">T{p.bloco!.tatame}</span>
                   <span className="flex-1"><span className="font-medium">{d.nomeDe(i.id)}</span> <span className="text-tinta-3">{oponente ? `x ${d.nomeDe(oponente)}` : "· oponente a definir"}</span><div className="text-xs text-tinta-3">{i.divisao} · {i.faixa} · {i.peso}</div></span>
                   {conflito && <Selo tom="aviso">tatames diferentes quase juntos</Selo>}
                 </div>
