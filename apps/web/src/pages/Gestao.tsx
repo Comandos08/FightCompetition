@@ -100,7 +100,7 @@ export function NovoEvento() {
               <option>Eliminatória simples com dois bronzes</option><option>Eliminatória simples com disputa de terceiro</option><option>Eliminatória com repescagem</option><option>Todos contra todos até 5 atletas, eliminatória acima</option>
             </select>
           </Campo>
-          <Campo rotulo="Tabela de categorias" dica="Divisões de idade, faixas e pesos. Pode ser editada depois."><select id="ev-tabela" className="campo"><option>Tabela padrão de Jiu-Jitsu (ilustrativa)</option><option>Copiar da Copa Horizonte 2026</option></select></Campo>
+          <Campo rotulo="Tabela de categorias" dica="Divisões de idade, faixas e pesos. Pode ser editada depois."><select id="ev-tabela" className="campo"><option>Jiu-Jitsu: idades e pesos da IBJJF</option><option>Copiar da Copa Horizonte 2026</option></select></Campo>
           <Campo rotulo="Tatames"><input id="ev-tatames" className="campo w-32" type="number" min={1} max={20} value={f.tatames} onChange={(e) => mudar("tatames", Number(e.target.value))} /></Campo>
         </>}
         {passo === 3 && <>

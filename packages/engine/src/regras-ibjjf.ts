@@ -3,7 +3,7 @@
  * Fonte única: IBJJF, "Livro de Regras, Regulamento Geral de Competições e Manual de Formatação de Competições",
  * versão 6.1, junho de 2024. Cada constante cita o artigo de onde saiu. Nada aqui é escrito de memória.
  *
- * O que o livro NÃO traz e, por isso, não está neste pacote: a tabela de pesos e o sistema de faixas por idade.
+ * O que o livro NÃO traz: a tabela de pesos (está em pesos-ibjjf.ts, de outra fonte) e o sistema de faixas por idade.
  */
 export const FONTE = "IBJJF, Livro de Regras v6.1 (jun. 2024)";
 

@@ -1,9 +1,9 @@
 /**
  * Dados FICTÍCIOS do protótipo. Nenhum nome, equipe ou evento aqui é real.
  * Categorias de idade e tempos de luta vêm do pacote de regras IBJJF (Regulamento Geral, art. 1.3).
- * Pesos e faixas por idade continuam ilustrativos: não estão no livro de regras recebido.
+ * Pesos seguem a tabela oficial da IBJJF (packages/engine/src/pesos-ibjjf.ts). As faixas por idade continuam ilustrativas.
  */
-import { criarRng, regrasIbjjf, type Rng } from "@engine";
+import { criarRng, regrasIbjjf, type Rng, pesosIbjjf } from "@engine";
 
 export type Sexo = "M" | "F";
 export type Modalidade = "Gi" | "No-Gi";
@@ -74,25 +74,24 @@ const sobrenomes = ["Almeida", "Barros", "Cardoso", "Dias", "Esteves", "Farias",
 
 interface DivisaoDef { nome: string; idadeMin: number; idadeMax: number; faixas: string[]; pesos: string[]; minutos: (faixa: string) => number; peso: number; }
 
-const pesosAdulto = ["Galo", "Pluma", "Pena", "Leve", "Médio", "Meio-pesado", "Pesado", "Super-pesado", "Pesadíssimo"];
-const pesosKids = ["Pluma", "Pena", "Leve", "Médio", "Pesado"];
+const todasAsClasses = [...pesosIbjjf.CLASSES_DE_PESO] as string[];
 const faixasAdulto = ["Branca", "Azul", "Roxa", "Marrom", "Preta"];
 const faixasKids = ["Branca", "Cinza", "Amarela", "Laranja", "Verde"];
-/** Peso de sorteio de cada categoria na base fictícia e as faixas e pesos ilustrativos de cada grupo. */
+/** Peso de sorteio de cada categoria na base fictícia e as faixas ilustrativas de cada grupo. */
 const grupos: { prefixo: string; faixas: string[]; pesos: string[]; chance: number; ate?: number }[] = [
-  { prefixo: "Pré-Mirim", faixas: faixasKids.slice(0, 2), pesos: pesosKids, chance: 0.7 },
-  { prefixo: "Mirim", faixas: faixasKids.slice(0, 3), pesos: pesosKids, chance: 3 },
-  { prefixo: "Infantil", faixas: faixasKids, pesos: pesosKids, chance: 3.6 },
-  { prefixo: "Infanto-Juvenil", faixas: faixasKids, pesos: pesosKids, chance: 3 },
-  { prefixo: "Juvenil", faixas: ["Branca", "Azul"], pesos: pesosAdulto.slice(0, 7), chance: 3 },
-  { prefixo: "Adulto", faixas: faixasAdulto, pesos: pesosAdulto, chance: 38 },
-  { prefixo: "Master 1", faixas: faixasAdulto, pesos: pesosAdulto, chance: 14 },
-  { prefixo: "Master 2", faixas: faixasAdulto, pesos: pesosAdulto, chance: 8 },
-  { prefixo: "Master 3", faixas: faixasAdulto, pesos: pesosAdulto, chance: 4 },
-  { prefixo: "Master 4", faixas: faixasAdulto, pesos: pesosAdulto, chance: 1.5 },
-  { prefixo: "Master 5", faixas: faixasAdulto, pesos: pesosAdulto, chance: 0.6 },
-  { prefixo: "Master 6", faixas: faixasAdulto, pesos: pesosAdulto, chance: 0.3 },
-  { prefixo: "Master 7", faixas: faixasAdulto, pesos: pesosAdulto, chance: 0.2 },
+  { prefixo: "Pré-Mirim", faixas: faixasKids.slice(0, 2), pesos: todasAsClasses, chance: 0.7 },
+  { prefixo: "Mirim", faixas: faixasKids.slice(0, 3), pesos: todasAsClasses, chance: 3 },
+  { prefixo: "Infantil", faixas: faixasKids, pesos: todasAsClasses, chance: 3.6 },
+  { prefixo: "Infanto-Juvenil", faixas: faixasKids, pesos: todasAsClasses, chance: 3 },
+  { prefixo: "Juvenil", faixas: ["Branca", "Azul"], pesos: todasAsClasses, chance: 3 },
+  { prefixo: "Adulto", faixas: faixasAdulto, pesos: todasAsClasses, chance: 38 },
+  { prefixo: "Master 1", faixas: faixasAdulto, pesos: todasAsClasses, chance: 14 },
+  { prefixo: "Master 2", faixas: faixasAdulto, pesos: todasAsClasses, chance: 8 },
+  { prefixo: "Master 3", faixas: faixasAdulto, pesos: todasAsClasses, chance: 4 },
+  { prefixo: "Master 4", faixas: faixasAdulto, pesos: todasAsClasses, chance: 1.5 },
+  { prefixo: "Master 5", faixas: faixasAdulto, pesos: todasAsClasses, chance: 0.6 },
+  { prefixo: "Master 6", faixas: faixasAdulto, pesos: todasAsClasses, chance: 0.3 },
+  { prefixo: "Master 7", faixas: faixasAdulto, pesos: todasAsClasses, chance: 0.2 },
 ];
 
 /** Uma entrada por categoria de idade do Regulamento Geral, art. 1.3, na ordem do livro. */
@@ -152,7 +151,7 @@ export function gerarBase(totalAtletas = 600, semente = 2026): Base {
     };
     atletas.push(atleta);
 
-    const peso = sortearPeso(div.pesos, rng);
+    const peso = sortearPeso(pesosIbjjf.limitesDePeso(div.nome, sexo).map((l) => l.classe), rng);
     const pg = rng();
     const pagamento: StatusPagamento = menor && pg < 0.06 ? "aguardando-autorizacao" : pg < 0.88 ? "pago" : "pendente";
     const modalidades: Modalidade[] = rng() < 0.26 ? ["Gi", "No-Gi"] : rng() < 0.9 ? ["Gi"] : ["No-Gi"];

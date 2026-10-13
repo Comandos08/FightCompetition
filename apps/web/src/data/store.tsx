@@ -127,7 +127,7 @@ function reduzir(e: Estado, a: Acao): Estado {
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v7";
+const CHAVE_LOCAL = "arena-prototipo-v8";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);

@@ -39,10 +39,10 @@ O código está em `packages/engine/src/regras-ibjjf.ts` e `packages/engine/src/
 
 ## O que o livro não traz
 
-- **Tabela de pesos.** O arquivo enviado como tabela de pesos é o guia de atualização das regras de 2024. Os pesos do protótipo continuam ilustrativos.
+- **Tabela de pesos.** Recebida em 13/10/2026 (folha "Tabela de Pesos Oficial", com referência a 2023) e transcrita em `packages/engine/src/pesos-ibjjf.ts`. Faltam: os pesos sem quimono (No-Gi), que a folha não traz, e a confirmação de que os valores de 2023 continuam valendo. A folha é uma imagem de baixa resolução; a transcrição passou no teste de coerência (limites sempre crescentes), mas vale conferir com a versão atual no site da IBJJF.
 - **Sistema de faixas por idade** (quais faixas existem em cada categoria infantil). As faixas infantis do protótipo continuam ilustrativas.
 - **Categoria absoluto**: o livro cita, mas não define as regras de inscrição.
 
 ## Consequência observada no protótipo
 
-Com as categorias de idade oficiais, uma por ano de nascimento até os 17 anos, a base fictícia de 600 atletas passou a formar 374 categorias, das quais 262 têm um atleta só. Parte disso vem dos pesos e faixas ilustrativos, mas o efeito é real em eventos pequenos e médios: juntar categorias vira a tarefa central do organizador antes de gerar as chaves.
+Com as categorias de idade oficiais, uma por ano de nascimento até os 17 anos, a base fictícia de 600 atletas passou a formar 374 categorias, das quais 262 tinham um atleta só (com a tabela de pesos oficial, de nove classes, são 391 categorias e 283 com um atleta só). Parte disso vem dos pesos e faixas ilustrativos, mas o efeito é real em eventos pequenos e médios: juntar categorias vira a tarefa central do organizador antes de gerar as chaves.
