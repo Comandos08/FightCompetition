@@ -2,7 +2,7 @@
  * Tabela de pesos.
  * Fonte: IBJJF, "Tabela de Pesos Oficial" (folha única enviada pelo fundador em 13/10/2026, com referência ao ano de 2023).
  * Valores transcritos como estão na folha: peso máximo de cada categoria, em quilos, com o quimono vestido.
- * A folha não traz pesos sem quimono (No-Gi) nem separa as crianças por sexo.
+ * A folha não separa as crianças por sexo. Por decisão do fundador (docs/decisoes.md), a mesma tabela vale para Gi e No-Gi.
  */
 export const FONTE_DOS_PESOS = "IBJJF, Tabela de Pesos Oficial (folha de 2023)";
 
