@@ -98,6 +98,9 @@ export function Placar() {
   }, [rodando]);
 
   if (!cat || !luta || !luta.a || !luta.b) return <div className="p-10"><Vazio>Luta não encontrada ou ainda sem os dois atletas definidos.</Vazio></div>;
+  // a luta só abre no tatame em que a categoria está programada: trocar o número no endereço não dá acesso
+  const blocoDaLuta = d.blocos.find((b) => b.categoria.id === cat.id);
+  if (!blocoDaLuta || blocoDaLuta.tatame !== Number(tatame)) return <div className="p-10"><Vazio>Esta luta não está programada para o Tatame {tatame}. <Link to="/app/mesa" className="font-medium text-marinho hover:underline">Voltar à fila</Link></Vazio></div>;
   const voltar = `/app/mesa?dia=${sp.get("dia") ?? 1}&tatame=${tatame}`;
   const lados = [luta.a, luta.b] as const;
   const somar = (lado: 0 | 1, campo: keyof Marcador, n: number) => {
@@ -181,6 +184,8 @@ export function TV() {
   const d = useDados();
   const [sp] = useSearchParams();
   const dia = Number(sp.get("dia") ?? 1);
+  const { id } = useParams();
+  if (id !== EVENTO_ID) return <div className="grid min-h-screen place-items-center bg-[#1D1E1F] p-6 text-center text-white"><div><div className="text-2xl font-semibold">Evento não encontrado</div><Link to="/" className="mt-5 inline-block rounded-md bg-white px-4 py-2 text-sm font-medium text-marinho">Ver eventos</Link></div></div>;
   if (!d.estado.config.painelPublico && !d.estado.sessao) return (
     <div className="grid min-h-screen place-items-center bg-[#1D1E1F] p-6 text-center text-white">
       <div><div className="text-2xl font-semibold">Painel restrito</div><p className="mt-2 text-white/70">A organização deste evento reservou o painel para quem está logado.</p><Link to="/entrar" className="mt-5 inline-block rounded-md bg-white px-4 py-2 text-sm font-medium text-marinho">Entrar</Link></div>

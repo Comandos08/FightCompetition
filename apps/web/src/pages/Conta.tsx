@@ -176,6 +176,14 @@ export function Cadastro() {
   const d = useDados();
   const nav = useNavigate();
   const [aceite, setAceite] = useState(false);
+  const pessoa = usePessoa();
+  if (pessoa.persona) return (
+    <div className="cartao mx-auto max-w-md p-6">
+      <h1 className="text-2xl font-semibold">Você já está em uma conta</h1>
+      <p className="mt-2 text-tinta-2">Você entrou como {pessoa.nome}. Para criar outra conta, saia desta primeiro.</p>
+      <div className="mt-4 flex gap-2"><Link to="/app" className="botao-primario">Ir para a minha área</Link><button className="botao-contorno" onClick={() => d.despachar({ tipo: "sair" })}>Sair</button></div>
+    </div>
+  );
   return (
     <div className="mx-auto max-w-md">
       <h1 className="text-3xl font-semibold">Criar conta</h1>

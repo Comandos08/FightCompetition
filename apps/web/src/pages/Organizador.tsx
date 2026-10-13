@@ -125,7 +125,7 @@ function Inscritos() {
                   <td>{pagamentoSelo(i.pagamento)}</td>
                   <td className="text-right">
                     {!tecnico && i.pagamento === "pendente" && <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "pagamento", id: i.id, status: "pago" })}>Confirmar pagamento</button>}
-                    {i.pagamento === "aguardando-autorizacao" && <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "pagamento", id: i.id, status: "pago" })}>Registrar autorização</button>}
+                    {!tecnico && i.pagamento === "aguardando-autorizacao" && <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "pagamento", id: i.id, status: "pago" })}>Registrar autorização</button>}
                   </td>
                 </tr>
               );

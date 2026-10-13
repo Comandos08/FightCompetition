@@ -308,7 +308,7 @@ export function EquipeEvento() {
 }
 
 const opcoes: { chave: keyof Config; nome: string; dica: string }[] = [
-  { chave: "inscritosPublicos", nome: "Lista de inscritos pública", dica: "Qualquer visitante vê quem está inscrito em cada categoria." },
+  { chave: "inscritosPublicos", nome: "Aba de inscritos aberta ao público", dica: "Desligada, a lista completa fica só para a organização. Os nomes continuam aparecendo nas chaves publicadas, nos resultados e nos rankings." },
   { chave: "ocultarMenores", nome: "Reservar perfil, foto e ranking de menores", dica: "O nome do menor aparece em inscritos, chaves e resultados, como em qualquer campeonato. Perfil público, foto e ranking individual ficam reservados." },
   { chave: "painelPublico", nome: "Painel de próximas lutas aberto ao público", dica: "Pais e atletas acompanham pelo celular e a TV do ginásio abre sem login. Desligado, só quem está logado vê." },
   { chave: "exigirVinculo", nome: "Exigir vínculo confirmado com a equipe", dica: "A inscrição só entra na chave depois que o professor confirma o atleta." },

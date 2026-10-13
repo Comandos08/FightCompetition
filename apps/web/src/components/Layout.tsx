@@ -153,6 +153,7 @@ function SemAcesso({ children }: { children: ReactNode }) {
 
 export function Entrar() {
   const { despachar } = useDados();
+  const pessoa = usePessoa();
   const nav = useNavigate();
   const de = new URLSearchParams(useLocation().search).get("de");
   const [email, setEmail] = useState("");
@@ -167,6 +168,7 @@ export function Entrar() {
     <div className="mx-auto max-w-5xl">
       <h1 className="text-3xl font-semibold">Entrar</h1>
       {de && <div className="mt-4 rounded-md bg-aviso-claro px-3 py-2 text-sm text-aviso">Para continuar, entre com uma conta.</div>}
+      {pessoa.persona && <div className="mt-4 rounded-md bg-aviso-claro px-3 py-2 text-sm text-aviso">Você já entrou como {pessoa.nome}. Escolher outra conta abaixo troca a sessão.</div>}
       <div className="mt-6 grid gap-6 lg:grid-cols-[380px_1fr]">
         <div className="cartao h-fit space-y-4 p-6">
           <label className="block"><span className="rotulo">E-mail</span><input id="entrar-email" className="campo mt-1" type="email" placeholder="voce@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} /></label>

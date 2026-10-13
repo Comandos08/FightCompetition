@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useDados, type Persona } from "./store";
+import { inscricoesOriginais, useDados, type Persona } from "./store";
 
 /** Contextos da área logada. Uma conta enxerga só os contextos em que tem papel. */
 export type ContextoId = "atleta" | "equipe" | "organizacao" | "mesa" | "plataforma";
@@ -33,11 +33,12 @@ export function usePessoa(): { persona: Persona | null; nome: string; atletaId?:
   const d = useDados();
   const persona = d.estado.sessao;
   // atleta de demonstração: o primeiro adulto com duas inscrições pagas
+  // escolhido pela situação original do cadastro: a conta não muda de pessoa quando ela paga ou cancela algo
   const atletaDemo = useMemo(() => {
     const porAtleta = new Map<string, number>();
-    for (const i of d.inscricoes) if (i.pagamento === "pago") porAtleta.set(i.atletaId, (porAtleta.get(i.atletaId) ?? 0) + 1);
+    for (const i of inscricoesOriginais) if (i.pagamento === "pago") porAtleta.set(i.atletaId, (porAtleta.get(i.atletaId) ?? 0) + 1);
     return [...d.atletas.values()].find((a) => !a.menor && porAtleta.get(a.id) === 2 && !a.id.startsWith("AT9"));
-  }, [d.atletas, d.inscricoes]);
+  }, [d.atletas]);
   if (!persona) return { persona: null, nome: "", contextos: [] };
   const def = personas[persona];
   return persona === "atleta"
