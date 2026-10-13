@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useDados, type Persona } from "./store";
 
 /** Contextos da área logada. Uma conta enxerga só os contextos em que tem papel. */
-export type ContextoId = "atleta" | "equipe" | "organizacao" | "mesa";
+export type ContextoId = "atleta" | "equipe" | "organizacao" | "mesa" | "plataforma";
 
 export const EQUIPE_DO_PROFESSOR = "Raiz Jiu-Jitsu";
 
@@ -11,6 +11,7 @@ export const contextos: Record<ContextoId, { rota: string; nome: string; papel: 
   equipe: { rota: "/app/equipe", nome: EQUIPE_DO_PROFESSOR, papel: "Professor" },
   organizacao: { rota: "/app/organizacao", nome: "Liga Horizonte de Jiu-Jitsu", papel: "Organizador" },
   mesa: { rota: "/app/mesa", nome: "Copa Horizonte 2026", papel: "Mesa do tatame" },
+  plataforma: { rota: "/app/plataforma", nome: "Administração da plataforma", papel: "Administrador" },
 };
 
 export const personas: Record<Persona, { rotulo: string; descricao: string; nome?: string; contextos: ContextoId[]; inicial: ContextoId }> = {
@@ -18,6 +19,7 @@ export const personas: Record<Persona, { rotulo: string; descricao: string; nome
   professor: { rotulo: "Professor", descricao: "Além da área pessoal, acompanha a agenda e as pendências da equipe.", nome: "Marcos Teles Brandão", contextos: ["atleta", "equipe"], inicial: "equipe" },
   organizador: { rotulo: "Organizador", descricao: "Administra o evento: inscritos, categorias, chaves, programação e pesagem.", nome: "Renata Coutinho Lins", contextos: ["atleta", "organizacao", "mesa"], inicial: "organizacao" },
   mesario: { rotulo: "Mesário", descricao: "Opera a fila e o placar do tatame em que foi escalado. Não vê inscrições nem financeiro.", nome: "Diego Antunes Paiva", contextos: ["atleta", "mesa"], inicial: "mesa" },
+  admin: { rotulo: "Administrador da plataforma", descricao: "Equipe interna do SaaS: acompanha organizações, eventos, usuários, parceiros e auditoria.", nome: "Equipe Arena", contextos: ["plataforma"], inicial: "plataforma" },
 };
 
 /** Quem está logado: nome exibido e, para o atleta, o cadastro esportivo ligado à conta. */

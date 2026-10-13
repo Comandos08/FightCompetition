@@ -3,7 +3,10 @@ import type { ChaveEliminatoria, ChaveResolvida, Resultado } from "@engine";
 import { gerarBase, type Atleta, type Inscricao, type StatusPagamento, type StatusPesagem } from "./seed";
 import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, type Categoria } from "@/lib/competicao";
 
-export type Persona = "atleta" | "professor" | "organizador" | "mesario";
+export type Persona = "atleta" | "professor" | "organizador" | "mesario" | "admin";
+
+export interface Parceiro { id: string; nome: string; url: string; logo: string; ativo: boolean; }
+export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
 
 export interface Membro { nome: string; email: string; papel: string; escopo: string; situacao: "ativo" | "convite enviado"; }
 export interface Cupom { codigo: string; desconto: string; usos: number; limite: number; }
@@ -17,6 +20,9 @@ interface Estado {
   eventosNovos: EventoNovo[];
   dependentes: Atleta[];
   fotos: Record<string, string>;
+  parceiros: Parceiro[];
+  orgsSuspensas: Record<string, boolean>;
+  auditoria: RegistroAuditoria[];
   capaEvento: string;
   sessao: Persona | null;
   novosAtletas: Atleta[];
@@ -40,6 +46,13 @@ const vazio: Estado = {
   membros: membrosIniciais,
   cupons: [{ codigo: "LOTE1", desconto: "15%", usos: 84, limite: 100 }, { codigo: "PROJETOSOCIAL", desconto: "100%", usos: 22, limite: 40 }],
   eventosNovos: [], dependentes: [], fotos: {}, capaEvento: "",
+  parceiros: [
+    { id: "p1", nome: "SportCombat", url: "https://sportcombat.pro", logo: "", ativo: true },
+    { id: "p2", nome: "Kimonos Aurora", url: "", logo: "", ativo: true },
+    { id: "p3", nome: "Tatames Litoral", url: "", logo: "", ativo: true },
+    { id: "p4", nome: "Instituto Guarda Viva", url: "", logo: "", ativo: true },
+  ],
+  orgsSuspensas: {}, auditoria: [],
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
@@ -57,6 +70,11 @@ type Acao =
   | { tipo: "dependente"; atleta: Atleta }
   | { tipo: "foto"; atletaId: string; url: string }
   | { tipo: "capa"; url: string }
+  | { tipo: "parceiro"; parceiro: Parceiro }
+  | { tipo: "parceiro-mudar"; id: string; campos: Partial<Parceiro> }
+  | { tipo: "parceiro-remover"; id: string }
+  | { tipo: "org-suspender"; nome: string; valor: boolean }
+  | { tipo: "auditar"; registro: RegistroAuditoria }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
   | { tipo: "reiniciar" };
@@ -86,13 +104,18 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "dependente": return { ...e, dependentes: [...e.dependentes, a.atleta] };
     case "foto": return { ...e, fotos: { ...e.fotos, [a.atletaId]: a.url } };
     case "capa": return { ...e, capaEvento: a.url };
+    case "parceiro": return { ...e, parceiros: [...e.parceiros, a.parceiro] };
+    case "parceiro-mudar": return { ...e, parceiros: e.parceiros.map((p) => (p.id === a.id ? { ...p, ...a.campos } : p)) };
+    case "parceiro-remover": return { ...e, parceiros: e.parceiros.filter((p) => p.id !== a.id) };
+    case "org-suspender": return { ...e, orgsSuspensas: { ...e.orgsSuspensas, [a.nome]: a.valor } };
+    case "auditar": return { ...e, auditoria: [a.registro, ...e.auditoria].slice(0, 100) };
     case "entrar": return { ...e, sessao: a.persona };
     case "sair": return { ...e, sessao: null };
     case "reiniciar": return { ...vazio, sessao: e.sessao };
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v4";
+const CHAVE_LOCAL = "arena-prototipo-v5";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);

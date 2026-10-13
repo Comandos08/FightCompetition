@@ -6,6 +6,7 @@ import { Organizador } from "@/pages/Organizador";
 import { Arena, Mesa, Placar, TV } from "@/pages/Mesa";
 import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
 import { Cadastro, Dependentes, PaginaEquipe, Pedidos, Perfil, PerfilAtleta } from "@/pages/Conta";
+import { Plataforma } from "@/pages/Plataforma";
 import { Ajuda, ParaOrganizadores, Precos } from "@/pages/Institucional";
 import { DadosOrganizacao, ListaEventos, Membros, NovoEvento } from "@/pages/Gestao";
 
@@ -48,6 +49,8 @@ export default function App() {
             <Route path="organizacao/dados" element={<DadosOrganizacao />} />
             <Route path="organizacao/eventos/:id" element={<Organizador />} />
             <Route path="organizacao/eventos/:id/:aba" element={<Organizador />} />
+            <Route path="plataforma" element={<Plataforma />} />
+            <Route path="plataforma/:aba" element={<Plataforma />} />
             <Route path="mesa" element={<Mesa />} />
             <Route path="mesa/arena" element={<Arena />} />
             <Route path="mesa/placar/:tatame/:catId/:lutaId" element={<Placar />} />

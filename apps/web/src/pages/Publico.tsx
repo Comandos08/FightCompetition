@@ -104,6 +104,21 @@ export function Agenda() {
         ))}
         {!lista.length && <Vazio>Nenhum evento encontrado.</Vazio>}
       </div>
+      {estado.parceiros.some((p) => p.ativo) && (
+        <section className="mt-16">
+          <h2 className="mb-6 text-center text-2xl font-semibold">Nossos parceiros</h2>
+          <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-linha bg-white md:grid-cols-4">
+            {estado.parceiros.filter((p) => p.ativo).map((p) => {
+              const marca = p.logo
+                ? <img src={p.logo} alt={p.nome} className="max-h-12 max-w-[70%] object-contain opacity-70 grayscale transition group-hover:opacity-100 group-hover:grayscale-0" />
+                : <span className="text-center text-lg font-bold uppercase tracking-tight text-tinta-3 transition group-hover:text-marinho">{p.nome}</span>;
+              const classe = "group -mb-px -mr-px grid h-28 place-items-center border-b border-r border-linha px-4";
+              return p.url ? <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className={classe}>{marca}</a> : <div key={p.id} className={classe}>{marca}</div>;
+            })}
+          </div>
+          <p className="mt-4 text-center text-sm text-tinta-2">Quer apoiar o esporte e aparecer aqui? <Link to="/ajuda" className="font-medium text-marinho hover:underline">Seja um parceiro</Link></p>
+        </section>
+      )}
     </>
   );
 }
