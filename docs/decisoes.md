@@ -23,6 +23,9 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Pontuação do quadro de medalhas (9, 3 e 1) e textos de regulamento, lotes e cancelamento são ilustrativos | Claude | Nenhuma regra esportiva ou comercial foi definida; servem para mostrar a tela |
 | 13/10/2026 | Foto do atleta, imagem do evento e mapa de localização entram no produto. No protótipo, as imagens ficam só no navegador de quem enviou e o mapa é um desenho com botão "Como chegar" | Fundador (pedido) e Claude (execução) | Sem servidor não há onde guardar arquivo, e a página de demonstração não carrega mapas de terceiros |
 | 13/10/2026 | Foto de atleta menor não é pública por padrão; depende de autorização do responsável | Claude | Mesmo critério do perfil público de menores; a validar na revisão jurídica |
+| 13/10/2026 | Chave em dois lados que se encontram na final, com número da luta, tatame e horário; nome na chave leva ao perfil do atleta | Fundador (referência) e Claude (execução) | Segue os prints de referência enviados pelo fundador |
+| 13/10/2026 | Atleta sem foto recebe avatar ilustrado gerado por código, com a cor da faixa. O protótipo não usa fotos de pessoas reais nem rostos sintéticos | Claude | O material simula atletas, parte deles menores |
+| 13/10/2026 | Encerrada a fase de telas do protótipo; próximo passo é a fundação: modelo de dados do bloco 1, login e permissões | Fundador (aceitou a recomendação) | Mais tela rende cada vez menos; o risco está em banco, acesso e pagamento |
 
 ## Em aberto
 
