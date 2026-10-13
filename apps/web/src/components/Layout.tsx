@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDados, type Persona } from "@/data/store";
+import { Simbolo } from "@/components/ui";
 import { ABAS_RESTRITAS, RESTRITO_AO_DONO, TATAME_DO_MESARIO, contextos, personas, usePessoa, type ContextoId } from "@/data/sessao";
 
 function Marca() {
   return (
-    <Link to="/" className="flex items-center gap-2 text-white">
-      <span className="grid h-8 w-8 place-items-center rounded-md bg-ouro text-base font-bold text-marinho">A</span>
-      <span className="text-xl font-semibold">Arena</span>
+    <Link to="/" aria-label="Arena" className="flex items-center gap-2.5 text-white">
+      <Simbolo className="h-7 w-auto" />
+      <span className="text-xl font-semibold uppercase tracking-[0.14em]">Arena</span>
     </Link>
   );
 }
@@ -18,7 +19,7 @@ function AvisoPrototipo() {
   return (
     <div className="border-b border-linha bg-ouro-claro">
       <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-x-4 px-5 py-1.5 text-xs text-aviso">
-        <span>Protótipo · nome provisório · dados fictícios · login e pagamento simulados · tabela de pesos e faixas por idade ilustrativa</span>
+        <span>Protótipo · dados fictícios · login e pagamento simulados · tabela de pesos e faixas por idade ilustrativa</span>
         <button className={`underline-offset-2 hover:underline ${confirmando ? "font-semibold text-perigo" : ""}`} onBlur={() => setConfirmando(false)}
           onClick={() => { if (confirmando) { despachar({ tipo: "reiniciar" }); setConfirmando(false); } else setConfirmando(true); }}>
           {confirmando ? "Clique de novo para apagar suas alterações" : "Reiniciar dados"}

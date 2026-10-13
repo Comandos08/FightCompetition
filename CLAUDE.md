@@ -1,6 +1,6 @@
 # FightCompetition
 
-Plataforma da SportCombat para competições de esportes de combate. Dono do produto: Villar. Idioma de trabalho: português do Brasil.
+Arena: plataforma da SportCombat para competições de esportes de combate. Dono do produto: Villar. Idioma de trabalho: português do Brasil.
 
 - Prioridade atual (decisão do fundador em 12/10/2026): a plataforma SaaS, começando pelo protótipo navegável em `apps/web`. O evento da CBJJS serve depois para validar os fluxos; o kit de `docs/escopo-kit-cbjjs.md` está em espera.
 - Claude tem autonomia para decidir e executar dentro deste repositório. Ficam para o fundador: gastos, contato com terceiros, dados reais de atletas e qualquer publicação além de demonstração com dados fictícios. Ver `docs/decisoes.md`.
