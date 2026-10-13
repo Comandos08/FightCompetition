@@ -10,13 +10,18 @@ import { lutasDoAtleta } from "@/lib/resultados";
 
 export const METODOS = ["Pontos", "Finalização", "Vantagens", "Decisão", "Punições", "Desclassificação"] as const;
 export const FINALIZACOES = ["Estrangulamento pelas costas", "Chave de braço", "Triângulo", "Chave de pé", "Kimura", "Outras"] as const;
+export const ORGS_COM_RANKING = ["Liga Horizonte de Jiu-Jitsu", "Associação Serrana de Lutas", "Projeto Tatame Aberto"] as const;
 const EVENTOS_PASSADOS = [
-  { nome: "Copa Horizonte de Jiu-Jitsu 2025", peso: 3 },
-  { nome: "Aberto da Serra de Grappling 2025", peso: 2 },
-  { nome: "Circuito Horizonte · Etapa de Verão 2026", peso: 2 },
-  { nome: "Torneio Interno Raiz 2026", peso: 1 },
+  { nome: "Copa Horizonte de Jiu-Jitsu 2025", peso: 3, org: ORGS_COM_RANKING[0] },
+  { nome: "Circuito Horizonte · Etapa de Verão 2026", peso: 2, org: ORGS_COM_RANKING[0] },
+  { nome: "Aberto da Serra de Grappling 2025", peso: 3, org: ORGS_COM_RANKING[1] },
+  { nome: "Copa Serrana de Inverno 2026", peso: 2, org: ORGS_COM_RANKING[1] },
+  { nome: "Festival Tatame Aberto 2025", peso: 2, org: ORGS_COM_RANKING[2] },
+  { nome: "Desafio Tatame Aberto 2026", peso: 2, org: ORGS_COM_RANKING[2] },
 ];
 const ORDEM_FAIXA = ["Preta", "Marrom", "Roxa", "Azul", "Branca"];
+
+const nivelDaFaixa = (faixa: string) => { const i = ORDEM_FAIXA.indexOf(faixa); return i < 0 ? 1 : 5 - i; }; // preta 5 ... branca 1; faixas infantis 1
 
 function gerador(texto: string) {
   let h = 2166136261;
@@ -24,7 +29,7 @@ function gerador(texto: string) {
   return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
 }
 
-export interface Conquista { evento: string; colocacao: 1 | 2 | 3; pontos: number; conta: string; }
+export interface Conquista { evento: string; org: string; colocacao: 1 | 2 | 3; pontos: number; conta: string; }
 export interface FichaAtleta {
   atleta: Atleta; lutas: number; vitorias: number; derrotas: number;
   vitoriasPor: number[]; derrotasPor: number[]; finalizacoes: number[];
@@ -37,7 +42,7 @@ function historico(a: Atleta) {
   let c = cache.get(a.id);
   if (c) return c;
   const r = gerador(a.id + a.nome);
-  const nivel = 5 - ORDEM_FAIXA.indexOf(a.faixa); // preta 5 ... branca 1
+  const nivel = nivelDaFaixa(a.faixa);
   const lutas = Math.floor(r() * 8 * nivel) + nivel;
   const taxa = 0.35 + r() * 0.5;
   const v = Math.round(lutas * taxa), dr = lutas - v;
@@ -53,11 +58,11 @@ function historico(a: Atleta) {
   const finalizacoes = repartir(vitoriasPor[1]!, [3, 2.5, 1.5, 1, 1, 1.5]);
   const base: Conquista[] = [];
   for (const e of EVENTOS_PASSADOS) {
-    if (r() > 0.22 + taxa * 0.45) continue;
+    if (r() > 0.16 + taxa * 0.38) continue;
     const x = r();
     const colocacao = (x < taxa * 0.45 ? 1 : x < taxa * 0.9 ? 2 : 3) as 1 | 2 | 3;
     const p = [9, 3, 1][colocacao - 1]!;
-    base.push({ evento: e.nome, colocacao, pontos: p * e.peso * nivel, conta: `${p} pts × ${e.peso} × ${nivel}` });
+    base.push({ evento: e.nome, org: e.org, colocacao, pontos: p * e.peso * nivel, conta: `${p} pts × ${e.peso} × ${nivel}` });
   }
   const div = 2026 - a.anoNascimento >= 30 ? "Master" : "Adulto";
   c = { atleta: a, vitoriasPor, derrotasPor, finalizacoes, base, v, dr, tendencia: (r() < 0.4 ? 1 : r() < 0.5 ? -1 : 0) as -1 | 0 | 1, grupo: `${div} · ${a.sexo === "M" ? "Masculino" : "Feminino"} · ${a.faixa}` };
@@ -72,18 +77,32 @@ export function fichaDoAtleta(d: Contexto, a: Atleta): FichaAtleta {
   const vAgora = atuais.filter((l) => l.venceu).length;
   const conquistas = [...h.base];
   const minhas = new Set(d.inscricoes.filter((i) => i.atletaId === a.id).map((i) => i.id));
-  const nivel = 5 - ORDEM_FAIXA.indexOf(a.faixa);
+  const nivel = nivelDaFaixa(a.faixa);
   for (const r of d.resolvidas.values()) {
     if (!r.concluida) continue;
     const col = r.campeaoId && minhas.has(r.campeaoId) ? 1 : r.viceId && minhas.has(r.viceId) ? 2 : r.semifinalistasDerrotados.some((x) => minhas.has(x)) ? 3 : 0;
-    if (col) { const p = [9, 3, 1][col - 1]!; conquistas.unshift({ evento: "Copa Horizonte de Jiu-Jitsu 2026", colocacao: col as 1 | 2 | 3, pontos: p * 3 * nivel, conta: `${p} pts × 3 × ${nivel}` }); }
+    if (col) { const p = [9, 3, 1][col - 1]!; conquistas.unshift({ evento: "Copa Horizonte de Jiu-Jitsu 2026", org: ORGS_COM_RANKING[0], colocacao: col as 1 | 2 | 3, pontos: p * 3 * nivel, conta: `${p} pts × 3 × ${nivel}` }); }
   }
   return { atleta: a, lutas: h.v + h.dr + atuais.length, vitorias: h.v + vAgora, derrotas: h.dr + atuais.length - vAgora, vitoriasPor: h.vitoriasPor, derrotasPor: h.derrotasPor, finalizacoes: h.finalizacoes, conquistas, pontos: conquistas.reduce((s, c) => s + c.pontos, 0), tendencia: h.tendencia, grupo: h.grupo };
 }
 
-/** Só adultos entram no ranking público de demonstração. */
-export function rankingDeAtletas(d: Contexto): FichaAtleta[] {
-  return [...d.atletas.values()].filter((a) => !a.menor && ORDEM_FAIXA.includes(a.faixa)).map((a) => fichaDoAtleta(d, a)).filter((f) => f.pontos > 0).sort((x, y) => y.pontos - x.pontos || y.vitorias - x.vitorias);
+/** Ranking de uma organização: só contam os pódios nos eventos dela. Só adultos entram no ranking público. */
+export function rankingDeAtletas(d: Contexto, org: string): FichaAtleta[] {
+  return [...d.atletas.values()].filter((a) => !a.menor && ORDEM_FAIXA.includes(a.faixa)).map((a) => {
+    const f = fichaDoAtleta(d, a);
+    const conquistas = f.conquistas.filter((c) => c.org === org);
+    return { ...f, conquistas, pontos: conquistas.reduce((s, c) => s + c.pontos, 0) };
+  }).filter((f) => f.pontos > 0).sort((x, y) => y.pontos - x.pontos || y.vitorias - x.vitorias);
+}
+
+/** Posição do atleta em cada ranking em que ele pontua. */
+export function posicoesDoAtleta(d: Contexto, a: Atleta): { org: string; posicao: number; pontos: number; grupo: string }[] {
+  return ORGS_COM_RANKING.flatMap((org) => {
+    const fichas = rankingDeAtletas(d, org);
+    const eu = fichas.find((f) => f.atleta.id === a.id);
+    if (!eu) return [];
+    return [{ org, pontos: eu.pontos, grupo: eu.grupo, posicao: fichas.filter((f) => f.grupo === eu.grupo).findIndex((f) => f.atleta.id === a.id) + 1 }];
+  });
 }
 
 export function gruposDoRanking(fichas: FichaAtleta[]): string[] {
@@ -95,7 +114,7 @@ export function gruposDoRanking(fichas: FichaAtleta[]): string[] {
 
 export interface FichaEquipe { equipe: string; atletas: number; pretas: number; pontos: number; lutas: number; vitorias: number; ouro: number; prata: number; bronze: number; porEvento: { evento: string; pontos: number; medalhas: number }[]; }
 
-export function rankingDeEquipes(d: Contexto): FichaEquipe[] {
+export function rankingDeEquipes(d: Contexto, org?: string): FichaEquipe[] {
   const mapa = new Map<string, FichaEquipe>();
   const pega = (equipe: string) => { let e = mapa.get(equipe); if (!e) { e = { equipe, atletas: 0, pretas: 0, pontos: 0, lutas: 0, vitorias: 0, ouro: 0, prata: 0, bronze: 0, porEvento: [] }; mapa.set(equipe, e); } return e; };
   for (const a of d.atletas.values()) {
@@ -104,8 +123,10 @@ export function rankingDeEquipes(d: Contexto): FichaEquipe[] {
     if (a.faixa === "Preta") e.pretas++;
     if (a.menor || !ORDEM_FAIXA.includes(a.faixa)) continue;
     const f = fichaDoAtleta(d, a);
-    e.pontos += f.pontos; e.lutas += f.lutas; e.vitorias += f.vitorias;
+    e.lutas += f.lutas; e.vitorias += f.vitorias;
     for (const c of f.conquistas) {
+      if (org && c.org !== org) continue;
+      e.pontos += c.pontos;
       if (c.colocacao === 1) e.ouro++; else if (c.colocacao === 2) e.prata++; else e.bronze++;
       let pe = e.porEvento.find((x) => x.evento === c.evento);
       if (!pe) { pe = { evento: c.evento, pontos: 0, medalhas: 0 }; e.porEvento.push(pe); }

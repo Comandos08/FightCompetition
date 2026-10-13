@@ -35,6 +35,10 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Perfil do atleta e ranking viram a vitrine do produto: ranking na página inicial, página de rankings (atletas e equipes), cartel com vitórias e derrotas por método, finalizações, pontos por evento e página da equipe com pódios | Fundador (direção e referência) e Claude (execução) | Vaidade e reconhecimento são o motor de engajamento do atleta; segue o estudo "IBJJF Redesign" |
 | 13/10/2026 | O ranking pertence à federação ou ao circuito, que define a própria regra de pontos; a plataforma não mantém ranking único por enquanto | Claude | É o argumento de venda para federações e evita a plataforma arbitrar mérito entre entidades. A validar |
 | 13/10/2026 | Histórico de temporadas, regra de pontos do ranking e nomes de finalizações no protótipo são fictícios e ilustrativos; menores não aparecem em ranking individual | Claude | Não há dados reais nem regra definida; proteção de menores por padrão |
+| 13/10/2026 | A página inicial e a página de rankings não privilegiam uma organização: mostram os rankings de todas, com o mesmo destaque, e o visitante escolhe qual ver. Cada pódio pontua só no ranking de quem realizou o evento | Fundador (apontou o viés) e Claude (execução) | A plataforma é neutra entre organizações; substitui a versão que exibia só a Liga Horizonte |
+| 13/10/2026 | Não há ranking único da plataforma por enquanto; fica como aposta futura, com fórmula baseada em lutas e não em medalhas | Claude | Somar medalhas de eventos com regras e níveis diferentes não se sustenta; a validar com o fundador |
+| 13/10/2026 | Desempenho na área logada: o atleta vê o próprio cartel e posições, o professor vê os alunos (inclusive menores) e a organização define a regra e acompanha o próprio ranking | Fundador (direção) e Claude (execução) | Cada papel enxerga o recorte que lhe pertence |
+| 13/10/2026 | Faixa "Seja um competidor" na página inicial, chamando para criar o perfil de atleta | Fundador (referência) e Claude (execução) | Converte o visitante atraído pelo ranking em conta |
 
 ## Em aberto
 

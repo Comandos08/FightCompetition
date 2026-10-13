@@ -103,7 +103,7 @@ export function LayoutLogado() {
   const loc = useLocation();
   const nav = useNavigate();
   if (!pessoa.persona) return <Navigate to={`/entrar?de=${encodeURIComponent(loc.pathname)}`} replace />;
-  const daConta = ["/app/perfil", "/app/dependentes", "/app/pedidos", "/app/inscricao"].some((r) => loc.pathname.startsWith(r));
+  const daConta = ["/app/perfil", "/app/desempenho", "/app/dependentes", "/app/pedidos", "/app/inscricao"].some((r) => loc.pathname.startsWith(r));
   const atual = daConta ? "atleta" : (Object.keys(contextos) as ContextoId[]).find((c) => loc.pathname.startsWith(contextos[c].rota));
   const semAcesso = atual && !pessoa.contextos.includes(atual);
   // o placar ocupa a tela inteira, mas só para quem tem o papel de mesa
@@ -156,7 +156,7 @@ export function Entrar() {
     despachar({ tipo: "entrar", persona });
     const destino = contextos[personas[persona].inicial].rota;
     // volta para onde a pessoa queria ir, se a conta escolhida tiver acesso
-    const daConta = !!de && ["/app/inscricao", "/app/atleta", "/app/perfil", "/app/dependentes", "/app/pedidos"].some((r) => de.startsWith(r));
+    const daConta = !!de && ["/app/inscricao", "/app/atleta", "/app/perfil", "/app/desempenho", "/app/dependentes", "/app/pedidos"].some((r) => de.startsWith(r));
     nav(de && (daConta || de.startsWith(destino)) ? de : destino);
   };
   return (

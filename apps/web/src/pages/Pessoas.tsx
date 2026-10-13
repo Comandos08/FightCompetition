@@ -84,6 +84,7 @@ export function Atleta() {
 
 export const navEquipe = [
   { para: "/app/equipe", nome: "Agenda e pendências", fim: true },
+  { para: "/app/equipe/desempenho", nome: "Desempenho dos alunos" },
   { para: "/app/equipe/atletas", nome: "Atletas e vínculos" },
   { para: "/app/equipe/inscrever", nome: "Inscrição em lote" },
 ];
