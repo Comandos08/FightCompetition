@@ -5,7 +5,8 @@ import { Agenda, Evento, Inscricao } from "@/pages/Publico";
 import { Organizador } from "@/pages/Organizador";
 import { Arena, Mesa, Placar, TV } from "@/pages/Mesa";
 import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
-import { Cadastro, Dependentes, PaginaEquipe, Pedidos, Perfil, PerfilAtleta } from "@/pages/Conta";
+import { Cadastro, Dependentes, Pedidos, Perfil } from "@/pages/Conta";
+import { PaginaEquipe, PerfilAtleta, Rankings } from "@/pages/Vitrine";
 import { Plataforma } from "@/pages/Plataforma";
 import { Ajuda, ParaOrganizadores, Precos } from "@/pages/Institucional";
 import { DadosOrganizacao, ListaEventos, Membros, NovoEvento } from "@/pages/Gestao";
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/eventos/:id" element={<Evento />} />
             <Route path="/entrar" element={<Entrar />} />
             <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/rankings" element={<Rankings />} />
             <Route path="/organizadores" element={<ParaOrganizadores />} />
             <Route path="/precos" element={<Precos />} />
             <Route path="/ajuda" element={<Ajuda />} />

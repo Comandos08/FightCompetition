@@ -52,7 +52,7 @@ const itemNav = ({ isActive }: { isActive: boolean }) =>
 
 function Rodape() {
   const colunas: [string, [string, string][]][] = [
-    ["Competir", [["Eventos", "/"], ["Criar conta", "/cadastro"], ["Entrar", "/entrar"]]],
+    ["Competir", [["Eventos", "/"], ["Rankings", "/rankings"], ["Criar conta", "/cadastro"], ["Entrar", "/entrar"]]],
     ["Organizar", [["Para organizadores", "/organizadores"], ["Preços", "/precos"], ["Evento de exemplo", "/eventos/copa-horizonte-2026"]]],
     ["Plataforma", [["Ajuda e contato", "/ajuda"]]],
   ];
@@ -80,7 +80,8 @@ export function LayoutPublico() {
           ? <Link to={contextos[personas[pessoa.persona].inicial].rota} className="flex items-center gap-2 hover:underline"><IconePessoa />{pessoa.nome.split(" ")[0]} · minha área</Link>
           : <><Link to="/cadastro" className="hidden text-white/80 hover:text-white hover:underline sm:block">Criar conta</Link><Link to="/entrar" className="flex items-center gap-2 hover:underline"><IconePessoa />Entrar</Link></>}
         nav={<>
-          <NavLink to="/" className={({ isActive }) => itemNav({ isActive: isActive || ["/eventos", "/atletas", "/equipes"].some((r) => pathname.startsWith(r)) })}>Eventos</NavLink>
+          <NavLink to="/" className={({ isActive }) => itemNav({ isActive: isActive || pathname.startsWith("/eventos") })}>Eventos</NavLink>
+          <NavLink to="/rankings" className={({ isActive }) => itemNav({ isActive: isActive || ["/atletas", "/equipes"].some((r) => pathname.startsWith(r)) })}>Rankings</NavLink>
           <NavLink to="/organizadores" className={itemNav}>Para organizadores</NavLink>
           <NavLink to="/precos" className={itemNav}>Preços</NavLink>
           <NavLink to="/ajuda" className={itemNav}>Ajuda</NavLink>
