@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { navConta } from "@/pages/Conta";
+import { SubNavConta } from "@/pages/Conta";
 import { Link } from "react-router-dom";
 import { useDados } from "@/data/store";
 import { EVENTO_ID, VALOR_INSCRICAO, type Inscricao, type Modalidade } from "@/data/seed";
@@ -33,12 +33,12 @@ export function Atleta() {
   const pessoa = usePessoa();
   const atleta = pessoa.atletaId ? d.atletas.get(pessoa.atletaId) : undefined;
   // inscrições do atleta da sessão e as que esta conta fez pelo fluxo de inscrição
-  const minhas = d.inscricoes.filter((i) => i.atletaId === pessoa.atletaId || d.estado.novasInscricoes.some((n) => n.id === i.id));
+  const minhas = d.inscricoes.filter((i) => i.conta ? i.conta === pessoa.persona && !i.lote : i.atletaId === pessoa.atletaId);
 
   return (
     <div className="max-w-3xl">
       <Titulo sobre="Minha área" acoes={<Link to={`/app/inscricao/${EVENTO_ID}`} className="botao-acao">Nova inscrição</Link>}>{pessoa.nome}</Titulo>
-      <SubNav itens={navConta} />
+      <SubNavConta />
       {atleta && <p className="-mt-2 mb-5 text-sm text-tinta-2">{atleta.equipe} · faixa {atleta.faixa.toLowerCase()}</p>}
       {!minhas.length && <Vazio>Você ainda não tem inscrições. Use "Nova inscrição" para se inscrever ou inscrever um dependente.</Vazio>}
       <div className="space-y-4">
@@ -150,7 +150,7 @@ export function EquipeInscrever() {
     const novas: Inscricao[] = chaves.map((k, n) => {
       const [atletaId, modalidade] = k.split("|") as [string, Modalidade];
       const baseI = d.inscricoes.find((i) => i.atletaId === atletaId)!;
-      return { ...baseI, id: `I8${String(d.inscricoes.length + n).padStart(3, "0")}`, modalidade, pagamento: d.atletas.get(atletaId)!.menor ? "aguardando-autorizacao" : "pendente", pesagem: "nao-pesado", valor: VALOR_INSCRICAO };
+      return { ...baseI, id: `I8${String(d.inscricoes.length + n).padStart(3, "0")}`, modalidade, pagamento: d.atletas.get(atletaId)!.menor ? "aguardando-autorizacao" : "pendente", pesagem: "nao-pesado", valor: VALOR_INSCRICAO, lote: true };
     });
     d.despachar({ tipo: "inscrever", inscricoes: novas });
     setFeito(novas.length); setMarcadas({});

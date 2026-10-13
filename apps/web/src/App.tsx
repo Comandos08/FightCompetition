@@ -1,5 +1,6 @@
 import { BrowserRouter, MemoryRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Provedor } from "@/data/store";
+import { contextos, personas, usePessoa } from "@/data/sessao";
 import { Entrar, LayoutLogado, LayoutPublico } from "@/components/Layout";
 import { Agenda, Evento, Inscricao } from "@/pages/Publico";
 import { Organizador } from "@/pages/Organizador";
@@ -11,6 +12,12 @@ import { EquipeDesempenho, MeuDesempenho, RankingDaOrganizacao } from "@/pages/D
 import { Plataforma } from "@/pages/Plataforma";
 import { Ajuda, ParaOrganizadores, Precos } from "@/pages/Institucional";
 import { DadosOrganizacao, ListaEventos, Membros, NovoEvento } from "@/pages/Gestao";
+
+/** /app leva cada conta à área inicial do papel dela. */
+function InicioDaConta() {
+  const pessoa = usePessoa();
+  return <Navigate to={pessoa.persona ? contextos[personas[pessoa.persona].inicial].rota : "/entrar"} replace />;
+}
 
 // na versão de página única (demonstração) não há servidor para resolver rotas
 const Roteador = import.meta.env.MODE === "pagina-unica" ? MemoryRouter : BrowserRouter;
@@ -37,7 +44,7 @@ export default function App() {
 
           {/* exige conta; cada área exige o papel correspondente */}
           <Route path="/app" element={<LayoutLogado />}>
-            <Route index element={<Navigate to="/app/atleta" replace />} />
+            <Route index element={<InicioDaConta />} />
             <Route path="atleta" element={<Atleta />} />
             <Route path="inscricao/:id" element={<Inscricao />} />
             <Route path="desempenho" element={<MeuDesempenho />} />

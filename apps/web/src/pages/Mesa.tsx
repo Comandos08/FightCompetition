@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDados, type Contexto } from "@/data/store";
 import { EVENTO_ID } from "@/data/seed";
+import { TATAME_DO_MESARIO } from "@/data/sessao";
 import { Selo, Titulo, Vazio } from "@/components/ui";
 import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada, type Bloco } from "@/lib/competicao";
 
@@ -30,7 +31,8 @@ export function Mesa() {
   const d = useDados();
   const [sp, setSp] = useSearchParams();
   const dia = Number(sp.get("dia") ?? 1);
-  const tatame = Number(sp.get("tatame") ?? 1);
+  const soMeuTatame = d.estado.sessao === "mesario";
+  const tatame = soMeuTatame ? TATAME_DO_MESARIO : Number(sp.get("tatame") ?? 1);
   const [mostrarFeitas, setMostrarFeitas] = useState(false);
   const fila = filaDoTatame(d, dia, tatame);
   const feitas = fila.filter((f) => f.vencedorId).length;
@@ -38,11 +40,11 @@ export function Mesa() {
   const mudar = (k: string, v: number) => { const n = new URLSearchParams(sp); n.set(k, String(v)); setSp(n); };
   return (
     <>
-      <Titulo sobre="Mesa do tatame" acoes={<><Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link><Link to={`/eventos/${EVENTO_ID}/painel?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link></>}>Tatame {tatame}</Titulo>
+      <Titulo sobre="Mesa do tatame" acoes={<>{!soMeuTatame && <Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link>}<Link to={`/eventos/${EVENTO_ID}/painel?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link></>}>Tatame {tatame}</Titulo>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
-        {[1, 2, 3, 4, 5, 6].map((t) => <button key={t} onClick={() => mudar("tatame", t)} className={tatame === t ? "botao-primario" : "botao-contorno"}>T{t}</button>)}
+        {soMeuTatame ? <span className="text-sm text-tinta-2">Você foi escalado para o Tatame {tatame}.</span> : [1, 2, 3, 4, 5, 6].map((t) => <button key={t} onClick={() => mudar("tatame", t)} className={tatame === t ? "botao-primario" : "botao-contorno"}>T{t}</button>)}
         <label className="ml-auto flex items-center gap-2 text-sm text-tinta-2"><input type="checkbox" checked={mostrarFeitas} onChange={(e) => setMostrarFeitas(e.target.checked)} /> Mostrar encerradas</label>
       </div>
       <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-linha"><div className="h-full bg-tatame transition-all" style={{ width: `${fila.length ? (feitas / fila.length) * 100 : 0}%` }} /></div>

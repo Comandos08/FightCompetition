@@ -5,9 +5,9 @@ import { EQUIPE_DO_PROFESSOR, usePessoa } from "@/data/sessao";
 import { Avatar, Campo, Faixa, Indicador, Secao, Selo, SubNav, Titulo, Vazio } from "@/components/ui";
 import { ORGS_COM_RANKING, fichaDoAtleta, gruposDoRanking, rankingDeAtletas } from "@/lib/ranking";
 import { PainelDesempenho, PosicoesNosRankings } from "@/pages/Vitrine";
-import { navConta } from "@/pages/Conta";
+import { SubNavConta } from "@/pages/Conta";
 import { navEquipe } from "@/pages/Pessoas";
-import { navOrganizacao } from "@/pages/Gestao";
+import { SubNavOrg } from "@/pages/Gestao";
 
 /** Atleta vendo a própria performance. */
 export function MeuDesempenho() {
@@ -17,7 +17,7 @@ export function MeuDesempenho() {
   return (
     <>
       <Titulo sobre="Minha área">Meu desempenho</Titulo>
-      <SubNav itens={navConta} />
+      <SubNavConta />
       {!a ? <Vazio>Esta conta de demonstração não tem perfil de atleta. Entre com a conta de atleta para ver o desempenho.</Vazio> : (
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
           <div className="cartao h-fit p-6">
@@ -94,7 +94,7 @@ export function RankingDaOrganizacao() {
   return (
     <>
       <Titulo sobre="Organização" acoes={<Link to="/rankings" className="botao-contorno">Ver ranking público</Link>}>Ranking da organização</Titulo>
-      <SubNav itens={navOrganizacao} />
+      <SubNavOrg />
       <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
         <Secao titulo="Regra do ranking">
           <div className="space-y-4">

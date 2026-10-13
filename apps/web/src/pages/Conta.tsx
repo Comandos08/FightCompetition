@@ -13,6 +13,12 @@ export const navConta = [
   { para: "/app/pedidos", nome: "Pedidos e pagamentos" },
 ];
 
+/** Navegação da área pessoal: quem não tem perfil de atleta não vê desempenho. */
+export function SubNavConta() {
+  const pessoa = usePessoa();
+  return <SubNav itens={navConta.filter((i) => pessoa.atletaId || i.para !== "/app/desempenho")} />;
+}
+
 function Salvo({ visivel }: { visivel: boolean }) {
   return visivel ? <span className="text-sm text-tatame">Alterações salvas.</span> : null;
 }
@@ -25,7 +31,7 @@ export function Perfil() {
   return (
     <>
       <Titulo sobre="Minha área">Perfil esportivo</Titulo>
-      <SubNav itens={navConta} />
+      <SubNavConta />
       <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
         <Secao titulo="Dados pessoais">
           <div className="space-y-4">
@@ -50,7 +56,8 @@ export function Perfil() {
           </div>
         </Secao>
         <div className="space-y-4">
-          <Secao titulo="Graduação por modalidade" acao={<button className="botao-contorno !py-1.5 text-xs">Adicionar modalidade</button>}>
+          {!atleta && <Secao titulo="Perfil de atleta"><p className="text-sm text-tinta-2">Esta conta ainda não tem perfil de atleta. Você pode usar a plataforma só para trabalhar em eventos ou acompanhar a sua equipe.</p><button className="botao-contorno mt-4">Criar meu perfil de atleta</button></Secao>}
+          {atleta && <Secao titulo="Graduação por modalidade" acao={<button className="botao-contorno !py-1.5 text-xs">Adicionar modalidade</button>}>
             <table className="tabela">
               <thead><tr><th>Modalidade</th><th>Graduação</th><th>Desde</th><th>Situação</th></tr></thead>
               <tbody>
@@ -59,17 +66,17 @@ export function Perfil() {
               </tbody>
             </table>
             <p className="mt-3 text-xs text-tinta-3">Cada modalidade tem graduação própria. A faixa usada em uma competição fica registrada naquele evento e não muda quando você é graduado depois.</p>
-          </Secao>
-          <Secao titulo="Vínculos com equipes" acao={<button className="botao-contorno !py-1.5 text-xs">Solicitar vínculo</button>}>
+          </Secao>}
+          {(atleta || pessoa.persona === "professor") &&           <Secao titulo="Vínculos com equipes" acao={<button className="botao-contorno !py-1.5 text-xs">Solicitar vínculo</button>}>
             <table className="tabela">
               <thead><tr><th>Equipe</th><th>Papel</th><th>Desde</th><th>Situação</th></tr></thead>
               <tbody>
                 <tr><td className="font-medium">{atleta?.equipe ?? "Raiz Jiu-Jitsu"}</td><td>{pessoa.persona === "professor" ? "Professor" : "Atleta"}</td><td>mar 2022</td><td><Selo tom="ok">ativo</Selo></td></tr>
-                <tr><td className="font-medium">Escola Vento Sul</td><td>Atleta</td><td>2018 a 2022</td><td><Selo>encerrado</Selo></td></tr>
+                {atleta && <tr><td className="font-medium">Escola Vento Sul</td><td>Atleta</td><td>2018 a 2022</td><td><Selo>encerrado</Selo></td></tr>}
               </tbody>
             </table>
             <p className="mt-3 text-xs text-tinta-3">Trocar de equipe não altera os resultados que você conquistou pela equipe anterior.</p>
-          </Secao>
+          </Secao>}
         </div>
       </div>
     </>
@@ -79,6 +86,7 @@ export function Perfil() {
 export function Dependentes() {
   const d = useDados();
   const [f, setF] = useState({ nome: "", ano: "", sexo: "M", equipe: equipes[0]!, relacao: "Mãe ou pai" });
+  const meus = d.estado.dependentes.filter((a) => a.conta === d.estado.sessao);
   const idade = f.ano.length === 4 ? ANO_EVENTO - Number(f.ano) : NaN;
   const div = Number.isFinite(idade) ? divisaoPorIdade(idade) : undefined;
   const valido = f.nome.trim().length > 4 && Number.isFinite(idade) && idade < 18 && idade >= 4;
@@ -90,12 +98,12 @@ export function Dependentes() {
   return (
     <>
       <Titulo sobre="Minha área">Dependentes</Titulo>
-      <SubNav itens={navConta} />
+      <SubNavConta />
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Secao titulo="Menores sob sua responsabilidade">
-          {!d.estado.dependentes.length && <Vazio>Nenhum dependente cadastrado. Cadastre um filho ou menor sob sua responsabilidade para inscrevê-lo sem criar outra conta.</Vazio>}
+          {!meus.length && <Vazio>Nenhum dependente cadastrado. Cadastre um filho ou menor sob sua responsabilidade para inscrevê-lo sem criar outra conta.</Vazio>}
           <div className="divide-y divide-linha/70">
-            {d.estado.dependentes.map((a) => (
+            {meus.map((a) => (
               <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div><div className="font-medium">{a.nome}</div><div className="text-xs text-tinta-3">{ANO_EVENTO - a.anoNascimento} anos · {divisaoPorIdade(ANO_EVENTO - a.anoNascimento)?.nome ?? "sem divisão"} · {a.equipe}</div></div>
                 <div className="flex items-center gap-2"><Selo tom="ok">autorização registrada</Selo><Link to={`/app/inscricao/${EVENTO_ID}`} className="botao-contorno !py-1.5 text-xs">Inscrever</Link></div>
@@ -126,7 +134,7 @@ export function Dependentes() {
 export function Pedidos() {
   const d = useDados();
   const pessoa = usePessoa();
-  const minhas = d.inscricoes.filter((i) => i.atletaId === pessoa.atletaId || d.estado.novasInscricoes.some((n) => n.id === i.id));
+  const minhas = d.inscricoes.filter((i) => i.conta ? i.conta === pessoa.persona : i.atletaId === pessoa.atletaId);
   // um pedido por atleta: no produto, um pedido pode reunir inscrições de várias pessoas
   const pedidos = [...new Set(minhas.map((i) => i.atletaId))].map((atletaId, k) => {
     const itens = minhas.filter((i) => i.atletaId === atletaId);
@@ -135,7 +143,7 @@ export function Pedidos() {
   return (
     <>
       <Titulo sobre="Minha área">Pedidos e pagamentos</Titulo>
-      <SubNav itens={navConta} />
+      <SubNavConta />
       {!pedidos.length && <Vazio>Você ainda não fez nenhum pedido.</Vazio>}
       <div className="space-y-4">
         {pedidos.map((p) => (
