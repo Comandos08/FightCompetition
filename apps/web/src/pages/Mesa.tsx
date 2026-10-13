@@ -16,13 +16,52 @@ export interface ItemFila {
   metodo?: string;
   pronta: boolean;
   horario: number;
+  tatame: number;
+  /** tatame em que a luta estava programada, quando foi trazida de outro */
+  veioDe?: number;
+  motivo?: string;
 }
 
+/** Fila de um tatame, já considerando as lutas que foram levadas de um tatame para outro. */
 export function filaDoTatame(d: Contexto, dia: number, tatame: number): ItemFila[] {
-  return d.blocos.filter((b) => b.dia === dia && b.tatame === tatame).flatMap((bloco) => {
+  return d.blocos.filter((b) => b.dia === dia).flatMap((bloco) => {
     const r = d.resolvidas.get(bloco.categoria.id)!;
-    return r.lutas.map((l) => ({ bloco, lutaId: l.id, rodada: l.rodada, a: l.a, b: l.b, vencedorId: l.vencedorId, metodo: l.metodo, pronta: l.pronta, horario: horarioDaLuta(bloco, l.id) }));
-  });
+    return r.lutas.map((l) => {
+      const rem = d.estado.remanejadas[chaveDoResultado(bloco.categoria.id, l.id)];
+      return { bloco, lutaId: l.id, rodada: l.rodada, a: l.a, b: l.b, vencedorId: l.vencedorId, metodo: l.metodo, pronta: l.pronta, horario: horarioDaLuta(bloco, l.id), tatame: rem?.tatame ?? bloco.tatame, veioDe: rem?.origem, motivo: rem?.motivo };
+    });
+  }).filter((x) => x.tatame === tatame).sort((x, y) => Number(!!y.veioDe && !y.vencedorId) - Number(!!x.veioDe && !x.vencedorId));
+}
+
+const MOTIVOS = ["Tatame de origem parado ou atrasado", "Atendimento médico no tatame de origem", "Pedido da coordenação", "Atleta com lutas coladas em dois tatames", "Outro motivo"];
+
+/** O imprevisto acontece: o operador pode trazer uma luta de outro tatame, com motivo registrado e visível para a coordenação. */
+function PuxarLuta({ dia, tatame }: { dia: number; tatame: number }) {
+  const d = useDados();
+  const outros = [1, 2, 3, 4, 5, 6].filter((t) => t !== tatame);
+  const [aberto, setAberto] = useState(false);
+  const [origem, setOrigem] = useState(outros[0]!);
+  const [motivo, setMotivo] = useState(MOTIVOS[0]!);
+  const candidatas = filaDoTatame(d, dia, origem).filter((f) => f.pronta && !f.vencedorId).slice(0, 8);
+  const quem = d.estado.sessao === "mesario" ? "Diego Antunes Paiva (mesário)" : d.estado.sessao === "diretor" ? "Paulo Guedes Neves (diretor técnico)" : "Renata Coutinho Lins (organização)";
+  if (!aberto) return <button className="botao-contorno" onClick={() => setAberto(true)}>Trazer luta de outro tatame</button>;
+  return (
+    <div className="cartao mb-4 w-full p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">Trazer luta para o Tatame {tatame}</h2><button className="text-sm text-tinta-3 hover:text-tinta" onClick={() => setAberto(false)}>Fechar</button></div>
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-tinta-2">De qual tatame:</span>
+        {outros.map((t) => <button key={t} onClick={() => setOrigem(t)} className={origem === t ? "botao-primario !py-1" : "botao-contorno !py-1"}>T{t}</button>)}
+        <select id="rem-motivo" className="campo ml-auto w-auto" value={motivo} onChange={(e) => setMotivo(e.target.value)}>{MOTIVOS.map((m) => <option key={m}>{m}</option>)}</select>
+      </div>
+      {!candidatas.length ? <Vazio>Nenhuma luta pronta no Tatame {origem}.</Vazio> : candidatas.map((f) => (
+        <div key={f.bloco.categoria.id + f.lutaId} className="flex flex-wrap items-center justify-between gap-3 border-t border-linha/70 py-2 text-sm">
+          <span><span className="font-medium">{d.nomeDe(f.a)} x {d.nomeDe(f.b)}</span><span className="block text-xs text-tinta-3">{f.bloco.categoria.nome} · previsto {hhmm(f.horario)}</span></span>
+          <button className="botao-acao !py-1 text-xs" onClick={() => { d.despachar({ tipo: "remanejar", chave: chaveDoResultado(f.bloco.categoria.id, f.lutaId), remanejo: { tatame, origem: f.veioDe ?? origem, motivo, quem, quando: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) } }); setAberto(false); }}>Trazer para o Tatame {tatame}</button>
+        </div>
+      ))}
+      <p className="mt-3 text-xs text-tinta-3">A luta sai da fila do Tatame {origem} e entra na sua. O motivo, o horário e o seu nome ficam registrados e aparecem para a coordenação.</p>
+    </div>
+  );
 }
 
 const seg = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -45,7 +84,8 @@ export function Mesa() {
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
         {soMeuTatame ? <span className="text-sm text-tinta-2">Você foi escalado para o Tatame {tatame}.</span> : [1, 2, 3, 4, 5, 6].map((t) => <button key={t} onClick={() => mudar("tatame", t)} className={tatame === t ? "botao-primario" : "botao-contorno"}>T{t}</button>)}
-        <label className="ml-auto flex items-center gap-2 text-sm text-tinta-2"><input type="checkbox" checked={mostrarFeitas} onChange={(e) => setMostrarFeitas(e.target.checked)} /> Mostrar encerradas</label>
+        <span className="ml-auto" /><PuxarLuta dia={dia} tatame={tatame} />
+        <label className="flex items-center gap-2 text-sm text-tinta-2"><input type="checkbox" checked={mostrarFeitas} onChange={(e) => setMostrarFeitas(e.target.checked)} /> Mostrar encerradas</label>
       </div>
       <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-linha"><div className="h-full bg-tatame transition-all" style={{ width: `${fila.length ? (feitas / fila.length) * 100 : 0}%` }} /></div>
       <div className="mb-4 text-sm text-tinta-3">{feitas} de {fila.length} lutas encerradas neste tatame</div>
@@ -55,7 +95,7 @@ export function Mesa() {
           <div key={f.bloco.categoria.id + f.lutaId} className={`cartao flex flex-wrap items-center gap-4 p-3 ${f.pronta ? "border-marinho/40" : ""} ${f.vencedorId ? "opacity-60" : ""}`}>
             <div className="w-14 text-center"><div className="font-mono text-lg font-semibold">{hhmm(f.horario)}</div><div className="rotulo">previsto</div></div>
             <div className="min-w-[14rem] flex-1">
-              <div className="rotulo">{f.bloco.categoria.nome} · {nomeRodada(f.rodada, f.bloco.chave.totalRodadas)}</div>
+              <div className="rotulo">{f.bloco.categoria.nome} · {nomeRodada(f.rodada, f.bloco.chave.totalRodadas)}{f.veioDe && <span className="ml-2 rounded bg-ouro-claro px-1.5 py-0.5 normal-case text-aviso">veio do T{f.veioDe} · {f.motivo}</span>}</div>
               <div className="mt-0.5 grid gap-x-6 sm:grid-cols-2">
                 {[f.a, f.b].map((id, k) => (
                   <div key={k} className={`truncate ${f.vencedorId && f.vencedorId === id ? "font-semibold text-tatame" : ""} ${!id ? "italic text-tinta-3" : ""}`}>
@@ -65,7 +105,7 @@ export function Mesa() {
               </div>
             </div>
             {f.vencedorId ? <Selo tom="ok">{f.metodo ?? "encerrada"}</Selo>
-              : f.pronta ? <Link className="botao-acao" to={`/app/mesa/placar/${tatame}/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}?dia=${dia}`}>Abrir placar</Link>
+              : f.pronta ? <span className="flex items-center gap-2">{f.veioDe && <button className="botao-contorno !py-1.5 text-xs" onClick={() => d.despachar({ tipo: "remanejar", chave: chaveDoResultado(f.bloco.categoria.id, f.lutaId), remanejo: null })}>Devolver ao T{f.veioDe}</button>}<Link className="botao-acao" to={`/app/mesa/placar/${tatame}/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}?dia=${dia}`}>Abrir placar</Link></span>
               : <Selo>aguarda luta anterior</Selo>}
           </div>
         ))}
@@ -100,7 +140,8 @@ export function Placar() {
   if (!cat || !luta || !luta.a || !luta.b) return <div className="p-10"><Vazio>Luta não encontrada ou ainda sem os dois atletas definidos.</Vazio></div>;
   // a luta só abre no tatame em que a categoria está programada: trocar o número no endereço não dá acesso
   const blocoDaLuta = d.blocos.find((b) => b.categoria.id === cat.id);
-  if (!blocoDaLuta || blocoDaLuta.tatame !== Number(tatame)) return <div className="p-10"><Vazio>Esta luta não está programada para o Tatame {tatame}. <Link to="/app/mesa" className="font-medium text-marinho hover:underline">Voltar à fila</Link></Vazio></div>;
+  const tatameDaLuta = d.estado.remanejadas[chaveDoResultado(cat.id, luta.id)]?.tatame ?? blocoDaLuta?.tatame;
+  if (!blocoDaLuta || tatameDaLuta !== Number(tatame)) return <div className="p-10"><Vazio>Esta luta não está na fila do Tatame {tatame}. Para operá-la aqui, use "Trazer luta de outro tatame" na fila. <Link to="/app/mesa" className="font-medium text-marinho hover:underline">Voltar à fila</Link></Vazio></div>;
   const voltar = `/app/mesa?dia=${sp.get("dia") ?? 1}&tatame=${tatame}`;
   const lados = [luta.a, luta.b] as const;
   const somar = (lado: 0 | 1, campo: keyof Marcador, n: number) => {
@@ -251,6 +292,15 @@ export function Arena() {
           );
         })}
       </div>
+      {Object.keys(d.estado.remanejadas).length > 0 && (
+        <div className="cartao mt-5 p-5">
+          <h2 className="mb-3 text-lg font-semibold">Lutas remanejadas</h2>
+          <table className="tabela"><thead><tr><th>Hora</th><th>Luta</th><th>De</th><th>Para</th><th>Motivo</th><th>Quem</th></tr></thead>
+            <tbody>{Object.entries(d.estado.remanejadas).map(([chave, r]) => { const [catId, lutaId] = chave.split("::"); const l = d.resolvidas.get(catId!)?.lutas.find((x) => x.id === lutaId); return (
+              <tr key={chave}><td className="font-mono text-xs">{r.quando}</td><td className="font-medium">{d.nomeDe(l?.a)} x {d.nomeDe(l?.b)}<div className="text-xs font-normal text-tinta-3">{d.categoriaPorId.get(catId!)?.nome}</div></td><td>T{r.origem}</td><td>T{r.tatame}</td><td>{r.motivo}</td><td>{r.quem}</td></tr>
+            ); })}</tbody></table>
+        </div>
+      )}
       <p className="mt-3 max-w-3xl text-xs text-tinta-3">No produto, esta tela mostra o atraso de cada tatame e permite mover uma categoria para um tatame livre.</p>
     </>
   );

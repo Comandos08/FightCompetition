@@ -45,6 +45,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Papel limita o que se vê dentro da área: mesário só o tatame em que foi escalado; diretor técnico vê a parte esportiva do evento, sem financeiro, equipe de trabalho, configurações nem dados da organização | Claude | Auditoria de rotas mostrou que o escopo estava na descrição do papel, mas não nas telas |
 | 13/10/2026 | Cada inscrição e cada dependente guardam a conta que os criou; uma conta não vê pedidos de outra | Claude | Auditoria de rotas: inscrições de uma conta apareciam em todas |
 | 13/10/2026 | A opção do organizador sobre inscritos controla só a aba de inscritos; nomes em chaves publicadas, resultados e rankings continuam públicos | Claude | Mesma lógica adotada para menores: não prometer um sigilo que a chave desfaz. A validar com o fundador |
+| 13/10/2026 | O operador da mesa não fica preso à programação: pode abrir as lutas prontas do tatame em qualquer ordem e trazer uma luta de outro tatame, informando o motivo. O remanejamento fica registrado com hora e autor e aparece para a coordenação | Fundador (regra: não engessar o operador) e Claude (desenho) | Imprevisto acontece em todo evento. Substitui o bloqueio rígido por tatame; o que se impede é só o acesso sem registro, por endereço forjado |
 
 ## Em aberto
 
@@ -62,3 +63,4 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Registro do método de vitória por luta (pontos, finalização e qual, vantagens, decisão): exige que a mesa informe isso a cada luta; decidir o nível de detalhe.
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
 - Origem e licença dos avatares padrão (`apps/web/src/assets/avatar-*.webp`): anotar o banco de imagens e a licença.
+- Remanejamento de luta entre tatames: o mesário faz sozinho ou precisa de aprovação da coordenação? Hoje faz sozinho, com registro.
