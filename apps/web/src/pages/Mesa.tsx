@@ -37,7 +37,7 @@ export function Mesa() {
   const mudar = (k: string, v: number) => { const n = new URLSearchParams(sp); n.set(k, String(v)); setSp(n); };
   return (
     <>
-      <Titulo sobre="Mesa do tatame" acoes={<Link to={`/mesa/tv?dia=${dia}`} className="botao-contorno">Abrir tela de TV</Link>}>Tatame {tatame}</Titulo>
+      <Titulo sobre="Mesa do tatame" acoes={<Link to={`/tv?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link>}>Tatame {tatame}</Titulo>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
@@ -62,7 +62,7 @@ export function Mesa() {
               </div>
             </div>
             {f.vencedorId ? <Selo tom="ok">{f.metodo ?? "encerrada"}</Selo>
-              : f.pronta ? <Link className="botao-acao" to={`/mesa/placar/${tatame}/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}?dia=${dia}`}>Abrir placar</Link>
+              : f.pronta ? <Link className="botao-acao" to={`/app/mesa/placar/${tatame}/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}?dia=${dia}`}>Abrir placar</Link>
               : <Selo>aguarda luta anterior</Selo>}
           </div>
         ))}
@@ -95,7 +95,7 @@ export function Placar() {
   }, [rodando]);
 
   if (!cat || !luta || !luta.a || !luta.b) return <div className="p-10"><Vazio>Luta não encontrada ou ainda sem os dois atletas definidos.</Vazio></div>;
-  const voltar = `/mesa?dia=${sp.get("dia") ?? 1}&tatame=${tatame}`;
+  const voltar = `/app/mesa?dia=${sp.get("dia") ?? 1}&tatame=${tatame}`;
   const lados = [luta.a, luta.b] as const;
   const somar = (lado: 0 | 1, campo: keyof Marcador, n: number) => {
     historico.current.push(m);
@@ -182,7 +182,7 @@ export function TV() {
     <div className="min-h-screen bg-tinta p-4 text-white">
       <div className="mb-4 flex items-center justify-between">
         <div className="font-display text-3xl font-black uppercase" style={{ fontStretch: "78%" }}>Próximas lutas<span className="text-acao">.</span></div>
-        <Link to={`/mesa?dia=${dia}`} className="text-sm opacity-60 hover:opacity-100">Sair da tela de TV</Link>
+        <Link to="/" className="text-sm opacity-60 hover:opacity-100">Voltar ao site</Link>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((t) => {
