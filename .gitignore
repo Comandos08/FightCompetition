@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.*
+# dados reais de inscritos nunca entram no repositório
+dados/
+*.xlsx
+*.csv
+!fixtures/**/*.csv
