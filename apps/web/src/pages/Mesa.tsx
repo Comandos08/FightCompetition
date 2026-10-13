@@ -127,43 +127,54 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
   altura: string; lados: { nome: string; equipe: string }[]; m: [Marcador, Marcador]; resta: number; rodando: boolean; iniciada: boolean;
   rotulo: string; categoria: string; fase: string; combatividade: { lado: 0 | 1; resta: number } | null; vencedor: { lado: 0 | 1; metodo: string } | null;
 }) {
+  // medidas tiradas do vídeo de referência (1280 × 720): 1cqh = 1% da altura, 1cqw = 1% da largura do telão
+  const indicador = (rotuloInd: string, valor: number, cor: string) => (
+    <>
+      <div className="font-medium" style={{ fontSize: "1.9cqh", letterSpacing: "0.02em", color: valor ? cor : "#A9AAAD" }}>{rotuloInd}</div>
+      <div className="font-semibold" style={{ fontSize: "14.4cqh", lineHeight: 0.84, color: valor ? cor : "#A9AAAD" }}>{valor}</div>
+    </>
+  );
   const linha = (lado: 0 | 1) => (
-    <div className="flex min-h-0 flex-[35] items-stretch border-b-[0.5cqh] border-black">
-      <div className="flex min-w-0 flex-1 flex-col justify-center pl-[1.4cqw]">
-        <div className="truncate font-semibold leading-none text-white" style={{ fontSize: "13.5cqh" }}>{lados[lado]!.nome}</div>
-        <div className="truncate font-medium leading-none text-white/45" style={{ fontSize: "8.6cqh", marginTop: "1.2cqh" }}>{lados[lado]!.equipe}</div>
+    <div className="flex min-h-0 items-stretch bg-[#232427]" style={{ flex: 250 }}>
+      <div className="flex min-w-0 flex-1 flex-col justify-center" style={{ paddingLeft: "1.4cqw" }}>
+        <div className="truncate font-medium text-[#F7F8FB]" style={{ fontSize: "15.2cqh", lineHeight: 0.86 }}>{lados[lado]!.nome}</div>
+        <div className="truncate font-medium text-[#97989B]" style={{ fontSize: "10.9cqh", lineHeight: 0.9, marginTop: "1.4cqh" }}>{lados[lado]!.equipe}</div>
       </div>
       {combatividade?.lado === lado && (
-        <div className="my-[2.2cqh] mr-[1.2cqw] flex flex-col items-center justify-center rounded-[0.8cqh] bg-[#F5E61E] px-[1.6cqw] leading-none text-[#3A1010]">
-          <div className="font-bold tabular-nums" style={{ fontSize: "15cqh" }}>{seg(combatividade.resta)}</div>
-          <div className="font-semibold" style={{ fontSize: "5.4cqh" }}>Combatividade</div>
+        <div className="flex shrink-0 flex-col items-center justify-center bg-[#FAD70C] text-[#5A1A12]" style={{ width: "22.9cqw", margin: "2.1cqh 0", borderRadius: "0.9cqh", boxShadow: "0 0 1.2cqh rgba(250,215,12,.35)" }}>
+          <div className="font-semibold tabular-nums" style={{ fontSize: "18cqh", lineHeight: 0.86, letterSpacing: "-0.05em", marginRight: "-0.05em" }}>{seg(combatividade.resta)}</div>
+          <div className="font-semibold" style={{ fontSize: "7.6cqh", lineHeight: 0.9, marginTop: "1.6cqh" }}>Combatividade</div>
         </div>
       )}
-      <div className="flex w-[7cqw] shrink-0 flex-col items-center justify-center leading-none">
-        <div className={m[lado].vantagens ? "text-[#4ADE4A]" : "text-white/45"} style={{ fontSize: "1.9cqh" }}>Vantagem</div>
-        <div className={`font-semibold tabular-nums ${m[lado].vantagens ? "text-[#4ADE4A]" : "text-white/45"}`} style={{ fontSize: "10.5cqh" }}>{m[lado].vantagens}</div>
-        <div className={m[lado].punicoes ? "text-[#E0263C]" : "text-white/45"} style={{ fontSize: "1.9cqh", marginTop: "1cqh" }}>Punição</div>
-        <div className={`font-semibold tabular-nums ${m[lado].punicoes ? "text-[#E0263C]" : "text-white/45"}`} style={{ fontSize: "10.5cqh" }}>{m[lado].punicoes}</div>
+      <div className="flex shrink-0 flex-col items-center justify-center" style={{ width: "7.1cqw", gap: "0.5cqh" }}>
+        {indicador("Vantagem", m[lado].vantagens, "#22D22E")}
+        <div style={{ height: "1.6cqh" }} />
+        {indicador("Punição", m[lado].punicoes, "#E8203A")}
       </div>
-      <div className={`grid shrink-0 place-items-center font-bold leading-none tabular-nums ${lado === 0 ? "bg-[#F5E61E] text-[#12964B]" : "bg-black text-white"}`} style={{ width: "34.5cqh", fontSize: "31cqh" }}>{m[lado].pontos}</div>
+      <div className={`grid shrink-0 place-items-center font-bold ${lado === 0 ? "bg-[#F8D91D] text-[#12965A]" : "bg-black text-white"}`} style={{ width: "29.7cqh", fontSize: "39.5cqh", lineHeight: 0.8 }}>{m[lado].pontos}</div>
     </div>
   );
+  const letreiro = `${categoria}\u2003\u2003\u2003`;
   return (
-    <div className="relative flex select-none flex-col overflow-hidden bg-[#222326] font-placar uppercase" style={{ height: altura, containerType: "size" }}>
+    <div className="relative flex select-none flex-col overflow-hidden bg-[#1B1C1F] font-placar uppercase" style={{ height: altura, containerType: "size", gap: "0.3cqh" }}>
       {linha(0)}{linha(1)}
-      <div className="flex min-h-0 flex-[30] items-stretch">
-        <div className="grid shrink-0 place-items-center bg-white px-[1.6cqw] font-semibold leading-none text-black" style={{ fontSize: "19cqh" }}>{rotulo}</div>
-        <div className="flex min-w-0 flex-1 flex-col justify-center pl-[1.4cqw] leading-none">
-          <div className="truncate font-medium text-white" style={{ fontSize: "6.6cqh" }}>{categoria}</div>
-          <div className="font-medium text-[#F5E61E]" style={{ fontSize: "6.6cqh", marginTop: "1.4cqh" }}>{fase}</div>
+      <div className="relative flex min-h-0 items-stretch bg-[#1D1E21]" style={{ flex: 215 }}>
+        <div className="grid shrink-0 place-items-center bg-white font-medium text-black" style={{ width: "13cqw", fontSize: "20.5cqh", lineHeight: 0.8, letterSpacing: "-0.01em" }}>{rotulo}</div>
+        <div className="relative min-w-0 flex-1 overflow-hidden">
+          <div className="absolute inset-x-0 font-medium text-[#F7F8FB]" style={{ top: "7.3cqh", fontSize: "6.8cqh", lineHeight: 1, paddingLeft: "1.4cqw" }}>
+            <span className="letreiro"><span>{letreiro}</span><span>{letreiro}</span></span>
+          </div>
+          <div className="absolute font-medium text-[#D4A91C]" style={{ top: "15.4cqh", left: "2.4cqw", fontSize: "6.8cqh", lineHeight: 1 }}>{fase}</div>
         </div>
-        <div className={`flex items-center pr-[1.2cqw] font-semibold leading-none tabular-nums ${!iniciada ? "text-white/40" : rodando ? "text-white" : "text-[#F2C81E]"}`} style={{ fontSize: "27cqh" }}>{seg(resta)}</div>
+        <div className="flex shrink-0 items-center bg-[#1D1E21] font-semibold tabular-nums" style={{ fontSize: "30.5cqh", lineHeight: 0.8, letterSpacing: "-0.055em", paddingLeft: "1.2cqw", paddingRight: "1.9cqw", boxShadow: "-2cqw 0 2cqw #1D1E21", color: !iniciada ? "#6B6C6F" : rodando ? "#F7F8FB" : "#F2C21B" }}>{seg(resta)}</div>
       </div>
       {vencedor && (
-        <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center bg-[#222326]" style={{ height: "70.5%" }}>
-          <div className="bg-[#F5E61E] px-[1.2cqw] font-semibold leading-tight text-black" style={{ fontSize: "8cqh" }}>Vencedor por {vencedor.metodo}</div>
-          <div className="font-semibold leading-none text-white" style={{ fontSize: "20cqh", marginTop: "2.5cqh" }}>{lados[vencedor.lado]!.nome}</div>
-          <div className="font-medium leading-none text-white/45" style={{ fontSize: "8.6cqh", marginTop: "2cqh" }}>{lados[vencedor.lado]!.equipe}</div>
+        <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center bg-[#232427]" style={{ height: "70%" }}>
+          <div className="anuncio flex flex-col items-center">
+            <div className="bg-[#F2EA1E] font-semibold text-black" style={{ fontSize: "9.8cqh", lineHeight: 1, padding: "0.6cqh 1.1cqw" }}>Vencedor por {vencedor.metodo}</div>
+            <div className="font-medium text-[#F7F8FB]" style={{ fontSize: "23.5cqh", lineHeight: 0.86, marginTop: "2.2cqh" }}>{lados[vencedor.lado]!.nome}</div>
+            <div className="font-medium text-[#97989B]" style={{ fontSize: "11cqh", lineHeight: 0.9, marginTop: "2.2cqh" }}>{lados[vencedor.lado]!.equipe}</div>
+          </div>
         </div>
       )}
     </div>
@@ -238,8 +249,8 @@ export function Placar() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#17181A]">
-      <Telao altura={telao ? "100vh" : "min(62vh, 56.25vw)"} lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
-        rotulo={`${tatame}-${chave.lutas.findIndex((l) => l.id === luta.id) + 1}`} categoria={`${cat.modalidade === "Gi" ? "Jiu-Jitsu" : "Jiu-Jitsu sem quimono"} / ${cat.nome.split(" · ").join(" / ")}`}
+      <Telao altura={telao ? "100vh" : "min(64vh, 56.25vw)"} lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
+        rotulo={`${tatame}-${chave.lutas.findIndex((l) => l.id === luta.id) + 1}`} categoria={`Copa Horizonte 2026 / ${cat.modalidade === "Gi" ? "Jiu-Jitsu" : "Jiu-Jitsu sem quimono"} / ${cat.nome.split(" · ").join(" / ")}`}
         fase={nomeRodada(luta.rodada, chave.totalRodadas)} combatividade={combatividade} vencedor={vencedor} />
       {telao ? (
         <button onClick={() => setTelao(false)} className="fixed right-3 top-3 z-40 rounded bg-black/50 px-3 py-1.5 text-xs text-white/70 hover:text-white">Sair do telão</button>

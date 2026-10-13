@@ -32,3 +32,9 @@
 
 /* no celular, nenhum cartão ou coluna de grade pode alargar a página */
 main .grid > *, main .cartao { min-width: 0; }
+
+/* telão da luta: letreiro da barra inferior e entrada do anúncio do vencedor */
+@keyframes letreiro { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.letreiro { display: inline-flex; white-space: nowrap; animation: letreiro 22s linear infinite; }
+@keyframes anuncio { 0% { opacity: 0; transform: perspective(60cqh) rotateX(70deg) scale(0.8); } 100% { opacity: 1; transform: none; } }
+.anuncio { animation: anuncio 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
