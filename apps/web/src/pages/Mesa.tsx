@@ -313,6 +313,8 @@ export function Placar() {
   const [aviso, setAviso] = useState("");
   const historico = useRef<[Marcador, Marcador][]>([]);
   const lances = useRef<{ t: number; lado: 0 | 1; texto: string }[]>([]);
+  const iniciadaEm = useRef<string | undefined>(undefined);
+  useEffect(() => { if (rodando && !iniciadaEm.current) iniciadaEm.current = new Date().toISOString(); }, [rodando]);
   const pessoa = usePessoa();
 
   useEffect(() => {
@@ -362,7 +364,7 @@ export function Placar() {
     const numero = m[lado].punicoes + 1;
     const efeito = regrasIbjjf.efeitoDaPunicao(numero, ate15);
     historico.current.push(m);
-    lances.current.push({ t: total - resta, lado, texto: `${numero}ª punição${efeito.desclassifica ? " (desclassificação)" : efeito.pontosAoOponente ? " (dois pontos ao oponente)" : efeito.vantagemAoOponente ? " (vantagem ao oponente)" : ""}` });
+    lances.current.push({ t: total - resta, lado, texto: `${numero}ª punição por ${combatividade?.lado === lado ? "falta de combatividade" : "falta grave"}${efeito.desclassifica ? " (desclassificação)" : efeito.pontosAoOponente ? " (dois pontos ao oponente)" : efeito.vantagemAoOponente ? " (vantagem ao oponente)" : ""}` });
     const c: [Marcador, Marcador] = [{ ...m[0] }, { ...m[1] }];
     c[lado].punicoes = numero;
     c[outro].vantagens += efeito.vantagemAoOponente;
@@ -384,7 +386,7 @@ export function Placar() {
   const confirmar = () => {
     if (!vencedor) return;
     d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro, perdedorSemDireitoASegundaLuta: vencedor.semSegundaLuta || undefined },
-      sumula: { tatame: noTatame, mesario: pessoa.nome, encerradaEm: new Date().toISOString(), duracao: total - resta, regulamentar: total, placar: m, metodo: vencedor.metodo, lances: lances.current } });
+      sumula: { tatame: noTatame, mesario: pessoa.nome, encerradaEm: new Date().toISOString(), iniciadaEm: iniciadaEm.current, duracao: total - resta, regulamentar: total, placar: m, metodo: vencedor.metodo, lances: lances.current } });
     nav(voltar);
   };
   // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro
