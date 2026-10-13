@@ -4,18 +4,19 @@ Plataforma da SportCombat para organização de competições de esportes de com
 
 ## Estado atual
 
-O motor gera a estrutura da eliminatória simples (posições, byes e separação por equipe) com sorteio reproduzível. Ainda não há regra de colocação, regra de três atletas, pacote de regras IBJJF nem o kit.
+- **Motor** (`packages/engine`): gera a eliminatória simples com sorteio reproduzível, byes espalhados e separação por equipe, e resolve a chave a partir dos resultados. 41 testes.
+- **Protótipo navegável** (`apps/web`): quatro áreas (público e inscrição, organizador, mesa e placar, atleta e professor) sobre um evento fictício de 600 atletas. Sem banco, login ou pagamento real.
 
-Para rodar os testes: `cd packages/engine && npm install && npm test`.
+Ainda não existem: banco de dados, autenticação, pagamento, pacote de regras oficial, regra de três atletas e políticas de bronze além de dois terceiros lugares.
 
-## Trilhas
+```
+cd packages/engine && npm install && npm test     # testes do motor
+cd apps/web && npm install && npm run dev         # protótipo em http://localhost:5173
+```
 
-| Trilha | Objetivo | Prazo |
-|---|---|---|
-| A. Kit CBJJS | Planilha de inscritos entra; chaves e ordem de lutas saem em PDF | Evento da CBJJS, novembro/2026 (data a confirmar) |
-| B. Plataforma | Inscrição, pagamento, pesagem, placar, resultados | Edição seguinte |
+## Prioridade
 
-A trilha A tem prioridade. O motor escrito para o kit é o mesmo da plataforma.
+Decisão do fundador em 12/10/2026: construir a plataforma SaaS primeiro e usar o evento da CBJJS para validar os fluxos depois. O kit de novembro (`docs/escopo-kit-cbjjs.md`) está em espera.
 
 ## Estrutura
 
@@ -23,7 +24,8 @@ A trilha A tem prioridade. O motor escrito para o kit é o mesmo da plataforma.
 |---|---|
 | `packages/engine` | Motor de competição: categorias, sorteio, progressão, colocação. Lógica pura, sem tela nem banco |
 | `packages/rules-ibjjf` | Pacote de regras no modelo IBJJF: divisões de idade, faixas, pesos, tempos de luta |
-| `apps/kit` | Kit de novembro: lê a planilha, valida, monta categorias, gera chaves e PDFs |
+| `apps/web` | Protótipo navegável da plataforma |
+| `apps/kit` | Kit de planilha e PDF (em espera) |
 | `fixtures` | Casos de referência com entrada e resultado esperado. Nunca dados reais de atletas |
 | `docs` | Escopo, decisões e pendências |
 

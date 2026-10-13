@@ -1,2 +1,3 @@
 export * from "./eliminatoria-simples.js";
-export { criarRng, embaralhar } from "./rng.js";
+export * from "./resolver.js";
+export { criarRng, embaralhar, type Rng } from "./rng.js";

@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { background: #F6F4EE; }
+  body { @apply bg-papel text-tinta font-sans antialiased; font-feature-settings: "ss01"; }
+  h1, h2, h3 { @apply font-display; font-stretch: 88%; letter-spacing: -0.01em; }
+  ::selection { background: #D8432A; color: white; }
+}
+
+@layer components {
+  .rotulo { @apply font-mono text-[11px] uppercase tracking-[0.14em] text-tinta-3; }
+  .cartao { @apply bg-cartao border border-linha rounded-lg shadow-cartao; }
+  .botao { @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-acao/40 disabled:opacity-40 disabled:pointer-events-none; }
+  .botao-primario { @apply botao bg-tinta text-white hover:bg-black; }
+  .botao-acao { @apply botao bg-acao text-white hover:bg-acao-escuro; }
+  .botao-contorno { @apply botao border border-linha bg-white text-tinta hover:border-tinta-3; }
+  .campo { @apply w-full rounded-md border border-linha bg-white px-3 py-2 text-sm placeholder:text-tinta-3
+           focus:outline-none focus:border-tinta focus:ring-2 focus:ring-tinta/10; }
+  .tabela { @apply w-full text-sm; }
+  .tabela th { @apply rotulo text-left font-normal px-3 py-2 border-b border-linha bg-papel/60 sticky top-0; }
+  .tabela td { @apply px-3 py-2.5 border-b border-linha/70 align-middle; }
+  .tabela tr:hover td { @apply bg-papel/50; }
+}
+
+/* faixa diagonal do cabeçalho: lembra a ponteira de uma faixa */
+.listra { background-image: repeating-linear-gradient(135deg, #15191E 0 10px, #D8432A 10px 14px); }
+.entrada { animation: entrada .45s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes entrada { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
