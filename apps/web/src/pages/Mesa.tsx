@@ -116,6 +116,59 @@ export function Mesa() {
 
 interface Marcador { pontos: number; vantagens: number; punicoes: number; }
 const zero: Marcador = { pontos: 0, vantagens: 0, punicoes: 0 };
+const COMBATIVIDADE_SEG = 20;
+
+/**
+ * Telão da luta: o que atleta, técnico e público enxergam. Dois atletas empilhados, placar grande à direita,
+ * vantagem e punição ao lado, e a barra de baixo com a luta, a categoria e o relógio.
+ * As medidas são proporcionais à altura do próprio telão, para caber em qualquer tela.
+ */
+function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, fase, combatividade, vencedor }: {
+  altura: string; lados: { nome: string; equipe: string }[]; m: [Marcador, Marcador]; resta: number; rodando: boolean; iniciada: boolean;
+  rotulo: string; categoria: string; fase: string; combatividade: { lado: 0 | 1; resta: number } | null; vencedor: { lado: 0 | 1; metodo: string } | null;
+}) {
+  const linha = (lado: 0 | 1) => (
+    <div className="flex min-h-0 flex-[35] items-stretch border-b-[0.5cqh] border-black">
+      <div className="flex min-w-0 flex-1 flex-col justify-center pl-[1.4cqw]">
+        <div className="truncate font-semibold leading-none text-white" style={{ fontSize: "13.5cqh" }}>{lados[lado]!.nome}</div>
+        <div className="truncate font-medium leading-none text-white/45" style={{ fontSize: "8.6cqh", marginTop: "1.2cqh" }}>{lados[lado]!.equipe}</div>
+      </div>
+      {combatividade?.lado === lado && (
+        <div className="my-[2.2cqh] mr-[1.2cqw] flex flex-col items-center justify-center rounded-[0.8cqh] bg-[#F5E61E] px-[1.6cqw] leading-none text-[#3A1010]">
+          <div className="font-bold tabular-nums" style={{ fontSize: "15cqh" }}>{seg(combatividade.resta)}</div>
+          <div className="font-semibold" style={{ fontSize: "5.4cqh" }}>Combatividade</div>
+        </div>
+      )}
+      <div className="flex w-[7cqw] shrink-0 flex-col items-center justify-center leading-none">
+        <div className={m[lado].vantagens ? "text-[#4ADE4A]" : "text-white/45"} style={{ fontSize: "1.9cqh" }}>Vantagem</div>
+        <div className={`font-semibold tabular-nums ${m[lado].vantagens ? "text-[#4ADE4A]" : "text-white/45"}`} style={{ fontSize: "10.5cqh" }}>{m[lado].vantagens}</div>
+        <div className={m[lado].punicoes ? "text-[#E0263C]" : "text-white/45"} style={{ fontSize: "1.9cqh", marginTop: "1cqh" }}>Punição</div>
+        <div className={`font-semibold tabular-nums ${m[lado].punicoes ? "text-[#E0263C]" : "text-white/45"}`} style={{ fontSize: "10.5cqh" }}>{m[lado].punicoes}</div>
+      </div>
+      <div className={`grid shrink-0 place-items-center font-bold leading-none tabular-nums ${lado === 0 ? "bg-[#F5E61E] text-[#12964B]" : "bg-black text-white"}`} style={{ width: "34.5cqh", fontSize: "31cqh" }}>{m[lado].pontos}</div>
+    </div>
+  );
+  return (
+    <div className="relative flex select-none flex-col overflow-hidden bg-[#222326] font-placar uppercase" style={{ height: altura, containerType: "size" }}>
+      {linha(0)}{linha(1)}
+      <div className="flex min-h-0 flex-[30] items-stretch">
+        <div className="grid shrink-0 place-items-center bg-white px-[1.6cqw] font-semibold leading-none text-black" style={{ fontSize: "19cqh" }}>{rotulo}</div>
+        <div className="flex min-w-0 flex-1 flex-col justify-center pl-[1.4cqw] leading-none">
+          <div className="truncate font-medium text-white" style={{ fontSize: "6.6cqh" }}>{categoria}</div>
+          <div className="font-medium text-[#F5E61E]" style={{ fontSize: "6.6cqh", marginTop: "1.4cqh" }}>{fase}</div>
+        </div>
+        <div className={`flex items-center pr-[1.2cqw] font-semibold leading-none tabular-nums ${!iniciada ? "text-white/40" : rodando ? "text-white" : "text-[#F2C81E]"}`} style={{ fontSize: "27cqh" }}>{seg(resta)}</div>
+      </div>
+      {vencedor && (
+        <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center bg-[#222326]" style={{ height: "70.5%" }}>
+          <div className="bg-[#F5E61E] px-[1.2cqw] font-semibold leading-tight text-black" style={{ fontSize: "8cqh" }}>Vencedor por {vencedor.metodo}</div>
+          <div className="font-semibold leading-none text-white" style={{ fontSize: "20cqh", marginTop: "2.5cqh" }}>{lados[vencedor.lado]!.nome}</div>
+          <div className="font-medium leading-none text-white/45" style={{ fontSize: "8.6cqh", marginTop: "2cqh" }}>{lados[vencedor.lado]!.equipe}</div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Placar() {
   const { tatame, catId, lutaId } = useParams();
@@ -129,6 +182,9 @@ export function Placar() {
   const [rodando, setRodando] = useState(false);
   const [m, setM] = useState<[Marcador, Marcador]>([zero, zero]);
   const [encerrando, setEncerrando] = useState(false);
+  const [combatividade, setCombatividade] = useState<{ lado: 0 | 1; resta: number } | null>(null);
+  const [vencedor, setVencedor] = useState<{ lado: 0 | 1; metodo: string; registro: string } | null>(null);
+  const [telao, setTelao] = useState(false);
   const historico = useRef<[Marcador, Marcador][]>([]);
 
   useEffect(() => {
@@ -136,70 +192,86 @@ export function Placar() {
     const t = setInterval(() => setResta((r) => { if (r <= 1) { setRodando(false); return 0; } return r - 1; }), 1000);
     return () => clearInterval(t);
   }, [rodando]);
+  // a contagem de combatividade corre junto com o relógio da luta
+  useEffect(() => {
+    if (!rodando || !combatividade) return;
+    const t = setInterval(() => setCombatividade((c) => (c && c.resta > 0 ? { ...c, resta: c.resta - 1 } : c)), 1000);
+    return () => clearInterval(t);
+  }, [rodando, combatividade?.lado]);
 
   if (!cat || !luta || !luta.a || !luta.b) return <div className="p-10"><Vazio>Luta não encontrada ou ainda sem os dois atletas definidos.</Vazio></div>;
-  // a luta só abre no tatame em que a categoria está programada: trocar o número no endereço não dá acesso
+  // a luta só abre no tatame em que está na fila: trocar o número no endereço não dá acesso
   const blocoDaLuta = d.blocos.find((b) => b.categoria.id === cat.id);
   const tatameDaLuta = d.estado.remanejadas[chaveDoResultado(cat.id, luta.id)]?.tatame ?? blocoDaLuta?.tatame;
   if (!blocoDaLuta || tatameDaLuta !== Number(tatame)) return <div className="p-10"><Vazio>Esta luta não está na fila do Tatame {tatame}. Para operá-la aqui, use "Trazer luta de outro tatame" na fila. <Link to="/app/mesa" className="font-medium text-marinho hover:underline">Voltar à fila</Link></Vazio></div>;
   const voltar = `/app/mesa?dia=${sp.get("dia") ?? 1}&tatame=${tatame}`;
   const lados = [luta.a, luta.b] as const;
+  const chave = d.chaves.get(cat.id)!;
   const somar = (lado: 0 | 1, campo: keyof Marcador, n: number) => {
     historico.current.push(m);
     setM((x) => { const c: [Marcador, Marcador] = [{ ...x[0] }, { ...x[1] }]; c[lado][campo] = Math.max(0, c[lado][campo] + n); return c; });
   };
   const desfazer = () => { const ant = historico.current.pop(); if (ant) setM(ant); };
-  const encerrar = (vencedor: 0 | 1, metodo: string) => {
+  const anunciar = (lado: 0 | 1, metodo: string) => {
     const placar = metodo === "Pontos" ? ` ${m[0].pontos}x${m[1].pontos}` : "";
-    d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor], metodo: metodo + placar } });
+    setRodando(false); setCombatividade(null); setEncerrando(false);
+    setVencedor({ lado, metodo: metodo === "DQ do oponente" ? "desclassificação" : metodo, registro: metodo + placar });
+  };
+  const confirmar = () => {
+    if (!vencedor) return;
+    d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro } });
     nav(voltar);
   };
   const sugerido: 0 | 1 | null = m[0].pontos !== m[1].pontos ? (m[0].pontos > m[1].pontos ? 0 : 1) : m[0].vantagens !== m[1].vantagens ? (m[0].vantagens > m[1].vantagens ? 0 : 1) : m[0].punicoes !== m[1].punicoes ? (m[0].punicoes < m[1].punicoes ? 0 : 1) : null;
 
-  const coluna = (lado: 0 | 1) => {
-    const claro = lado === 1;
-    return (
-      <div key={lado} className={`flex flex-1 flex-col p-5 sm:p-8 ${claro ? "bg-white text-tinta" : "bg-[#1D1E1F] text-white"}`}>
-        <div className="font-mono text-xs opacity-60">{d.equipeDe(lados[lado])}</div>
-        <div className="font-display text-3xl font-semibold leading-tight sm:text-5xl">{d.nomeDe(lados[lado])}</div>
-        <div className="my-4 flex flex-1 items-center justify-center">
-          <div className="font-display text-[9rem] font-bold leading-none tabular-nums sm:text-[13rem]">{m[lado].pontos}</div>
-        </div>
-        <div className="mb-4 flex justify-center gap-8 font-mono text-sm">
-          <span>Vantagens <b className="text-2xl">{m[lado].vantagens}</b></span>
-          <span className="text-perigo">Punições <b className="text-2xl">{m[lado].punicoes}</b></span>
-        </div>
-        <div className="grid grid-cols-5 gap-2">
-          {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className={`rounded-md py-4 font-display text-2xl font-semibold ${claro ? "bg-marinho text-white" : "bg-white text-tinta"}`}>+{n}</button>)}
-          <button onClick={() => somar(lado, "vantagens", 1)} className="rounded-md border border-current py-4 text-sm font-semibold">Vant.</button>
-          <button onClick={() => somar(lado, "punicoes", 1)} className="rounded-md bg-perigo py-4 text-sm font-semibold text-white">Punição</button>
-        </div>
+  const controles = (lado: 0 | 1) => (
+    <div key={lado} className="flex-1 rounded-lg bg-white/5 p-3">
+      <div className="mb-2 flex items-center gap-2 text-sm text-white"><span className={`h-3 w-3 rounded-sm ${lado === 0 ? "bg-[#F5E61E]" : "border border-white/60 bg-black"}`} /><span className="truncate font-semibold">{d.nomeDe(lados[lado])}</span></div>
+      <div className="grid grid-cols-3 gap-2">
+        {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className="rounded-md bg-white py-3 text-xl font-semibold text-tinta">+{n}</button>)}
+        <button onClick={() => somar(lado, "vantagens", 1)} className="rounded-md border border-[#4ADE4A]/70 py-2.5 text-sm font-semibold text-[#4ADE4A]">+ Vantagem</button>
+        <button onClick={() => somar(lado, "punicoes", 1)} className="rounded-md bg-perigo py-2.5 text-sm font-semibold text-white">+ Punição</button>
+        <button onClick={() => setCombatividade(combatividade?.lado === lado ? null : { lado, resta: COMBATIVIDADE_SEG })} className={`rounded-md py-2.5 text-sm font-semibold ${combatividade?.lado === lado ? "bg-[#F5E61E] text-black" : "border border-white/30 text-white"}`}>{combatividade?.lado === lado ? "Parar contagem" : "Combatividade"}</button>
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#1D1E1F]">
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-black px-4 py-2 text-white">
-        <Link to={voltar} className="text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
-        <div className="text-center text-xs opacity-70">{cat.modalidade} · {cat.nome} · {nomeRodada(luta.rodada, d.chaves.get(cat.id)!.totalRodadas)}</div>
-        <div className="flex items-center gap-2">
-          <button onClick={desfazer} className="rounded border border-white/30 px-3 py-1.5 text-sm">Desfazer</button>
-          <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-3 py-1.5 text-sm font-semibold text-tinta">Encerrar luta</button>
+    <div className="flex min-h-screen flex-col bg-[#17181A]">
+      <Telao altura={telao ? "100vh" : "min(62vh, 56.25vw)"} lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
+        rotulo={`${tatame}-${chave.lutas.findIndex((l) => l.id === luta.id) + 1}`} categoria={`${cat.modalidade === "Gi" ? "Jiu-Jitsu" : "Jiu-Jitsu sem quimono"} / ${cat.nome.split(" · ").join(" / ")}`}
+        fase={nomeRodada(luta.rodada, chave.totalRodadas)} combatividade={combatividade} vencedor={vencedor} />
+      {telao ? (
+        <button onClick={() => setTelao(false)} className="fixed right-3 top-3 z-40 rounded bg-black/50 px-3 py-1.5 text-xs text-white/70 hover:text-white">Sair do telão</button>
+      ) : (
+        <div className="flex-1 space-y-3 p-3 sm:p-4">
+          {vencedor ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4 text-white">
+              <span>Resultado anunciado no telão: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.</span>
+              <span className="flex gap-2"><button onClick={() => setVencedor(null)} className="rounded border border-white/30 px-3 py-2 text-sm">Corrigir</button><button onClick={confirmar} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Confirmar e voltar à fila</button></span>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center gap-2 text-white">
+                <Link to={voltar} className="mr-auto text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
+                <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-5 py-2 text-sm font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
+                <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-3 py-2 text-sm">Zerar relógio</button>
+                <button onClick={desfazer} className="rounded border border-white/30 px-3 py-2 text-sm">Desfazer</button>
+                <button onClick={() => setTelao(true)} className="rounded border border-white/30 px-3 py-2 text-sm">Modo telão</button>
+                <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Encerrar luta</button>
+              </div>
+              <div className="flex flex-col gap-3 md:flex-row">{controles(0)}{controles(1)}</div>
+              <p className="text-xs text-white/40">A parte de cima é o que aparece no telão do tatame. A contagem de combatividade usa {COMBATIVIDADE_SEG} segundos como exemplo; o tempo oficial entra com o pacote de regras.</p>
+            </>
+          )}
         </div>
-      </div>
-      <div className="flex items-center justify-center gap-4 bg-black/80 py-3 text-white">
-        <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-4 py-2 text-sm font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
-        <div className={`font-mono text-6xl font-semibold tabular-nums ${resta <= 30 ? "text-ouro" : ""}`}>{seg(resta)}</div>
-        <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-3 py-2 text-sm">Zerar relógio</button>
-      </div>
-      <div className="flex flex-1 flex-col md:flex-row">{coluna(0)}{coluna(1)}</div>
+      )}
 
       {encerrando && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={() => setEncerrando(false)}>
           <div className="cartao w-full max-w-xl p-6" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-2xl font-semibold">Encerrar luta</h2>
-            <p className="mb-4 text-sm text-tinta-2">Escolha o vencedor e o método. O resultado avança o atleta na chave e fica registrado.</p>
+            <p className="mb-4 text-sm text-tinta-2">Escolha o vencedor e o método. O telão anuncia o vencedor, e você confirma antes de o resultado avançar a chave.</p>
             <div className="grid gap-4 sm:grid-cols-2">
               {([0, 1] as const).map((lado) => (
                 <div key={lado} className={`rounded-md border p-3 ${sugerido === lado ? "border-tatame bg-tatame-claro" : "border-linha"}`}>
@@ -207,7 +279,7 @@ export function Placar() {
                   <div className="mb-2 text-xs text-tinta-3">{m[lado].pontos} pts · {m[lado].vantagens} vant. · {m[lado].punicoes} pun.{sugerido === lado ? " · à frente no placar" : ""}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {["Pontos", "Finalização", "Decisão", "W.O.", "Desclassificação"].map((met) => (
-                      <button key={met} className="botao-contorno !px-2 !py-1 text-xs" onClick={() => encerrar(lado, met === "Desclassificação" ? "DQ do oponente" : met)}>{met === "Desclassificação" ? "Oponente DQ" : met}</button>
+                      <button key={met} className="botao-contorno !px-2 !py-1 text-xs" onClick={() => anunciar(lado, met === "Desclassificação" ? "DQ do oponente" : met)}>{met === "Desclassificação" ? "Oponente DQ" : met}</button>
                     ))}
                   </div>
                 </div>

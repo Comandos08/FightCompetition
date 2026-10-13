@@ -46,6 +46,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Cada inscrição e cada dependente guardam a conta que os criou; uma conta não vê pedidos de outra | Claude | Auditoria de rotas: inscrições de uma conta apareciam em todas |
 | 13/10/2026 | A opção do organizador sobre inscritos controla só a aba de inscritos; nomes em chaves publicadas, resultados e rankings continuam públicos | Claude | Mesma lógica adotada para menores: não prometer um sigilo que a chave desfaz. A validar com o fundador |
 | 13/10/2026 | O operador da mesa não fica preso à programação: pode abrir as lutas prontas do tatame em qualquer ordem e trazer uma luta de outro tatame, informando o motivo. O remanejamento fica registrado com hora e autor e aparece para a coordenação | Fundador (regra: não engessar o operador) e Claude (desenho) | Imprevisto acontece em todo evento. Substitui o bloqueio rígido por tatame; o que se impede é só o acesso sem registro, por endereço forjado |
+| 13/10/2026 | Placar refeito no formato de telão do vídeo de referência enviado pelo fundador: atletas empilhados, placar grande à direita, vantagem e punição ao lado, barra inferior com luta, categoria, fase e relógio, contagem de combatividade e anúncio do vencedor. Os controles do operador ficam abaixo, com "Modo telão" para tela cheia | Fundador (referência) e Claude (execução) | Leitura à distância no ginásio. A referência é o telão do Smoothcomp; cores e tipografia próprias ficam para a definição de marca |
 
 ## Em aberto
 
@@ -64,3 +65,5 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
 - Origem e licença dos avatares padrão (`apps/web/src/assets/avatar-*.webp`): anotar o banco de imagens e a licença.
 - Remanejamento de luta entre tatames: o mesário faz sozinho ou precisa de aprovação da coordenação? Hoje faz sozinho, com registro.
+- Telão em segunda tela: no produto, o telão do tatame é outro aparelho sincronizado em tempo real com a mesa; no protótipo é a mesma tela.
+- Cores do telão: hoje seguem a referência (amarelo e verde contra preto e branco); definir cores próprias junto com a marca.
