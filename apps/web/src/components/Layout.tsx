@@ -70,7 +70,7 @@ export function LayoutPublico() {
       <Cabecalho
         direita={pessoa.persona
           ? <Link to={contextos[personas[pessoa.persona].inicial].rota} className="flex items-center gap-2 hover:underline"><IconePessoa />{pessoa.nome.split(" ")[0]} · minha área</Link>
-          : <Link to="/entrar" className="flex items-center gap-2 hover:underline"><IconePessoa />Entrar</Link>}
+          : <><Link to="/cadastro" className="hidden text-white/80 hover:text-white hover:underline sm:block">Criar conta</Link><Link to="/entrar" className="flex items-center gap-2 hover:underline"><IconePessoa />Entrar</Link></>}
         nav={<>
           <NavLink to="/" className={({ isActive }) => itemNav({ isActive: isActive || pathname.startsWith("/eventos") })}>Eventos</NavLink>
           <span className="flex-1" />
@@ -91,7 +91,8 @@ export function LayoutLogado() {
   const loc = useLocation();
   const nav = useNavigate();
   if (!pessoa.persona) return <Navigate to={`/entrar?de=${encodeURIComponent(loc.pathname)}`} replace />;
-  const atual = (Object.keys(contextos) as ContextoId[]).find((c) => loc.pathname.startsWith(contextos[c].rota));
+  const daConta = ["/app/perfil", "/app/dependentes", "/app/pedidos", "/app/inscricao"].some((r) => loc.pathname.startsWith(r));
+  const atual = daConta ? "atleta" : (Object.keys(contextos) as ContextoId[]).find((c) => loc.pathname.startsWith(contextos[c].rota));
   const semAcesso = atual && !pessoa.contextos.includes(atual);
   // o placar ocupa a tela inteira, mas só para quem tem o papel de mesa
   if (loc.pathname.includes("/placar/") && !semAcesso) return <Outlet />;
@@ -104,7 +105,7 @@ export function LayoutLogado() {
         </>}
         nav={<>
           {pessoa.contextos.map((c) => (
-            <NavLink key={c} to={contextos[c].rota} className={itemNav}>
+            <NavLink key={c} to={contextos[c].rota} className={() => itemNav({ isActive: atual === c })}>
               {contextos[c].nome}{c !== "atleta" && <span className="ml-1.5 text-xs text-white/60">{contextos[c].papel.toLowerCase()}</span>}
             </NavLink>
           ))}
@@ -113,7 +114,7 @@ export function LayoutLogado() {
         </>}
       />
       <AvisoPrototipo />
-      <main className="entrada mx-auto w-full max-w-[1240px] flex-1 px-5 py-8" key={loc.pathname.split("/").slice(0, 3).join("/")}>
+      <main className="entrada mx-auto w-full max-w-[1240px] flex-1 px-5 py-8" key={loc.pathname.split("/").slice(0, 5).join("/")}>
         {semAcesso
           ? <SemAcesso><b>{contextos[atual].nome}</b> exige o papel de {contextos[atual].papel.toLowerCase()}. A conta de {personas[pessoa.persona].rotulo.toLowerCase()} não tem esse papel.</SemAcesso>
           : <Outlet />}
@@ -138,30 +139,41 @@ export function Entrar() {
   const { despachar } = useDados();
   const nav = useNavigate();
   const de = new URLSearchParams(useLocation().search).get("de");
+  const [email, setEmail] = useState("");
   const entrar = (persona: Persona) => {
     despachar({ tipo: "entrar", persona });
     const destino = contextos[personas[persona].inicial].rota;
     // volta para onde a pessoa queria ir, se a conta escolhida tiver acesso
-    nav(de && (de.startsWith("/app/inscricao") || de.startsWith(destino) || de.startsWith("/app/atleta")) ? de : destino);
+    const daConta = !!de && ["/app/inscricao", "/app/atleta", "/app/perfil", "/app/dependentes", "/app/pedidos"].some((r) => de.startsWith(r));
+    nav(de && (daConta || de.startsWith(destino)) ? de : destino);
   };
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="rotulo mb-1">Entrar</div>
-      <h1 className="text-3xl font-semibold">Uma conta, vários papéis</h1>
-      <p className="mt-2 max-w-2xl text-tinta-2">
-        No produto, você entra com e-mail e senha e a plataforma mostra só as áreas em que a sua conta tem papel. Aqui o login é simulado: escolha uma conta de demonstração para ver o que cada pessoa enxerga.
-      </p>
+    <div className="mx-auto max-w-5xl">
+      <h1 className="text-3xl font-semibold">Entrar</h1>
       {de && <div className="mt-4 rounded-md bg-aviso-claro px-3 py-2 text-sm text-aviso">Para continuar, entre com uma conta.</div>}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {(Object.keys(personas) as Persona[]).map((p) => (
-          <button key={p} onClick={() => entrar(p)} className="cartao group p-5 text-left transition hover:-translate-y-0.5 hover:border-marinho">
-            <div className="flex items-center justify-between"><h2 className="text-2xl font-semibold">{personas[p].rotulo}</h2><span className="text-sm font-medium text-marinho opacity-0 transition group-hover:opacity-100">Entrar ›</span></div>
-            <p className="mt-1 text-sm text-tinta-2">{personas[p].descricao}</p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {personas[p].contextos.map((c) => <span key={c} className="rounded-full border border-linha bg-papel px-2 py-0.5 text-[11px]">{contextos[c].papel === "Inscrições e lutas" ? "Área pessoal" : contextos[c].papel}</span>)}
-            </div>
-          </button>
-        ))}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[380px_1fr]">
+        <div className="cartao h-fit space-y-4 p-6">
+          <label className="block"><span className="rotulo">E-mail</span><input id="entrar-email" className="campo mt-1" type="email" placeholder="voce@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+          <label className="block"><span className="rotulo">Senha</span><input id="entrar-senha" className="campo mt-1" type="password" /></label>
+          <button className="botao-primario w-full" disabled={!email.includes("@")} onClick={() => entrar("atleta")}>Entrar</button>
+          <div className="flex justify-between text-sm"><span className="text-tinta-3">Esqueci a senha</span><Link to="/cadastro" className="font-medium text-marinho hover:underline">Criar conta</Link></div>
+          <p className="text-xs text-tinta-3">No protótipo, qualquer e-mail entra como a conta de atleta de demonstração. Não digite uma senha real.</p>
+        </div>
+        <div>
+          <div className="rotulo mb-1">Contas de demonstração</div>
+          <p className="mb-4 max-w-2xl text-sm text-tinta-2">Uma conta pode ter vários papéis, e a plataforma mostra só as áreas em que ela tem papel. Escolha uma conta para ver o que cada pessoa enxerga.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(Object.keys(personas) as Persona[]).map((p) => (
+              <button key={p} onClick={() => entrar(p)} className="cartao group p-5 text-left transition hover:-translate-y-0.5 hover:border-marinho">
+                <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">{personas[p].rotulo}</h2><span className="text-sm font-medium text-marinho opacity-0 transition group-hover:opacity-100">Entrar ›</span></div>
+                <p className="mt-1 text-sm text-tinta-2">{personas[p].descricao}</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {personas[p].contextos.map((c) => <span key={c} className="rounded-full border border-linha bg-papel px-2 py-0.5 text-[11px]">{contextos[c].papel === "Inscrições e lutas" ? "Área pessoal" : contextos[c].papel}</span>)}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

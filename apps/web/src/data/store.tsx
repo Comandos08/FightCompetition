@@ -5,7 +5,17 @@ import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, 
 
 export type Persona = "atleta" | "professor" | "organizador" | "mesario";
 
+export interface Membro { nome: string; email: string; papel: string; escopo: string; situacao: "ativo" | "convite enviado"; }
+export interface Cupom { codigo: string; desconto: string; usos: number; limite: number; }
+export interface EventoNovo { id: string; nome: string; datas: string; cidade: string; local: string; modalidades: string; tatames: number; valor: number; }
+export interface Config { inscritosPublicos: boolean; ocultarMenores: boolean; exigirVinculo: boolean; cpfObrigatorio: boolean; }
+
 interface Estado {
+  config: Config;
+  membros: Membro[];
+  cupons: Cupom[];
+  eventosNovos: EventoNovo[];
+  dependentes: Atleta[];
   sessao: Persona | null;
   novosAtletas: Atleta[];
   novasInscricoes: Inscricao[];
@@ -17,7 +27,18 @@ interface Estado {
   resultados: Record<string, Resultado>;
 }
 
-const vazio: Estado = { sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
+const membrosIniciais: Membro[] = [
+  { nome: "Renata Coutinho Lins", email: "renata@ligahorizonte.exemplo", papel: "Dona", escopo: "Organização", situacao: "ativo" },
+  { nome: "Paulo Guedes Neves", email: "paulo@ligahorizonte.exemplo", papel: "Diretor técnico", escopo: "Copa Horizonte 2026", situacao: "ativo" },
+  { nome: "Diego Antunes Paiva", email: "diego@ligahorizonte.exemplo", papel: "Mesário", escopo: "Copa Horizonte 2026 · Tatame 1", situacao: "ativo" },
+  { nome: "Larissa Moura Dias", email: "larissa@ligahorizonte.exemplo", papel: "Mesária", escopo: "Copa Horizonte 2026 · Tatame 2", situacao: "convite enviado" },
+];
+const vazio: Estado = {
+  config: { inscritosPublicos: true, ocultarMenores: true, exigirVinculo: false, cpfObrigatorio: false },
+  membros: membrosIniciais,
+  cupons: [{ codigo: "LOTE1", desconto: "15%", usos: 84, limite: 100 }, { codigo: "PROJETOSOCIAL", desconto: "100%", usos: 22, limite: 40 }],
+  eventosNovos: [], dependentes: [],
+  sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
   | { tipo: "inscrever"; atleta?: Atleta; inscricoes: Inscricao[] }
@@ -27,6 +48,11 @@ type Acao =
   | { tipo: "sortear"; categoriaId: string }
   | { tipo: "publicar"; categoriaIds: string[]; valor: boolean }
   | { tipo: "resultado"; chave: string; resultado: Resultado }
+  | { tipo: "config"; chave: keyof Config; valor: boolean }
+  | { tipo: "membro"; membro: Membro }
+  | { tipo: "cupom"; cupom: Cupom }
+  | { tipo: "evento"; evento: EventoNovo }
+  | { tipo: "dependente"; atleta: Atleta }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
   | { tipo: "reiniciar" };
@@ -49,13 +75,18 @@ function reduzir(e: Estado, a: Acao): Estado {
       return { ...e, publicadas };
     }
     case "resultado": return { ...e, resultados: { ...e.resultados, [a.chave]: a.resultado } };
+    case "config": return { ...e, config: { ...e.config, [a.chave]: a.valor } };
+    case "membro": return { ...e, membros: [...e.membros, a.membro] };
+    case "cupom": return { ...e, cupons: [...e.cupons, a.cupom] };
+    case "evento": return { ...e, eventosNovos: [...e.eventosNovos, a.evento] };
+    case "dependente": return { ...e, dependentes: [...e.dependentes, a.atleta] };
     case "entrar": return { ...e, sessao: a.persona };
     case "sair": return { ...e, sessao: null };
     case "reiniciar": return { ...vazio, sessao: e.sessao };
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v1";
+const CHAVE_LOCAL = "arena-prototipo-v2";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);
@@ -86,7 +117,7 @@ export function Provedor({ children }: { children: ReactNode }) {
   useEffect(() => { try { localStorage.setItem(CHAVE_LOCAL, JSON.stringify(estado)); } catch { /* sem armazenamento */ } }, [estado]);
 
   const valor = useMemo<Contexto>(() => {
-    const todosAtletas = [...base.atletas, ...estado.novosAtletas];
+    const todosAtletas = [...base.atletas, ...estado.novosAtletas, ...estado.dependentes];
     const atletas = new Map(todosAtletas.map((a) => [a.id, a]));
     const inscricoes = [...base.inscricoes, ...estado.novasInscricoes].map((i) => ({
       ...i, pagamento: estado.pagamentos[i.id] ?? i.pagamento, pesagem: estado.pesagens[i.id] ?? i.pesagem,
