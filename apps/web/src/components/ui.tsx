@@ -90,13 +90,33 @@ export function Secao({ titulo, acao, children }: { titulo: string; acao?: React
   return <section className="cartao p-6"><div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">{titulo}</h2>{acao}</div>{children}</section>;
 }
 
-/** Foto do atleta; sem foto, mostra as iniciais. */
+const FUNDOS = ["#DCE6F4", "#E3EFE4", "#F6E9D2", "#EADFF2", "#F4DEDE", "#D9EEF0", "#ECECEC"];
+const FIGURAS = ["#1A447D", "#1F6B4A", "#8F5303", "#5B3A8C", "#8C2F2F", "#17606B", "#3D4148"];
+const QUIMONOS = ["#FFFFFF", "#FFFFFF", "#2C5FA8", "#22262B"];
+
+/** Foto do atleta. Sem foto, um avatar ilustrado gerado a partir do cadastro: nunca um rosto real. */
 export function Avatar({ atletaId, nome, className = "h-28 w-28 text-3xl" }: { atletaId?: string; nome: string; className?: string }) {
-  const { estado } = useDados();
+  const { estado, atletas } = useDados();
   const foto = atletaId ? estado.fotos[atletaId] : "";
-  return foto
-    ? <img src={foto} alt={`Foto de ${nome}`} className={`rounded-lg object-cover ${className}`} />
-    : <div className={`grid place-items-center rounded-lg bg-marinho-claro font-semibold text-marinho ${className}`}>{nome.split(" ").map((x) => x[0]).slice(0, 2).join("")}</div>;
+  if (foto) return <img src={foto} alt={`Foto de ${nome}`} className={`rounded-lg object-cover ${className}`} />;
+  const atleta = atletaId ? atletas.get(atletaId) : undefined;
+  if (!atleta) return <div className={`grid place-items-center rounded-lg bg-marinho-claro font-semibold text-marinho ${className}`}>{nome.split(" ").map((x) => x[0]).slice(0, 2).join("")}</div>;
+  let h = 0;
+  for (const c of atleta.id + atleta.nome) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const tom = h % FUNDOS.length;
+  const quimono = QUIMONOS[(h >>> 4) % QUIMONOS.length]!;
+  const cabelo = (h >>> 8) % 3;
+  const faixa = coresFaixa[atleta.faixa] ?? "#999";
+  return (
+    <svg viewBox="0 0 64 64" role="img" aria-label={`Avatar ilustrado de ${nome}`} className={`rounded-lg ${className}`} style={{ background: FUNDOS[tom] }}>
+      <path d="M8 64c0-13 9-21 24-21s24 8 24 21z" fill={quimono} stroke={FIGURAS[tom]} strokeWidth="1.5" />
+      <path d="M24 44l8 12 8-12" fill="none" stroke={FIGURAS[tom]} strokeWidth="1.5" strokeLinejoin="round" />
+      <rect x="10" y="57" width="44" height="5" fill={faixa} stroke={FIGURAS[tom]} strokeWidth="1" />
+      <circle cx="32" cy="26" r="12" fill={FIGURAS[tom]} opacity="0.85" />
+      {cabelo === 0 && <path d="M20 25a12 12 0 0 1 24 0c-3-5-8-7-12-7s-9 2-12 7z" fill={FIGURAS[tom]} />}
+      {cabelo === 1 && <path d="M19 30c-2-12 5-18 13-18s15 6 13 18c-1-7-5-11-13-11s-12 4-13 11z" fill={FIGURAS[tom]} />}
+    </svg>
+  );
 }
 
 /** Botão de envio de imagem: reduz o arquivo no navegador antes de guardar. */

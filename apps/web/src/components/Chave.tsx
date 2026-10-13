@@ -1,7 +1,8 @@
 import type { ChaveEliminatoria, ChaveResolvida, Origem } from "@engine";
 import { useDados } from "@/data/store";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { hhmm, horarioDaLuta, nomeRodada } from "@/lib/competicao";
 import { lutasDoAtleta } from "@/lib/resultados";
 import { Avatar } from "@/components/ui";
@@ -15,7 +16,13 @@ interface Props {
 /** Desenha a chave em dois lados que se encontram na final, como nas chaves impressas de torneio. */
 export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
   const d = useDados();
+  const nav = useNavigate();
   const { nomeDe, equipeDe } = d;
+  /** Perfil público do atleta de uma inscrição; menores reservados não têm perfil. */
+  const perfilDe = (id?: string) => {
+    const a = id ? d.atletas.get(d.inscricaoPorId.get(id)?.atletaId ?? "") : undefined;
+    return a && !(a.menor && d.estado.config.ocultarMenores) ? `/atletas/${a.id}` : undefined;
+  };
   const definicao = new Map(chave.lutas.map((l) => [l.id, l]));
   const estado = new Map(resolvida.lutas.map((l) => [l.id, l]));
   const bloco = d.blocos.find((b) => b.chave === chave);
@@ -24,7 +31,9 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
   const Lado = ({ id, vencedor, bye, cor }: { id?: string; vencedor: boolean; bye?: boolean; cor: string }) => (
     <div className={`flex items-center justify-between gap-2 border-l-[3px] px-2.5 py-1.5 ${id ? cor : "border-transparent"} ${vencedor ? "bg-tatame-claro" : ""}`}
       onMouseEnter={(e) => { if (!id) return; const r = e.currentTarget.getBoundingClientRect(); setCartao({ id, x: Math.min(r.left + 24, window.innerWidth - 300), y: r.bottom + 4 }); }}
-      onMouseLeave={() => setCartao(null)}>
+      onMouseLeave={() => setCartao(null)}
+      onClick={() => { const destino = !aoAbrirLuta && perfilDe(id); if (destino) { setCartao(null); nav(destino); } }}
+      style={!aoAbrirLuta && perfilDe(id) ? { cursor: "pointer" } : undefined}>
       <div className="min-w-0">
         <div className={`truncate text-[13px] leading-tight ${id ? (vencedor ? "font-semibold text-marinho" : "font-medium text-marinho") : "italic text-tinta-3"}`}>{nomeDe(id)}</div>
         {id && <div className="truncate text-[10px] text-tinta-3">{equipeDe(id)}{bye ? " · bye" : ""}</div>}
@@ -32,6 +41,10 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
       {vencedor && <span className="font-mono text-[10px] font-semibold text-tatame">V</span>}
     </div>
   );
+
+  /** Com ação de luta (mesa), a caixa é um botão; sem ação, os nomes levam ao perfil do atleta. */
+  const Caixa = ({ lutaId, className, children }: { lutaId: string; className: string; children: ReactNode }) =>
+    aoAbrirLuta ? <button onClick={() => aoAbrirLuta(lutaId)} className={className}>{children}</button> : <div className={className}>{children}</div>;
 
   const No = ({ origem, espelhado }: { origem: Origem; espelhado?: boolean }) => {
     if (origem.tipo === "participante") return null;
@@ -53,15 +66,13 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
             <span>Luta {indice}{bloco ? ` · Tatame ${bloco.tatame} · ${hhmm(horarioDaLuta(bloco, def.id))}` : ""}</span>
             {est.metodo ? <span>{est.metodo}</span> : est.pronta ? <span className="font-semibold text-ouro-escuro">pronta</span> : <span>{nomeRodada(def.rodada, chave.totalRodadas)}</span>}
           </div>
-          <button
-            onClick={() => aoAbrirLuta?.(def.id)}
-            disabled={!aoAbrirLuta}
+          <Caixa lutaId={def.id}
             className={`w-full overflow-hidden rounded-md border bg-papel/70 text-left transition ${est.pronta ? "border-ouro shadow-cartao" : "border-linha"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}
           >
             <Lado id={est.a} cor="border-marinho" vencedor={!!est.vencedorId && est.vencedorId === est.a} bye={def.ladoA.tipo === "participante" && def.rodada > 1} />
             <div className="h-px bg-linha/70" />
             <Lado id={est.b} cor="border-perigo" vencedor={!!est.vencedorId && est.vencedorId === est.b} bye={def.ladoB.tipo === "participante" && def.rodada > 1} />
-          </button>
+          </Caixa>
         </div>
       </div>
     );
@@ -116,12 +127,12 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
           <span>Luta {chave.lutas.length}{bloco ? ` · Tatame ${bloco.tatame} · ${hhmm(horarioDaLuta(bloco, final.id))}` : ""}</span>
           {est.metodo ? <span>{est.metodo}</span> : est.pronta ? <span className="font-semibold text-ouro-escuro">pronta</span> : null}
         </div>
-        <button onClick={() => aoAbrirLuta?.(final.id)} disabled={!aoAbrirLuta}
+        <Caixa lutaId={final.id}
           className={`w-full overflow-hidden rounded-md border-2 bg-white text-left ${est.pronta ? "border-ouro" : "border-marinho/40"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}>
           <Lado id={est.a} cor="border-marinho" vencedor={!!est.vencedorId && est.vencedorId === est.a} />
           <div className="h-px bg-linha/70" />
           <Lado id={est.b} cor="border-perigo" vencedor={!!est.vencedorId && est.vencedorId === est.b} />
-        </button>
+        </Caixa>
       </div>
     );
   }
