@@ -24,7 +24,7 @@ export const personas: Record<Persona, { rotulo: string; descricao: string; nome
   professor: { rotulo: "Professor", descricao: "Além da área pessoal, acompanha a agenda e as pendências da equipe.", nome: "Marcos Teles Brandão", contextos: ["atleta", "equipe"], inicial: "equipe" },
   organizador: { rotulo: "Organizador", descricao: "Administra o evento: inscritos, categorias, chaves, programação e pesagem.", nome: "Renata Coutinho Lins", contextos: ["atleta", "organizacao", "mesa"], inicial: "organizacao" },
   diretor: { rotulo: "Diretor técnico", descricao: "Cuida da parte esportiva de um evento: inscritos, categorias, chaves, programação, pesagem e resultados. Não vê financeiro, equipe de trabalho nem configurações.", nome: "Paulo Guedes Neves", contextos: ["atleta", "organizacao", "mesa"], inicial: "organizacao" },
-  mesario: { rotulo: "Mesário", descricao: "Opera a fila e o placar do Tatame 1, em que foi escalado. Não vê os outros tatames, inscrições nem financeiro.", nome: "Diego Antunes Paiva", contextos: ["atleta", "mesa"], inicial: "mesa" },
+  mesario: { rotulo: "Mesário", descricao: "Opera a fila e o placar do Tatame 1, em que foi escalado, e vê só os próprios dados. Não tem área de atleta, não vê os outros tatames, inscrições nem financeiro.", nome: "Diego Antunes Paiva", contextos: ["mesa"], inicial: "mesa" },
   admin: { rotulo: "Administrador da plataforma", descricao: "Equipe interna do SaaS: acompanha organizações, eventos, usuários, parceiros e auditoria.", nome: "Equipe Arena", contextos: ["plataforma"], inicial: "plataforma" },
 };
 
