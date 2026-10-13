@@ -56,12 +56,14 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | O placar tem duas visões: a do mesário (relógio, controles, miniatura do que o público vê) e a tela do tatame virada para o público, em janela própria (`/telao/:tatame`), sem nenhum controle | Fundador | O operador precisa de botões e o público precisa só do placar; a tela pública acompanha a mesa em tempo real |
 | 13/10/2026 | Entre uma luta e outra, a tela do público chama a próxima luta e, se o mesário ligar, mostra ao lado as lutas seguintes daquele tatame. A tela do mesário não muda | Fundador | O painel do tatame aproveita o intervalo sem atrapalhar quem opera |
 | 13/10/2026 | A tela do público abre sem login | Claude | Mostra só o que já é público (nomes, equipes, placar) e evita deixar uma conta logada no aparelho virado para a arquibancada. No produto, o aparelho será pareado por código do tatame |
+| 13/10/2026 | O produto se chama Arena. Símbolo e logo oficiais em `docs/marca` | Fundador | Nome aprovado depois do uso no protótipo |
 
 ## Em aberto
 
 - Paleta definitiva: manter azul-marinho e amarelo ou adotar cores próprias com a mesma estrutura.
 
-- Nome do produto.
+- Logo: o arquivo recebido traz a palavra ARENA como texto na fonte Neoverse Sans, que não está no projeto. Falta a versão com o texto convertido em curvas, ou a licença da fonte para a web. Até lá o cabeçalho usa o símbolo oficial com a palavra em Inter.
+- Verificar registro da marca "Arena" no INPI para software e eventos esportivos, e domínio.
 - Tabela de pesos e sistema de faixas por idade: não vieram no livro de regras; o arquivo enviado como tabela de pesos é o guia de atualização de 2024.
 - Regra para atleta sozinho na categoria e para inscrição no absoluto.
 - Se byes devem ser sorteados ou seguir ranking ou ordem de inscrição.
