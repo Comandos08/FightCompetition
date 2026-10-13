@@ -76,7 +76,7 @@ export function Evento() {
 
   return (
     <>
-      <Titulo sobre={`${ev.datas} · ${ev.cidade}`} acoes={<Link to={`/eventos/${ev.id}/inscricao`} className="botao-acao">Inscrever-se</Link>}>{ev.nome}</Titulo>
+      <Titulo sobre={`${ev.datas} · ${ev.cidade}`} acoes={<><Link to="/tv" className="botao-contorno">Painel do ginásio</Link><Link to={`/app/inscricao/${ev.id}`} className="botao-acao">Inscrever-se</Link></>}>{ev.nome}</Titulo>
       <Abas<AbaEvento> ativa={aba} aoMudar={setAba} abas={[
         { id: "info", nome: "Informações" }, { id: "inscritos", nome: "Inscritos", conta: dados.inscricoes.length },
         { id: "chaves", nome: "Chaves", conta: publicadas.length }, { id: "programacao", nome: "Programação" },
@@ -124,7 +124,7 @@ export function Evento() {
         </>
       )}
 
-      {aba === "chaves" && (!catSel ? <Vazio>As chaves ainda não foram publicadas. No protótipo, publique-as pela área do organizador (Chaves → Publicar todas).</Vazio> : (
+      {aba === "chaves" && (!catSel ? <Vazio>As chaves ainda não foram publicadas. No protótipo, entre como organizador e use Chaves → Publicar todas.</Vazio> : (
         <>
           <select className="campo mb-4 max-w-xl" value={catSel.id} onChange={(e) => setCatId(e.target.value)}>
             {publicadas.map((c) => <option key={c.id} value={c.id}>{c.modalidade} · {c.nome} ({c.inscricoes.length})</option>)}
@@ -165,7 +165,7 @@ export function Evento() {
         </>
       )}
 
-      {aba === "resultados" && (!concluidas.length ? <Vazio>Nenhuma categoria encerrada ainda. Registre resultados na área Mesa e placar para ver o pódio aqui.</Vazio> : (
+      {aba === "resultados" && (!concluidas.length ? <Vazio>Nenhuma categoria encerrada ainda. No protótipo, entre como mesário e encerre lutas para ver o pódio aqui.</Vazio> : (
         <div className="grid gap-3 md:grid-cols-2">
           {concluidas.map((c) => {
             const r = dados.resolvidas.get(c.id)!;
@@ -282,7 +282,7 @@ export function Inscricao() {
           <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-tatame text-xl text-white">✓</div>
           <h2 className="text-2xl font-extrabold">Inscrição confirmada</h2>
           <p className="mt-1 text-tinta-2">{f.nome} já aparece na lista de inscritos e entra na categoria quando as chaves forem geradas.</p>
-          <div className="mt-4 flex justify-center gap-2"><button className="botao-primario" onClick={() => nav(`/eventos/${id}`)}>Ver evento</button><button className="botao-contorno" onClick={() => nav("/organizador")}>Ver como organizador</button></div>
+          <div className="mt-4 flex justify-center gap-2"><button className="botao-primario" onClick={() => nav(`/eventos/${id}`)}>Ver evento</button><button className="botao-contorno" onClick={() => nav("/app/atleta")}>Ir para minha área</button></div>
         </div>
       )}
     </div>

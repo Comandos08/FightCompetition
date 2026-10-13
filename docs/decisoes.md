@@ -13,6 +13,8 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 12/10/2026 | Byes sorteados e separação por um único campo de equipe | Claude | Regra oficial ainda não conferida; a validar |
 | 12/10/2026 | Sugestão de fusão limitada ao peso imediatamente vizinho na mesma faixa | Claude | Fusão entre faixas ou pesos distantes é decisão técnica, não automática |
 | 12/10/2026 | Tabela de divisões, pesos e tempos do protótipo é ilustrativa | Claude | O livro de regras oficial ainda não foi lido; nada disso é regra do produto |
+| 13/10/2026 | Site público separado da área logada; a área logada mostra só os contextos em que a conta tem papel (minha área, equipe, organização, mesa) | Fundador (apontou a mistura) e Claude (execução) | O protótipo expunha painel do organizador e mesa a qualquer visitante |
+| 13/10/2026 | Público sem login: agenda, página do evento, chaves publicadas, programação, resultados e painel do ginásio. Inscrição exige conta | Claude | Segue o bloco 1 do caderno funcional; a validar |
 
 ## Em aberto
 

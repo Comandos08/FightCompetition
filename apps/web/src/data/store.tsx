@@ -3,7 +3,10 @@ import type { ChaveEliminatoria, ChaveResolvida, Resultado } from "@engine";
 import { gerarBase, type Atleta, type Inscricao, type StatusPagamento, type StatusPesagem } from "./seed";
 import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, type Categoria } from "@/lib/competicao";
 
+export type Persona = "atleta" | "professor" | "organizador" | "mesario";
+
 interface Estado {
+  sessao: Persona | null;
   novosAtletas: Atleta[];
   novasInscricoes: Inscricao[];
   pagamentos: Record<string, StatusPagamento>;
@@ -14,7 +17,7 @@ interface Estado {
   resultados: Record<string, Resultado>;
 }
 
-const vazio: Estado = { novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
+const vazio: Estado = { sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
   | { tipo: "inscrever"; atleta?: Atleta; inscricoes: Inscricao[] }
@@ -24,6 +27,8 @@ type Acao =
   | { tipo: "sortear"; categoriaId: string }
   | { tipo: "publicar"; categoriaIds: string[]; valor: boolean }
   | { tipo: "resultado"; chave: string; resultado: Resultado }
+  | { tipo: "entrar"; persona: Persona }
+  | { tipo: "sair" }
   | { tipo: "reiniciar" };
 
 function reduzir(e: Estado, a: Acao): Estado {
@@ -44,7 +49,9 @@ function reduzir(e: Estado, a: Acao): Estado {
       return { ...e, publicadas };
     }
     case "resultado": return { ...e, resultados: { ...e.resultados, [a.chave]: a.resultado } };
-    case "reiniciar": return vazio;
+    case "entrar": return { ...e, sessao: a.persona };
+    case "sair": return { ...e, sessao: null };
+    case "reiniciar": return { ...vazio, sessao: e.sessao };
   }
 }
 

@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDados } from "@/data/store";
-import { EVENTO_ID, equipes } from "@/data/seed";
+import { EVENTO_ID } from "@/data/seed";
+import { EQUIPE_DO_PROFESSOR, usePessoa } from "@/data/sessao";
 import { Faixa, Indicador, Selo, Titulo, Vazio, pagamentoSelo, pesagemSelo } from "@/components/ui";
 import { Chave } from "@/components/Chave";
 import { hhmm, horarioDaLuta, idCategoria, nomeRodada } from "@/lib/competicao";
@@ -28,40 +29,31 @@ function useProximaLuta() {
 export function Atleta() {
   const d = useDados();
   const proxima = useProximaLuta();
-  // atleta de demonstração: o primeiro adulto inscrito em Gi e No-Gi
-  const padrao = useMemo(() => {
-    const porAtleta = new Map<string, number>();
-    for (const i of d.inscricoes) if (i.pagamento === "pago") porAtleta.set(i.atletaId, (porAtleta.get(i.atletaId) ?? 0) + 1);
-    return [...d.atletas.values()].find((a) => !a.menor && porAtleta.get(a.id) === 2)?.id ?? [...d.atletas.keys()][0]!;
-  }, [d.atletas, d.inscricoes]);
-  const [atletaId, setAtletaId] = useState(padrao);
-  const [busca, setBusca] = useState("");
-  const atleta = d.atletas.get(atletaId)!;
-  const minhas = d.inscricoes.filter((i) => i.atletaId === atletaId);
-  const achados = busca.length < 2 ? [] : [...d.atletas.values()].filter((a) => a.nome.toLowerCase().includes(busca.toLowerCase())).slice(0, 6);
+  const pessoa = usePessoa();
+  const atleta = pessoa.atletaId ? d.atletas.get(pessoa.atletaId) : undefined;
+  // inscrições do atleta da sessão e as que esta conta fez pelo fluxo de inscrição
+  const minhas = d.inscricoes.filter((i) => i.atletaId === pessoa.atletaId || d.estado.novasInscricoes.some((n) => n.id === i.id));
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Titulo sobre={`Área do atleta · ${atleta.equipe}`}>{atleta.nome}</Titulo>
-      <div className="relative mb-6">
-        <input className="campo" placeholder="Ver como outro atleta (busque pelo nome)" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        {!!achados.length && <div className="cartao absolute z-10 mt-1 w-full overflow-hidden">{achados.map((a) => <button key={a.id} className="block w-full px-3 py-2 text-left text-sm hover:bg-papel" onClick={() => { setAtletaId(a.id); setBusca(""); }}>{a.nome} <span className="text-tinta-3">· {a.equipe}</span></button>)}</div>}
-      </div>
-      {!minhas.length && <Vazio>Este atleta não tem inscrições.</Vazio>}
+    <div className="max-w-3xl">
+      <Titulo sobre="Minha área" acoes={<Link to={`/app/inscricao/${EVENTO_ID}`} className="botao-acao">Nova inscrição</Link>}>{pessoa.nome}</Titulo>
+      {atleta && <p className="-mt-3 mb-5 text-sm text-tinta-2">{atleta.equipe} · faixa {atleta.faixa.toLowerCase()}</p>}
+      {!minhas.length && <Vazio>Você ainda não tem inscrições. Use "Nova inscrição" para se inscrever ou inscrever um dependente.</Vazio>}
       <div className="space-y-4">
         {minhas.map((i) => {
           const p = proxima(i.id);
           const oponente = p.luta ? (p.luta.a === i.id ? p.luta.b : p.luta.a) : undefined;
+          const deOutro = i.atletaId !== pessoa.atletaId;
           return (
             <div key={i.id} className="cartao overflow-hidden">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha/70 px-4 py-3">
-                <div><div className="rotulo">Copa Horizonte 2026 · {i.modalidade}</div><div className="font-semibold">{i.divisao} · <Faixa cor={i.faixa} /> · {i.peso}</div></div>
+                <div><div className="rotulo">Copa Horizonte 2026 · {i.modalidade}{deOutro ? ` · ${d.nomeDe(i.id)}` : ""}</div><div className="font-semibold">{i.divisao} · <Faixa cor={i.faixa} /> · {i.peso}</div></div>
                 <div className="flex gap-1.5">{pagamentoSelo(i.pagamento)}{pesagemSelo(i.pesagem)}</div>
               </div>
               {i.pagamento !== "pago" ? <div className="px-4 py-4 text-sm text-tinta-2">Conclua o pagamento para entrar na chave.</div>
-                : !p.bloco ? <div className="px-4 py-4 text-sm text-tinta-2">Você está sozinho nesta categoria. A organização vai propor uma mudança de categoria.</div>
+                : !p.bloco ? <div className="px-4 py-4 text-sm text-tinta-2">Só há um atleta nesta categoria. A organização vai propor uma mudança de categoria.</div>
                 : p.campeao ? <div className="bg-tatame-claro px-4 py-4 font-semibold text-tatame">Campeão da categoria.</div>
-                : p.eliminado ? <div className="px-4 py-4 text-sm text-tinta-2">Sua participação nesta categoria terminou.</div>
+                : p.eliminado ? <div className="px-4 py-4 text-sm text-tinta-2">A participação nesta categoria terminou.</div>
                 : p.luta ? (
                   <div className="grid gap-4 px-4 py-4 sm:grid-cols-[auto_1fr] sm:items-center">
                     <div className="rounded-md bg-tinta px-5 py-3 text-center text-white">
@@ -70,7 +62,7 @@ export function Atleta() {
                       <div className="font-mono text-xs">Tatame {p.bloco.tatame}</div>
                     </div>
                     <div>
-                      <div className="rotulo">{nomeRodada(p.luta.rodada, p.bloco.chave.totalRodadas)} · sua próxima luta</div>
+                      <div className="rotulo">{nomeRodada(p.luta.rodada, p.bloco.chave.totalRodadas)} · próxima luta</div>
                       <div className="text-lg font-semibold">{oponente ? <>contra {d.nomeDe(oponente)}</> : "Oponente a definir"}</div>
                       {oponente && <div className="text-sm text-tinta-3">{d.equipeDe(oponente)}</div>}
                       <div className="mt-1 text-xs text-tinta-3">O horário é uma estimativa e se ajusta conforme o tatame avança.</div>
@@ -84,7 +76,6 @@ export function Atleta() {
           );
         })}
       </div>
-      <Link to={`/eventos/${EVENTO_ID}/inscricao`} className="botao-contorno mt-5">Nova inscrição</Link>
     </div>
   );
 }
@@ -92,7 +83,7 @@ export function Atleta() {
 export function Professor() {
   const d = useDados();
   const proxima = useProximaLuta();
-  const [equipe, setEquipe] = useState(equipes[0]!);
+  const equipe = EQUIPE_DO_PROFESSOR;
   const [dia, setDia] = useState<1 | 2>(1);
   const daEquipe = d.inscricoes.filter((i) => d.atletas.get(i.atletaId)!.equipe === equipe);
   const atletasUnicos = new Set(daEquipe.map((i) => i.atletaId)).size;
@@ -104,7 +95,7 @@ export function Professor() {
 
   return (
     <>
-      <Titulo sobre="Área do professor" acoes={<select className="campo w-auto" value={equipe} onChange={(e) => setEquipe(e.target.value)}>{equipes.map((e) => <option key={e}>{e}</option>)}</select>}>{equipe}</Titulo>
+      <Titulo sobre="Equipe · você é professor" acoes={<Link to={`/app/inscricao/${EVENTO_ID}`} className="botao-acao">Inscrever atleta</Link>}>{equipe}</Titulo>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Indicador rotulo="Atletas inscritos" valor={atletasUnicos} detalhe={`${daEquipe.length} inscrições`} />
         <Indicador rotulo="Pendências" valor={pendentes.length} detalhe="pagamento ou autorização" />

@@ -24,7 +24,7 @@ export function Organizador() {
   return (
     <>
       <Titulo sobre={`Painel do organizador · ${ev.organizador}`}
-        acoes={<><button className="botao-contorno" onClick={() => nav(`/eventos/${ev.id}`)}>Ver página pública</button><button className="botao-primario" onClick={() => nav("/mesa")}>Abrir mesa</button></>}>
+        acoes={<><button className="botao-contorno" onClick={() => nav(`/eventos/${ev.id}`)}>Ver página pública</button><button className="botao-primario" onClick={() => nav("/app/mesa")}>Abrir mesa</button></>}>
         {ev.nome}
       </Titulo>
       <Abas<Aba> ativa={aba} aoMudar={setAba} abas={[
