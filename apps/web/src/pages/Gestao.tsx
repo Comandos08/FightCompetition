@@ -302,6 +302,7 @@ export function EquipeEvento() {
 const opcoes: { chave: keyof Config; nome: string; dica: string }[] = [
   { chave: "inscritosPublicos", nome: "Lista de inscritos pública", dica: "Qualquer visitante vê quem está inscrito em cada categoria." },
   { chave: "ocultarMenores", nome: "Reservar dados de menores", dica: "Menores aparecem com sobrenome abreviado e sem perfil público." },
+  { chave: "painelPublico", nome: "Painel de próximas lutas aberto ao público", dica: "Pais e atletas acompanham pelo celular e a TV do ginásio abre sem login. Desligado, só quem está logado vê." },
   { chave: "exigirVinculo", nome: "Exigir vínculo confirmado com a equipe", dica: "A inscrição só entra na chave depois que o professor confirma o atleta." },
   { chave: "cpfObrigatorio", nome: "Exigir CPF na inscrição", dica: "Reduz cadastros duplicados. O CPF nunca é exibido." },
 ];
@@ -350,7 +351,7 @@ export function Configuracoes() {
             <div className="flex justify-between"><span className="text-tinta-3">Inscrições</span><Selo tom="ok">abertas até 18 nov</Selo></div>
             <div className="flex justify-between"><span className="text-tinta-3">Chaves publicadas</span><span className="font-medium">{d.categorias.filter((c) => d.estado.publicadas[c.id]).length} de {d.chaves.size}</span></div>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2"><button className="botao-contorno">Encerrar inscrições</button><Link to={`/eventos/${ev.id}`} className="botao-contorno">Ver página pública</Link></div>
+          <div className="mt-4 flex flex-wrap gap-2"><button className="botao-contorno">Encerrar inscrições</button><Link to={`/eventos/${ev.id}`} className="botao-contorno">Ver página pública</Link><Link to={`/eventos/${ev.id}/painel`} className="botao-contorno">Abrir painel do ginásio</Link></div>
         </Secao>
       </div>
     </div>

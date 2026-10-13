@@ -26,6 +26,9 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Chave em dois lados que se encontram na final, com número da luta, tatame e horário; nome na chave leva ao perfil do atleta | Fundador (referência) e Claude (execução) | Segue os prints de referência enviados pelo fundador |
 | 13/10/2026 | Atleta sem foto recebe avatar ilustrado gerado por código, com a cor da faixa. O protótipo não usa fotos de pessoas reais nem rostos sintéticos | Claude | O material simula atletas, parte deles menores |
 | 13/10/2026 | Encerrada a fase de telas do protótipo; próximo passo é a fundação: modelo de dados do bloco 1, login e permissões | Fundador (aceitou a recomendação) | Mais tela rende cada vez menos; o risco está em banco, acesso e pagamento |
+| 13/10/2026 | Painel do ginásio sai do menu geral e passa a pertencer ao evento (`/eventos/:id/painel`). Fica aberto ao público por padrão, com opção do organizador de restringir a quem está logado | Fundador (apontou o lugar errado) e Claude (padrão aberto) | O painel só faz sentido dentro de um evento; exigir login atrapalha a TV do ginásio e os pais na arquibancada. A validar com o fundador |
+| 13/10/2026 | Menu público passa a ter visão institucional: Eventos, Para organizadores, Preços, Ajuda e chamada "Organize seu evento"; rodapé com as mesmas seções | Fundador (direção) e Claude (execução) | O site fala com dois públicos: o atleta que procura evento e o organizador que compra a plataforma |
+| 13/10/2026 | Página inicial continua sendo a agenda de eventos; o conteúdo institucional fica em "Para organizadores" | Claude | A maior parte das visitas é de atletas e responsáveis; a validar |
 
 ## Em aberto
 

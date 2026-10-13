@@ -51,12 +51,20 @@ const itemNav = ({ isActive }: { isActive: boolean }) =>
   `whitespace-nowrap border-b-2 px-3 py-2.5 transition ${isActive ? "border-ouro font-medium text-white" : "border-transparent text-white/80 hover:text-white"}`;
 
 function Rodape() {
+  const colunas: [string, [string, string][]][] = [
+    ["Competir", [["Eventos", "/"], ["Criar conta", "/cadastro"], ["Entrar", "/entrar"]]],
+    ["Organizar", [["Para organizadores", "/organizadores"], ["Preços", "/precos"], ["Evento de exemplo", "/eventos/copa-horizonte-2026"]]],
+    ["Plataforma", [["Ajuda e contato", "/ajuda"]]],
+  ];
   return (
     <footer className="mt-16 bg-marinho text-white">
-      <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-4 px-5 py-8 text-sm">
-        <Marca />
-        <span className="text-white/70">Protótipo de demonstração. Nenhum dado desta página é real.</span>
+      <div className="mx-auto grid max-w-[1240px] gap-8 px-5 py-10 text-sm sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div><Marca /><p className="mt-3 max-w-xs text-white/70">Plataforma para competições de esportes de combate. Um produto SportCombat.</p></div>
+        {colunas.map(([titulo, links]) => (
+          <div key={titulo}><div className="mb-2 font-semibold">{titulo}</div>{links.map(([nome, para]) => <Link key={nome} to={para} className="block py-1 text-white/75 hover:text-white">{nome}</Link>)}</div>
+        ))}
       </div>
+      <div className="border-t border-white/15"><div className="mx-auto max-w-[1240px] px-5 py-4 text-xs text-white/60">Protótipo de demonstração. Nenhum dado desta página é real. Termos de uso e política de privacidade entram com o produto.</div></div>
     </footer>
   );
 }
@@ -72,9 +80,12 @@ export function LayoutPublico() {
           ? <Link to={contextos[personas[pessoa.persona].inicial].rota} className="flex items-center gap-2 hover:underline"><IconePessoa />{pessoa.nome.split(" ")[0]} · minha área</Link>
           : <><Link to="/cadastro" className="hidden text-white/80 hover:text-white hover:underline sm:block">Criar conta</Link><Link to="/entrar" className="flex items-center gap-2 hover:underline"><IconePessoa />Entrar</Link></>}
         nav={<>
-          <NavLink to="/" className={({ isActive }) => itemNav({ isActive: isActive || pathname.startsWith("/eventos") })}>Eventos</NavLink>
+          <NavLink to="/" className={({ isActive }) => itemNav({ isActive: isActive || ["/eventos", "/atletas", "/equipes"].some((r) => pathname.startsWith(r)) })}>Eventos</NavLink>
+          <NavLink to="/organizadores" className={itemNav}>Para organizadores</NavLink>
+          <NavLink to="/precos" className={itemNav}>Preços</NavLink>
+          <NavLink to="/ajuda" className={itemNav}>Ajuda</NavLink>
           <span className="flex-1" />
-          <NavLink to="/tv" className={itemNav}>Painel do ginásio</NavLink>
+          <Link to="/cadastro" className="my-1.5 whitespace-nowrap rounded-md bg-ouro px-3 py-1.5 text-sm font-medium text-tinta">Organize seu evento</Link>
         </>}
       />
       <AvisoPrototipo />

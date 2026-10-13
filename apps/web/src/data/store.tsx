@@ -8,7 +8,7 @@ export type Persona = "atleta" | "professor" | "organizador" | "mesario";
 export interface Membro { nome: string; email: string; papel: string; escopo: string; situacao: "ativo" | "convite enviado"; }
 export interface Cupom { codigo: string; desconto: string; usos: number; limite: number; }
 export interface EventoNovo { id: string; nome: string; datas: string; cidade: string; local: string; modalidades: string; tatames: number; valor: number; }
-export interface Config { inscritosPublicos: boolean; ocultarMenores: boolean; exigirVinculo: boolean; cpfObrigatorio: boolean; }
+export interface Config { inscritosPublicos: boolean; ocultarMenores: boolean; exigirVinculo: boolean; cpfObrigatorio: boolean; painelPublico: boolean; }
 
 interface Estado {
   config: Config;
@@ -36,7 +36,7 @@ const membrosIniciais: Membro[] = [
   { nome: "Larissa Moura Dias", email: "larissa@ligahorizonte.exemplo", papel: "Mesária", escopo: "Copa Horizonte 2026 · Tatame 2", situacao: "convite enviado" },
 ];
 const vazio: Estado = {
-  config: { inscritosPublicos: true, ocultarMenores: true, exigirVinculo: false, cpfObrigatorio: false },
+  config: { inscritosPublicos: true, ocultarMenores: true, exigirVinculo: false, cpfObrigatorio: false, painelPublico: true },
   membros: membrosIniciais,
   cupons: [{ codigo: "LOTE1", desconto: "15%", usos: 84, limite: 100 }, { codigo: "PROJETOSOCIAL", desconto: "100%", usos: 22, limite: 40 }],
   eventosNovos: [], dependentes: [], fotos: {}, capaEvento: "",
@@ -92,7 +92,7 @@ function reduzir(e: Estado, a: Acao): Estado {
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v3";
+const CHAVE_LOCAL = "arena-prototipo-v4";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);

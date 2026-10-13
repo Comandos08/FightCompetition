@@ -6,6 +6,7 @@ import { Organizador } from "@/pages/Organizador";
 import { Arena, Mesa, Placar, TV } from "@/pages/Mesa";
 import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
 import { Cadastro, Dependentes, PaginaEquipe, Pedidos, Perfil, PerfilAtleta } from "@/pages/Conta";
+import { Ajuda, ParaOrganizadores, Precos } from "@/pages/Institucional";
 import { DadosOrganizacao, ListaEventos, Membros, NovoEvento } from "@/pages/Gestao";
 
 // na versão de página única (demonstração) não há servidor para resolver rotas
@@ -22,10 +23,13 @@ export default function App() {
             <Route path="/eventos/:id" element={<Evento />} />
             <Route path="/entrar" element={<Entrar />} />
             <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/organizadores" element={<ParaOrganizadores />} />
+            <Route path="/precos" element={<Precos />} />
+            <Route path="/ajuda" element={<Ajuda />} />
             <Route path="/atletas/:id" element={<PerfilAtleta />} />
             <Route path="/equipes/:nome" element={<PaginaEquipe />} />
           </Route>
-          <Route path="/tv" element={<TV />} />
+          <Route path="/eventos/:id/painel" element={<TV />} />
 
           {/* exige conta; cada área exige o papel correspondente */}
           <Route path="/app" element={<LayoutLogado />}>
