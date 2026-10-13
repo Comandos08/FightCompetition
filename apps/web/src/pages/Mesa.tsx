@@ -385,16 +385,27 @@ export function Placar() {
   // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro
   const sugerido = regrasIbjjf.vencedorPeloPlacar(m[0], m[1]);
 
+  const botao = "rounded-md py-4 text-base font-semibold";
   const controles = (lado: 0 | 1) => (
-    <div key={lado} className="flex-1 rounded-lg bg-white/5 p-3">
-      <div className="mb-2 flex items-center gap-2 text-sm text-white"><span className={`h-3 w-3 rounded-sm ${lado === 0 ? "bg-[#F5E61E]" : "border border-white/60 bg-black"}`} /><span className="min-w-0 flex-1 truncate font-semibold">{d.nomeDe(lados[lado])}</span>
-        <span className="font-mono text-3xl font-semibold tabular-nums leading-none">{m[lado].pontos}</span>
-        <span className="text-xs leading-tight"><span className="block text-[#4ADE4A]">{m[lado].vantagens} vant.</span><span className="block text-[#FF6B6B]">{m[lado].punicoes} pun.</span></span></div>
-      <div className="grid grid-cols-3 gap-2">
-        {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className="rounded-md bg-white py-3 text-xl font-semibold text-tinta">+{n}</button>)}
-        <button onClick={() => somar(lado, "vantagens", 1)} className="rounded-md border border-[#4ADE4A]/70 py-2.5 text-sm font-semibold text-[#4ADE4A]">+ Vantagem</button>
-        <button onClick={() => punir(lado)} className="rounded-md bg-perigo py-2.5 text-sm font-semibold text-white">+ Punição</button>
-        <button onClick={() => setCombatividade(combatividade?.lado === lado ? null : { lado, resta: COMBATIVIDADE_SEG })} className={`rounded-md py-2.5 text-sm font-semibold ${combatividade?.lado === lado ? "bg-[#F5E61E] text-black" : "border border-white/30 text-white"}`}>{combatividade?.lado === lado ? "Parar contagem" : "Combatividade"}</button>
+    <div key={lado} className="flex flex-1 flex-col overflow-hidden rounded-lg bg-white/5">
+      <div className="flex min-h-[7.5rem] flex-1 items-stretch">
+        <span className={`w-2.5 shrink-0 ${lado === 0 ? "bg-[#F5E61E]" : "bg-white"}`} />
+        <div className="min-w-0 flex-1 self-center px-3 sm:px-4">
+          <div className="line-clamp-3 text-lg font-semibold leading-tight sm:line-clamp-1 sm:text-4xl">{d.nomeDe(lados[lado])}</div>
+          <div className="truncate text-sm text-white/50 sm:text-xl">{d.equipeDe(lados[lado])}</div>
+          {combatividade?.lado === lado && <div className="mt-1 inline-block rounded bg-[#F5E61E] px-2 py-0.5 text-sm font-semibold text-black">Combatividade: {combatividade.resta} s</div>}
+        </div>
+        <div className="grid shrink-0 grid-cols-2 content-center gap-x-2 px-2 text-center sm:gap-x-4 sm:px-5">
+          <div><div className="text-[9px] uppercase tracking-wide text-white/50 sm:text-[11px]">Vantagem</div><div className={`font-mono text-3xl font-semibold tabular-nums sm:text-5xl ${m[lado].vantagens ? "text-[#4ADE4A]" : "text-white/40"}`}>{m[lado].vantagens}</div></div>
+          <div><div className="text-[9px] uppercase tracking-wide text-white/50 sm:text-[11px]">Punição</div><div className={`font-mono text-3xl font-semibold tabular-nums sm:text-5xl ${m[lado].punicoes ? "text-[#FF6B6B]" : "text-white/40"}`}>{m[lado].punicoes}</div></div>
+        </div>
+        <div className={`grid w-20 shrink-0 place-items-center font-mono text-6xl font-bold tabular-nums sm:w-44 sm:text-8xl ${lado === 0 ? "bg-[#F5E61E] text-[#0E9F4F]" : "bg-black text-white"}`}>{m[lado].pontos}</div>
+      </div>
+      <div className="grid grid-cols-3 gap-2 p-3 sm:grid-cols-6">
+        {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className={`${botao} bg-white !text-2xl text-tinta`}>+{n}</button>)}
+        <button onClick={() => somar(lado, "vantagens", 1)} className={`${botao} border border-[#4ADE4A]/70 text-[#4ADE4A]`}>+ Vantagem</button>
+        <button onClick={() => punir(lado)} className={`${botao} bg-perigo text-white`}>+ Punição</button>
+        <button onClick={() => setCombatividade(combatividade?.lado === lado ? null : { lado, resta: COMBATIVIDADE_SEG })} className={`${botao} ${combatividade?.lado === lado ? "bg-[#F5E61E] text-black" : "border border-white/30 text-white"}`}>{combatividade?.lado === lado ? "Parar contagem" : "Combatividade"}</button>
       </div>
     </div>
   );
@@ -403,8 +414,8 @@ export function Placar() {
   const seguintes = filaDoTatame(d, Number(sp.get("dia") ?? 1), noTatame).filter((f) => !f.vencedorId && f.pronta && !(f.bloco.categoria.id === cat.id && f.lutaId === luta.id)).slice(0, 3);
   return (
     <div className="min-h-screen bg-[#17181A] p-3 text-white sm:p-4">
-      <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-[1fr_22rem]">
-        <div className="space-y-3">
+      <div className="grid gap-4 lg:min-h-[calc(100vh-2rem)] lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="flex min-w-0 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <Link to={voltar} className="text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
             <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">Luta {rotulo}</span>
@@ -419,14 +430,14 @@ export function Placar() {
           ) : (
             <>
               <div className="flex flex-wrap items-center gap-3 rounded-lg bg-white/5 p-3">
-                <div id="relogio-mesario" className={`font-mono text-6xl font-semibold tabular-nums leading-none ${rodando ? "text-white" : "text-white/50"}`}>{seg(resta)}</div>
-                <div className="mr-auto text-xs text-white/50">{rodando ? "correndo" : resta === total ? "aguardando início" : "pausado"}<br />{cat.minutos} min nesta categoria</div>
-                <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-6 py-3 text-base font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
-                <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-3 py-3 text-sm">Zerar relógio</button>
-                <button onClick={desfazer} className="rounded border border-white/30 px-3 py-3 text-sm">Desfazer</button>
-                <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-4 py-3 text-sm font-semibold text-tinta">Encerrar luta</button>
+                <div id="relogio-mesario" className={`font-mono text-7xl font-semibold tabular-nums leading-none sm:text-8xl ${rodando ? "text-white" : "text-white/50"}`}>{seg(resta)}</div>
+                <div className="mr-auto text-sm text-white/50">{rodando ? "correndo" : resta === total ? "aguardando início" : "pausado"}<br />{cat.minutos} min nesta categoria</div>
+                <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-10 py-5 text-xl font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
+                <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-4 py-5 text-sm">Zerar relógio</button>
+                <button onClick={desfazer} className="rounded border border-white/30 px-4 py-5 text-sm">Desfazer</button>
+                <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-6 py-5 text-base font-semibold text-tinta">Encerrar luta</button>
               </div>
-              <div className="flex flex-col gap-3 md:flex-row">{controles(0)}{controles(1)}</div>
+              <div className="flex flex-1 flex-col gap-3">{controles(0)}{controles(1)}</div>
               {aviso && <div className="rounded-md bg-[#F5E61E]/15 px-3 py-2 text-sm text-[#F5E61E]">{aviso} Use "Desfazer" se foi engano.</div>}
               <p className="text-xs text-white/40">Regras da IBJJF (Livro de Regras v6.1): combatividade de {COMBATIVIDADE_SEG} s e punições com efeito automático: a 2ª dá vantagem ao oponente, a 3ª dá dois pontos{ate15 ? ", a 4ª mais dois pontos e a 5ª desclassifica (até 15 anos)" : " e a 4ª desclassifica"}.</p>
             </>
