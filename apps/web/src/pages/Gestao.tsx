@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDados, type Config } from "@/data/store";
 import { EVENTO_ID, eventos } from "@/data/seed";
-import { Campo, Indicador, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo } from "@/components/ui";
+import { Campo, EnviarImagem, Indicador, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo } from "@/components/ui";
 import { quadroDeMedalhas } from "@/lib/resultados";
 
 export const navOrganizacao = [
@@ -316,7 +316,14 @@ export function Configuracoes() {
           <div className="space-y-4">
             <Campo rotulo="Nome"><input id="cfg-nome" className="campo" defaultValue={ev.nome} /></Campo>
             <div className="grid grid-cols-2 gap-3"><Campo rotulo="Datas"><input id="cfg-datas" className="campo" defaultValue={ev.datas} /></Campo><Campo rotulo="Tatames"><input id="cfg-tatames" className="campo" type="number" defaultValue={6} /></Campo></div>
-            <Campo rotulo="Local"><input id="cfg-local" className="campo" defaultValue={`${ev.local}, ${ev.cidade}`} /></Campo>
+            <Campo rotulo="Endereço do local" dica="O mapa e o botão Como chegar da página pública saem deste endereço."><input id="cfg-local" className="campo" defaultValue={`${ev.local}, ${ev.cidade}`} /></Campo>
+            <div><span className="rotulo">Imagem do evento</span>
+              {d.estado.capaEvento ? <img src={d.estado.capaEvento} alt="Imagem atual do evento" className="mt-2 h-32 w-full rounded-md object-cover" /> : <div className="mt-2 grid h-32 place-items-center rounded-md border border-dashed border-linha text-sm text-tinta-3">Sem imagem: a página usa a arte padrão.</div>}
+              <div className="mt-2 flex flex-wrap items-start gap-2">
+                <EnviarImagem id="cfg-capa" rotulo={d.estado.capaEvento ? "Trocar imagem" : "Enviar imagem"} ladoMaximo={1400} aoEnviar={(url) => d.despachar({ tipo: "capa", url })} />
+                {d.estado.capaEvento && <button className="botao-contorno !py-1.5 text-xs" onClick={() => d.despachar({ tipo: "capa", url: "" })}>Remover</button>}
+              </div>
+              <span className="mt-1 block text-xs text-tinta-3">Formato largo, de preferência 1400 por 500. Aparece na agenda e no topo da página do evento.</span></div>
           </div>
         </Secao>
         <Secao titulo="Chaves">

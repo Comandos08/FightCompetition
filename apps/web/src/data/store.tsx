@@ -16,6 +16,8 @@ interface Estado {
   cupons: Cupom[];
   eventosNovos: EventoNovo[];
   dependentes: Atleta[];
+  fotos: Record<string, string>;
+  capaEvento: string;
   sessao: Persona | null;
   novosAtletas: Atleta[];
   novasInscricoes: Inscricao[];
@@ -37,7 +39,7 @@ const vazio: Estado = {
   config: { inscritosPublicos: true, ocultarMenores: true, exigirVinculo: false, cpfObrigatorio: false },
   membros: membrosIniciais,
   cupons: [{ codigo: "LOTE1", desconto: "15%", usos: 84, limite: 100 }, { codigo: "PROJETOSOCIAL", desconto: "100%", usos: 22, limite: 40 }],
-  eventosNovos: [], dependentes: [],
+  eventosNovos: [], dependentes: [], fotos: {}, capaEvento: "",
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
@@ -53,6 +55,8 @@ type Acao =
   | { tipo: "cupom"; cupom: Cupom }
   | { tipo: "evento"; evento: EventoNovo }
   | { tipo: "dependente"; atleta: Atleta }
+  | { tipo: "foto"; atletaId: string; url: string }
+  | { tipo: "capa"; url: string }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
   | { tipo: "reiniciar" };
@@ -80,13 +84,15 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "cupom": return { ...e, cupons: [...e.cupons, a.cupom] };
     case "evento": return { ...e, eventosNovos: [...e.eventosNovos, a.evento] };
     case "dependente": return { ...e, dependentes: [...e.dependentes, a.atleta] };
+    case "foto": return { ...e, fotos: { ...e.fotos, [a.atletaId]: a.url } };
+    case "capa": return { ...e, capaEvento: a.url };
     case "entrar": return { ...e, sessao: a.persona };
     case "sair": return { ...e, sessao: null };
     case "reiniciar": return { ...vazio, sessao: e.sessao };
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v2";
+const CHAVE_LOCAL = "arena-prototipo-v3";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);

@@ -14,8 +14,9 @@ const CALENDARIO = "M7 3v3M17 3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5
 const LOCAL = "M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z";
 
 /** Arte do evento: um bloco de cor com o nome, no lugar do logotipo que cada organizador enviará. */
-function Arte({ nome, tom, alta }: { nome: string; tom: number; alta?: boolean }) {
+function Arte({ nome, tom, alta, imagem }: { nome: string; tom: number; alta?: boolean; imagem?: string }) {
   const tons = ["from-[#1A447D] to-[#0F2B52]", "from-[#1F8A5B] to-[#12583A]", "from-[#C97A0A] to-[#8F5303]", "from-[#5B3A8C] to-[#3A2260]"];
+  if (imagem) return <img src={imagem} alt={`Imagem do evento ${nome}`} className={`w-full object-cover ${alta ? "h-56 rounded-lg sm:h-72" : "h-32 rounded-t-lg"}`} />;
   return (
     <div className={`relative overflow-hidden bg-gradient-to-br ${tons[tom % tons.length]} ${alta ? "h-56 rounded-lg" : "h-32 rounded-t-lg"}`}>
       <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full border-[28px] border-white/10" />
@@ -27,8 +28,35 @@ function Arte({ nome, tom, alta }: { nome: string; tom: number; alta?: boolean }
   );
 }
 
+/** Localização do evento. No protótipo o mapa é um desenho; no produto, um mapa real a partir do endereço. */
+function Mapa({ local, cidade }: { local: string; cidade: string }) {
+  const consulta = encodeURIComponent(`${local}, ${cidade}`);
+  return (
+    <div className="cartao overflow-hidden">
+      <div className="relative h-56 bg-[#E8EEF5]">
+        <svg viewBox="0 0 600 224" className="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <path d="M0 150 C120 120 200 190 330 160 S520 110 600 140 V224 H0Z" fill="#D5E4F3" />
+          <rect x="40" y="24" width="120" height="70" rx="6" fill="#DDEBDD" /><rect x="430" y="150" width="130" height="56" rx="6" fill="#DDEBDD" />
+          <g stroke="#fff" strokeLinecap="round" fill="none">
+            <path d="M-10 112 H610" strokeWidth="14" /><path d="M300 -10 V234" strokeWidth="14" /><path d="M-10 40 L610 200" strokeWidth="9" />
+            <path d="M120 -10 V234 M470 -10 V234 M-10 180 H610 M-10 60 H610" strokeWidth="5" />
+          </g>
+        </svg>
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-perigo">
+          <svg viewBox="0 0 24 24" className="h-10 w-10 drop-shadow" fill="currentColor"><path d="M12 22s7-6.4 7-12a7 7 0 1 0-14 0c0 5.6 7 12 7 12z" /><circle cx="12" cy="10" r="2.6" fill="#fff" /></svg>
+        </div>
+        <span className="absolute bottom-2 right-2 rounded bg-white/90 px-2 py-0.5 text-[10px] text-tinta-3">mapa ilustrativo</span>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+        <div><div className="font-semibold">{local}</div><div className="text-sm text-tinta-2">{cidade}</div></div>
+        <a href={`https://www.google.com/maps/search/?api=1&query=${consulta}`} target="_blank" rel="noreferrer" className="botao-contorno">Como chegar</a>
+      </div>
+    </div>
+  );
+}
+
 export function Agenda() {
-  const { inscricoes } = useDados();
+  const { inscricoes, estado } = useDados();
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState("Todos");
   const todos = eventos.map((e) => (e.id === EVENTO_ID ? { ...e, inscritos: inscricoes.length } : e));
@@ -61,7 +89,7 @@ export function Agenda() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {lista.map((e, k) => (
           <Link key={e.id} to={e.demo ? `/eventos/${e.id}` : "/"} className={`cartao group flex flex-col overflow-hidden transition ${e.demo ? "hover:-translate-y-0.5 hover:shadow-lg" : "opacity-75"}`}>
-            <Arte nome={e.nome} tom={todos.indexOf(e) + (k < 0 ? 0 : 0)} />
+            <Arte nome={e.nome} tom={todos.indexOf(e) + (k < 0 ? 0 : 0)} imagem={e.id === EVENTO_ID ? estado.capaEvento : undefined} />
             <div className="flex flex-1 flex-col gap-2 p-4 text-sm text-tinta-2">
               <div className="flex items-center gap-2"><Icone d={CALENDARIO} />{e.datas}</div>
               <div className="flex items-center gap-2"><Icone d={LOCAL} />{e.cidade}</div>
@@ -111,7 +139,7 @@ export function Evento() {
         </div>
         <Link to="/tv" className="botao-contorno">Painel do ginásio</Link>
       </div>
-      <div className="mb-5"><Arte nome={ev.nome} tom={0} alta /></div>
+      <div className="mb-5"><Arte nome={ev.nome} tom={0} alta imagem={ev.id === EVENTO_ID ? dados.estado.capaEvento : undefined} /></div>
       <Abas<AbaEvento> ativa={aba} aoMudar={setAba} abas={[
         { id: "info", nome: "Informações" }, { id: "inscritos", nome: "Inscritos", conta: dados.inscricoes.length },
         { id: "chaves", nome: "Chaves", conta: publicadas.length }, { id: "programacao", nome: "Programação" },
@@ -130,6 +158,7 @@ export function Evento() {
                 ))}
               </dl>
             </div>
+            <Mapa local={ev.local} cidade={ev.cidade} />
             <div className="cartao p-6">
               <h2 className="mb-2 text-lg font-semibold">Sobre o evento</h2>
               <p className="text-tinta-2">Competição aberta a todas as equipes, com categorias de Mirim a Master, masculino e feminino, nas modalidades Gi (sábado) e No-Gi (domingo). Atletas podem se inscrever nas duas modalidades.</p>
