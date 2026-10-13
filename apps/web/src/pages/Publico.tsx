@@ -410,7 +410,7 @@ export function Inscricao() {
           <p className="text-sm text-tinta-2">Só aparecem as opções permitidas para a divisão <b>{div.nome}</b>.</p>
           <div><span className="rotulo">Faixa</span>
             <div className="mt-1 flex flex-wrap gap-2">{div.faixas.map((x) => <button key={x} onClick={() => mudar("faixa", x)} className={`rounded-md border px-3 py-2 text-sm ${f.faixa === x ? "border-tinta bg-papel" : "border-linha"}`}><Faixa cor={x} /></button>)}</div></div>
-          <div><span className="rotulo">Categoria de peso</span><p className="text-xs text-tinta-3">Peso máximo com o quimono vestido, pela tabela oficial da IBJJF{div.idadeMax <= 15 ? " (quimono liso; o trançado tem limite um pouco maior)" : ""}. Na modalidade sem quimono os limites ainda não estão cadastrados.</p>
+          <div><span className="rotulo">Categoria de peso</span><p className="text-xs text-tinta-3">Peso máximo com o quimono vestido, pela tabela oficial da IBJJF{div.idadeMax <= 15 ? " (quimono liso; o trançado tem limite um pouco maior)" : ""}. Vale para as duas modalidades, com e sem quimono.</p>
             <div className="mt-1 flex flex-wrap gap-2">{pesosIbjjf.limitesDePeso(div.nome, f.sexo as "M" | "F").map((l) => <button key={l.classe} onClick={() => mudar("peso", l.classe)} className={`rounded-md border px-3 py-2 text-left text-sm ${f.peso === l.classe ? "border-tinta bg-papel" : "border-linha"}`}><span className="block font-medium">{l.classe}</span><span className="block text-xs text-tinta-3">{l.maximo === null ? "sem limite" : `até ${l.maximo.toFixed(2).replace(".", ",")} kg`}</span></button>)}</div></div>
           <div><span className="rotulo">Modalidades</span>
             <div className="mt-1 flex gap-4 text-sm">

@@ -39,7 +39,7 @@ O código está em `packages/engine/src/regras-ibjjf.ts` e `packages/engine/src/
 
 ## O que o livro não traz
 
-- **Tabela de pesos.** Recebida em 13/10/2026 (folha "Tabela de Pesos Oficial", com referência a 2023) e transcrita em `packages/engine/src/pesos-ibjjf.ts`. Faltam: os pesos sem quimono (No-Gi), que a folha não traz, e a confirmação de que os valores de 2023 continuam valendo. A folha é uma imagem de baixa resolução; a transcrição passou no teste de coerência (limites sempre crescentes), mas vale conferir com a versão atual no site da IBJJF.
+- **Tabela de pesos.** Recebida em 13/10/2026 (folha "Tabela de Pesos Oficial", com referência a 2023) e transcrita em `packages/engine/src/pesos-ibjjf.ts`. Por decisão do fundador, o No-Gi usa as mesmas categorias e limites. Falta a confirmação de que os valores de 2023 continuam valendo. A folha é uma imagem de baixa resolução; a transcrição passou no teste de coerência (limites sempre crescentes), mas vale conferir com a versão atual no site da IBJJF.
 - **Sistema de faixas por idade** (quais faixas existem em cada categoria infantil). As faixas infantis do protótipo continuam ilustrativas.
 - **Categoria absoluto**: o livro cita, mas não define as regras de inscrição.
 
