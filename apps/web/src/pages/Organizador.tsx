@@ -6,7 +6,8 @@ import { EVENTO_ID, divisoes, eventos } from "@/data/seed";
 import { ABAS_RESTRITAS } from "@/data/sessao";
 import { Abas, Faixa, Indicador, Selo, Titulo, Vazio, pagamentoSelo, pesagemSelo } from "@/components/ui";
 import { Chave, Podio } from "@/components/Chave";
-import { hhmm, type Categoria } from "@/lib/competicao";
+import { hhmm, idCategoria, type Categoria } from "@/lib/competicao";
+import { opcoesDeFusao, pesosIbjjf, planejarFusoes, regrasIbjjf, type CategoriaParaFusao, type Fusao } from "@engine";
 
 type Aba = "visao" | "inscritos" | "categorias" | "chaves" | "programacao" | "pesagem" | "financeiro" | "resultados" | "equipe" | "config";
 const ABAS: Aba[] = ["visao", "inscritos", "categorias", "chaves", "programacao", "pesagem", "financeiro", "resultados", "equipe", "config"];
@@ -138,34 +139,70 @@ function Inscritos() {
   );
 }
 
-function vizinhas(cat: Categoria, todas: Categoria[]): Categoria[] {
-  const pesos = divisoes.find((x) => x.nome === cat.divisao)?.pesos ?? [];
-  const distancia = (c: Categoria) => Math.abs(pesos.indexOf(c.peso) - pesos.indexOf(cat.peso));
-  // só propõe o peso imediatamente vizinho na mesma faixa; mudar de faixa ou saltar pesos fica para decisão manual
-  return todas
-    .filter((c) => c.id !== cat.id && c.modalidade === cat.modalidade && c.sexo === cat.sexo && c.divisao === cat.divisao && c.faixa === cat.faixa && distancia(c) === 1)
-    .sort((a, b) => b.inscricoes.length - a.inscricoes.length);
+/** Traduz as categorias do evento para o que o motor de fusão precisa saber. */
+function paraFusao(categorias: Categoria[]): CategoriaParaFusao[] {
+  const idades = regrasIbjjf.CATEGORIAS_DE_IDADE;
+  const classes = pesosIbjjf.CLASSES_DE_PESO as readonly string[];
+  return categorias.map((c) => {
+    const idade = idades.findIndex((x) => x.nome === c.divisao);
+    const exata = idades[idade]?.idadeExata;
+    return { id: c.id, grupo: `${c.modalidade}|${c.sexo}|${c.faixa}`, idade, blocoDeIdade: exata === undefined ? "adulto" : exata <= 15 ? "infantil" : "juvenil", ficaAMaisVelha: exata !== undefined, peso: classes.indexOf(c.peso), atletas: c.inscricoes.length };
+  });
 }
+
+const curto = (c?: Categoria) => (c ? `${c.divisao} · ${c.peso}` : "");
 
 function Categorias() {
   const d = useDados();
   const [filtro, setFiltro] = useState<"todas" | "sozinho" | "pequenas">("sozinho");
   const lista = d.categorias.filter((c) => filtro === "todas" || (filtro === "sozinho" ? c.inscricoes.length === 1 : c.inscricoes.length <= 3));
+  const base = useMemo(() => paraFusao(d.categorias), [d.categorias]);
+  const plano = useMemo(() => planejarFusoes(base), [base]);
+  // quantas categorias sozinhas deixam de existir se o plano for aplicado
+  const resolvidas = useMemo(() => {
+    const n = new Map(base.map((c) => [c.id, c.atletas]));
+    for (const f of plano) { n.set(f.para, f.total); n.set(f.de, 0); }
+    return base.filter((c) => c.atletas === 1).length - [...n.values()].filter((x) => x === 1).length;
+  }, [base, plano]);
+  const sozinhas = d.categorias.filter((c) => c.inscricoes.length === 1).length;
+  const travada = (id: string) => !!d.estado.publicadas[id];
+  const aplicar = (f: Fusao) => d.despachar({ tipo: "fundir", inscricaoIds: d.categoriaPorId.get(f.de)!.inscricoes.map((i) => i.id), categoriaId: f.para });
+  // em cadeia (Galo → Pluma → Pena), quem já foi movido para a categoria de saída vai junto
+  const aplicarPlano = () => {
+    const atual: Record<string, string> = { ...d.estado.destino };
+    const categoriaDe = (i: { id: string }) => atual[i.id] ?? naturalDe.get(i.id);
+    for (const f of plano) {
+      if (travada(f.de) || travada(f.para)) continue;
+      const ids = d.inscricoes.filter((i) => categoriaDe(i) === f.de).map((i) => i.id);
+      for (const id of ids) atual[id] = f.para;
+      d.despachar({ tipo: "fundir", inscricaoIds: ids, categoriaId: f.para });
+    }
+  };
+  const naturalDe = useMemo(() => new Map(d.categorias.flatMap((c) => c.inscricoes.map((i) => [i.id, d.estado.destino[i.id] ? idCategoria(i, d.atletas.get(i.atletaId)!.sexo) : c.id] as [string, string]))), [d.categorias, d.estado.destino, d.atletas]);
+  const movidas = d.inscricoes.filter((i) => d.estado.destino[i.id]);
+  const rotulo = (f: Fusao) => `${f.motivo === "peso" ? (f.distancia === 1 ? "peso vizinho" : `${f.distancia} pesos de distância`) : "idade vizinha"}: fica ${curto(d.categoriaPorId.get(f.para))} com ${f.total}`;
   return (
     <>
+      <div className="cartao mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 p-4">
+        <div className="min-w-[16rem] flex-1">
+          <div className="font-semibold">{sozinhas} categorias com um atleta só</div>
+          <div className="text-sm text-tinta-2">Juntando cada uma ao peso imediatamente vizinho, na mesma idade e faixa, {plano.length} fusões resolvem {resolvidas} delas. As demais pedem decisão caso a caso.</div>
+        </div>
+        <button id="aplicar-plano" className="botao-primario" disabled={!plano.length} onClick={aplicarPlano}>Aplicar as {plano.length} fusões de peso vizinho</button>
+      </div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         {([["sozinho", "Atleta sozinho"], ["pequenas", "Até 3 atletas"], ["todas", "Todas"]] as const).map(([id, nome]) => (
           <button key={id} className={filtro === id ? "botao-primario" : "botao-contorno"} onClick={() => setFiltro(id)}>{nome}</button>
         ))}
         <span className="text-sm text-tinta-3">{lista.length} categorias</span>
       </div>
-      <p className="mb-3 max-w-3xl text-sm text-tinta-2">Categoria com um atleta só não gera luta. O sistema sugere apenas o peso imediatamente vizinho na mesma faixa, e a mudança fica registrada. Qualquer outra fusão é decisão da direção técnica.</p>
-      <div className="cartao max-h-[62vh] overflow-auto">
+      <p className="mb-3 max-w-3xl text-sm text-tinta-2">O sistema só sugere: primeiro o peso mais próximo, depois a idade vizinha, sempre no mesmo sexo, modalidade e faixa. A categoria que fica é a de peso mais alto. Toda mudança fica registrada e pode ser desfeita enquanto a chave não for publicada.</p>
+      <div className="cartao max-h-[58vh] overflow-auto">
         <table className="tabela">
-          <thead><tr><th>Modalidade</th><th>Categoria</th><th>Atletas</th><th>Luta</th><th>Sugestão de fusão</th></tr></thead>
+          <thead><tr><th>Modalidade</th><th>Categoria</th><th>Atletas</th><th>Luta</th><th>Juntar com</th></tr></thead>
           <tbody>
-            {lista.map((c) => {
-              const sugestao = c.inscricoes.length === 1 ? vizinhas(c, d.categorias)[0] : undefined;
+            {lista.slice(0, 200).map((c) => {
+              const opcoes = c.inscricoes.length <= 3 ? opcoesDeFusao(base.find((x) => x.id === c.id)!, base).filter((f) => !travada(f.de) && !travada(f.para)) : [];
               return (
                 <tr key={c.id}>
                   <td>{c.modalidade}</td>
@@ -173,11 +210,9 @@ function Categorias() {
                   <td><span className="font-mono">{c.inscricoes.length}</span> {c.inscricoes.length === 1 && <Selo tom="aviso">sozinho</Selo>}</td>
                   <td className="font-mono text-xs">{c.minutos} min</td>
                   <td>
-                    {sugestao ? (
-                      <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "fundir", inscricaoIds: c.inscricoes.map((i) => i.id), categoriaId: sugestao.id })}>
-                        Mover para {sugestao.peso} ({sugestao.inscricoes.length})
-                      </button>
-                    ) : c.inscricoes.length === 1 ? <span className="text-xs text-tinta-3">Sem vizinha; decidir manualmente</span> : null}
+                    {travada(c.id) ? <span className="text-xs text-tinta-3">Chave publicada: despublique para mexer</span>
+                      : opcoes.length ? <div className="flex flex-wrap gap-1.5">{opcoes.slice(0, 3).map((f) => <button key={f.de + f.para} className="botao-contorno !py-1 text-left text-xs" onClick={() => aplicar(f)}>{rotulo(f)}</button>)}</div>
+                      : c.inscricoes.length === 1 ? <span className="text-xs text-tinta-3">Sem categoria próxima; o atleta fica sem luta ou muda de faixa por decisão da direção técnica</span> : null}
                   </td>
                 </tr>
               );
@@ -185,6 +220,20 @@ function Categorias() {
           </tbody>
         </table>
       </div>
+      {lista.length > 200 && <p className="mt-2 text-xs text-tinta-3">Mostrando 200 de {lista.length}.</p>}
+      {movidas.length > 0 && (
+        <div className="cartao mt-4 p-4">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">{movidas.length} inscrições mudaram de categoria</h3><button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "desfundir", inscricaoIds: movidas.filter((i) => !travada(d.estado.destino[i.id]!)).map((i) => i.id) })}>Desfazer todas</button></div>
+          <div className="max-h-56 overflow-auto text-sm">
+            {movidas.slice(0, 80).map((i) => { const para = d.estado.destino[i.id]!.split("|"); return (
+              <div key={i.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-linha/70 py-1.5">
+                <span><b>{d.nomeDe(i.id)}</b> <span className="text-tinta-3">{i.modalidade} · inscrito em {i.divisao} · {i.peso}</span> → {para[2]} · {para[4]}</span>
+                {!travada(d.estado.destino[i.id]!) && <button className="text-xs text-marinho hover:underline" onClick={() => d.despachar({ tipo: "desfundir", inscricaoIds: [i.id] })}>desfazer</button>}
+              </div>
+            ); })}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -252,8 +301,41 @@ function Programacao() {
           );
         })}
       </div>
-      <p className="mt-3 max-w-3xl text-xs text-tinta-3">Distribuição automática por carga de cada tatame. No produto, os blocos poderão ser arrastados, as finais separadas em bloco próprio e o descanso mínimo do atleta respeitado.</p>
+      <p className="mt-3 max-w-3xl text-xs text-tinta-3">Distribuição automática por carga de cada tatame. Dentro de cada chave, as lutas já respeitam o descanso mínimo do atleta (o tempo de uma luta, e o dobro antes da final), e o atraso registrado pela mesa empurra os horários do tatame. No produto, os blocos poderão ser arrastados e as chaves intercaladas para aproveitar o tempo de descanso.</p>
     </>
+  );
+}
+
+/** Uma inscrição na pesagem: o mesário digita o peso e o sistema compara com o limite da categoria em que o atleta vai lutar. */
+function LinhaDePesagem({ inscricaoId }: { inscricaoId: string }) {
+  const d = useDados();
+  const i = d.inscricaoPorId.get(inscricaoId)!;
+  const atleta = d.atletas.get(i.atletaId)!;
+  // depois de uma fusão, vale o limite da categoria de destino
+  const [, , divisao = i.divisao, , classe = i.peso] = (d.estado.destino[i.id] ?? "").split("|");
+  const ate15 = regrasIbjjf.ehAte15Anos(divisao);
+  const medida = d.estado.pesosMedidos[i.id];
+  const [kg, setKg] = useState(medida ? String(medida.quilos).replace(".", ",") : "");
+  const [quimono, setQuimono] = useState<"liso" | "trancado">(medida?.quimono ?? "liso");
+  const limite = pesosIbjjf.limitesDePeso(divisao, atleta.sexo, quimono).find((l) => l.classe === classe)?.maximo ?? null;
+  const quilos = Number(kg.replace(",", "."));
+  const valido = quilos > 0 && quilos < 300;
+  const fmt = (n: number) => n.toFixed(2).replace(".", ",");
+  const registrar = () => d.despachar({ tipo: "pesagem", id: i.id, status: limite === null || quilos <= limite ? "ok" : "nao-bateu", medida: { quilos, quimono, limite, quem: d.estado.sessao === "diretor" ? "Paulo Guedes Neves" : "Renata Coutinho Lins" } });
+  return (
+    <div className="mt-3 border-t border-linha/70 pt-3 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span>{i.modalidade} · {divisao} · <Faixa cor={i.faixa} /> · <b>{classe}</b> <span className="text-tinta-3">{limite === null ? "sem limite de peso" : `até ${fmt(limite)} kg`}{classe !== i.peso || divisao !== i.divisao ? " (categoria fundida)" : ""}</span></span>
+        <span className="flex items-center gap-2">{pagamentoSelo(i.pagamento)} {pesagemSelo(i.pesagem)}</span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <input className="campo !w-28" inputMode="decimal" placeholder="peso em kg" aria-label="Peso medido em quilos" value={kg} disabled={i.pagamento !== "pago"} onChange={(e) => setKg(e.target.value)} />
+        {ate15 && <select className="campo !w-auto" aria-label="Tipo de quimono" value={quimono} onChange={(e) => setQuimono(e.target.value as "liso" | "trancado")}><option value="liso">Quimono liso</option><option value="trancado">Quimono trançado</option></select>}
+        <button className="botao-primario !py-1.5 text-xs" disabled={!valido || i.pagamento !== "pago"} onClick={registrar}>Registrar peso</button>
+        {i.pagamento !== "pago" && <span className="text-xs text-tinta-3">Inscrição sem pagamento confirmado não pesa.</span>}
+        {medida && <span className={`text-xs ${i.pesagem === "ok" ? "text-tatame" : "text-perigo"}`}>{fmt(medida.quilos)} kg registrado por {medida.quem}: {i.pesagem === "ok" ? "dentro do limite" : `acima do limite em ${fmt(medida.quilos - (medida.limite ?? 0))} kg; caberia em ${pesosIbjjf.classeDoPeso(divisao, atleta.sexo, medida.quilos, medida.quimono)}`}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -262,12 +344,14 @@ function Pesagem() {
   const [busca, setBusca] = useState("");
   const achados = busca.trim().length < 2 ? [] : [...d.atletas.values()].filter((a) => a.nome.toLowerCase().includes(busca.toLowerCase())).slice(0, 8);
   const pesados = d.inscricoes.filter((i) => i.pesagem !== "nao-pesado").length;
+  const fora = d.inscricoes.filter((i) => i.pesagem === "nao-bateu").length;
   return (
     <div className="max-w-3xl">
       <div className="mb-3 flex items-center gap-3">
         <input autoFocus className="campo" placeholder="Digite o nome do atleta (ou leia o QR, no produto)" value={busca} onChange={(e) => setBusca(e.target.value)} />
-        <span className="whitespace-nowrap text-sm text-tinta-3">{pesados} pesagens registradas</span>
+        <span className="whitespace-nowrap text-sm text-tinta-3">{pesados} pesagens · {fora} acima do limite</span>
       </div>
+      <p className="mb-3 text-xs text-tinta-3">O peso é medido com o quimono vestido e comparado com o máximo da categoria. Quem passa do limite sai da chave; a direção técnica pode mover o atleta de categoria na aba Categorias antes de a chave ser publicada.</p>
       {!achados.length && <Vazio>Busque um atleta para fazer o check-in e registrar a pesagem. Tente "Rafael" ou "Ana".</Vazio>}
       <div className="space-y-3">
         {achados.map((a) => (
@@ -276,16 +360,7 @@ function Pesagem() {
               <div><span className="text-lg font-semibold">{a.nome}</span> <span className="text-sm text-tinta-3">{a.equipe} · nasc. {a.anoNascimento}</span></div>
               {a.menor && <Selo tom="aviso">menor · resp.: {a.responsavel}</Selo>}
             </div>
-            {d.inscricoes.filter((i) => i.atletaId === a.id).map((i) => (
-              <div key={i.id} className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-linha/70 pt-3 text-sm">
-                <span>{i.modalidade} · {i.divisao} · <Faixa cor={i.faixa} /> · {i.peso}</span>
-                <span className="flex items-center gap-2">
-                  {pagamentoSelo(i.pagamento)} {pesagemSelo(i.pesagem)}
-                  <button className="botao-contorno !py-1 text-xs" disabled={i.pagamento !== "pago"} onClick={() => d.despachar({ tipo: "pesagem", id: i.id, status: "ok" })}>Peso ok</button>
-                  <button className="botao-contorno !py-1 text-xs" disabled={i.pagamento !== "pago"} onClick={() => d.despachar({ tipo: "pesagem", id: i.id, status: "nao-bateu" })}>Não bateu</button>
-                </span>
-              </div>
-            ))}
+            {d.inscricoes.filter((i) => i.atletaId === a.id).map((i) => <LinhaDePesagem key={i.id} inscricaoId={i.id} />)}
           </div>
         ))}
       </div>

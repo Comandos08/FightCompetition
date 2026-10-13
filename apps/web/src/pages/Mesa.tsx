@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDados, type Contexto } from "@/data/store";
 import { EVENTO_ID } from "@/data/seed";
@@ -7,7 +7,7 @@ import { RelatarOcorrencia } from "@/pages/Sumulas";
 import { enderecoDaTela, publicarTela, useTela, type Marcador } from "@/data/telaPublica";
 import { Campo, Secao, Selo, SubNav, Titulo, Vazio } from "@/components/ui";
 import { regrasIbjjf } from "@engine";
-import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada, type Bloco } from "@/lib/competicao";
+import { TRANSICAO_MIN, chaveDoAtraso, chaveDoResultado, hhmm, horarioDaLuta, nomeRodada, type Bloco } from "@/lib/competicao";
 
 export interface ItemFila {
   bloco: Bloco;
@@ -27,14 +27,22 @@ export interface ItemFila {
 
 /** Fila de um tatame, já considerando as lutas que foram levadas de um tatame para outro. */
 export function filaDoTatame(d: Contexto, dia: number, tatame: number): ItemFila[] {
-  return d.blocos.filter((b) => b.dia === dia).flatMap((bloco) => {
+  const fila = d.blocos.filter((b) => b.dia === dia).flatMap((bloco) => {
     const r = d.resolvidas.get(bloco.categoria.id)!;
     return r.lutas.map((l) => {
       const rem = d.estado.remanejadas[chaveDoResultado(bloco.categoria.id, l.id)];
       return { bloco, lutaId: l.id, rodada: l.rodada, a: l.a, b: l.b, vencedorId: l.vencedorId, metodo: l.metodo, pronta: l.pronta, horario: horarioDaLuta(bloco, l.id), tatame: rem?.tatame ?? bloco.tatame, veioDe: rem?.origem, motivo: rem?.motivo };
     });
   }).filter((x) => x.tatame === tatame).sort((x, y) => Number(!!y.veioDe && !y.vencedorId) - Number(!!x.veioDe && !x.vencedorId));
+  // a luta trazida de outro tatame entra na vez: o horário previsto dela é o da próxima luta pendente daqui
+  const proximaDaCasa = fila.find((f) => !f.vencedorId && !f.veioDe);
+  for (const f of fila) if (f.veioDe && !f.vencedorId && proximaDaCasa) f.horario = proximaDaCasa.horario;
+  return fila;
 }
+
+/** Placar de uma luta em andamento fica gravado no aparelho da mesa, para sobreviver a fechar a tela ou recarregar. */
+export const chaveDaLutaAberta = (chave: string) => `arena-luta-${chave}`;
+export const lutaAberta = (chave: string) => { try { return !!localStorage.getItem(chaveDaLutaAberta(chave)); } catch { return false; } };
 
 const MOTIVOS = ["Tatame de origem parado ou atrasado", "Atendimento médico no tatame de origem", "Pedido da coordenação", "Atleta com lutas coladas em dois tatames", "Outro motivo"];
 
@@ -59,10 +67,10 @@ function PuxarLuta({ dia, tatame }: { dia: number; tatame: number }) {
       {!candidatas.length ? <Vazio>Nenhuma luta pronta no Tatame {origem}.</Vazio> : candidatas.map((f) => (
         <div key={f.bloco.categoria.id + f.lutaId} className="flex flex-wrap items-center justify-between gap-3 border-t border-linha/70 py-2 text-sm">
           <span><span className="font-medium">{d.nomeDe(f.a)} x {d.nomeDe(f.b)}</span><span className="block text-xs text-tinta-3">{f.bloco.categoria.nome} · previsto {hhmm(f.horario)}</span></span>
-          <button className="botao-acao !py-1 text-xs" onClick={() => { d.despachar({ tipo: "remanejar", chave: chaveDoResultado(f.bloco.categoria.id, f.lutaId), remanejo: { tatame, origem: f.veioDe ?? origem, motivo, quem, quando: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) } }); setAberto(false); }}>Trazer para o Tatame {tatame}</button>
+          <button className="botao-acao !py-1 text-xs" onClick={() => { d.despachar({ tipo: "remanejar", chave: chaveDoResultado(f.bloco.categoria.id, f.lutaId), remanejo: { tatame, origem: f.veioDe ?? origem, motivo, quem, quando: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) } }); d.despachar({ tipo: "atraso", chave: chaveDoAtraso(dia, tatame), minutos: (d.estado.atrasos[chaveDoAtraso(dia, tatame)] ?? 0) + f.bloco.categoria.minutos + TRANSICAO_MIN }); setAberto(false); }}>Trazer para o Tatame {tatame}</button>
         </div>
       ))}
-      <p className="mt-3 text-xs text-tinta-3">A luta sai da fila do Tatame {origem} e entra na sua. O motivo, o horário e o seu nome ficam registrados e aparecem para a coordenação.</p>
+      <p className="mt-3 text-xs text-tinta-3">A luta sai da fila do Tatame {origem} e entra na vez na sua. As lutas seguintes do seu tatame são empurradas pela duração dela. O motivo, o horário e o seu nome ficam registrados e aparecem para a coordenação.</p>
     </div>
   );
 }
@@ -92,6 +100,7 @@ export function Mesa() {
         <span className="ml-auto" /><RelatarOcorrencia tatame={tatame} /><PuxarLuta dia={dia} tatame={tatame} />
         <label className="flex items-center gap-2 text-sm text-tinta-2"><input type="checkbox" checked={mostrarFeitas} onChange={(e) => setMostrarFeitas(e.target.checked)} /> Mostrar encerradas</label>
       </div>
+      <Atraso dia={dia} tatame={tatame} />
       <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-linha"><div className="h-full bg-tatame transition-all" style={{ width: `${fila.length ? (feitas / fila.length) * 100 : 0}%` }} /></div>
       <div className="mb-4 text-sm text-tinta-3">{feitas} de {fila.length} lutas encerradas neste tatame</div>
       {!visiveis.length && <Vazio>Nenhuma luta pendente neste tatame.</Vazio>}
@@ -109,6 +118,7 @@ export function Mesa() {
                 ))}
               </div>
             </div>
+            {!f.vencedorId && lutaAberta(chaveDoResultado(f.bloco.categoria.id, f.lutaId)) && <Selo tom="aviso">em andamento</Selo>}
             {f.vencedorId ? <span className="flex items-center gap-2"><Selo tom="ok">{f.metodo ?? "encerrada"}</Selo><Link className="botao-contorno !py-1.5 text-xs" to={`/app/mesa/sumula/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}`}>Súmula</Link></span>
               : f.pronta ? <span className="flex items-center gap-2">{f.veioDe && <button className="botao-contorno !py-1.5 text-xs" onClick={() => d.despachar({ tipo: "remanejar", chave: chaveDoResultado(f.bloco.categoria.id, f.lutaId), remanejo: null })}>Devolver ao T{f.veioDe}</button>}<Link className="botao-acao" to={`/app/mesa/placar/${tatame}/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}?dia=${dia}`}>Abrir placar</Link></span>
               : <Selo>aguarda luta anterior</Selo>}
@@ -189,6 +199,24 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
 const tituloDaCategoria = (cat: { modalidade: string; nome: string }) => `Copa Horizonte 2026 / ${cat.modalidade === "Gi" ? "Jiu-Jitsu" : "Jiu-Jitsu sem quimono"} / ${cat.nome.split(" · ").join(" / ")}`;
 
 const navMesario = [{ para: "/app/mesa", nome: "Fila do tatame", fim: true }, { para: "/app/mesa/dados", nome: "Meus dados" }];
+
+/** Atraso do tatame: a mesa registra, e os horários previstos das lutas seguintes se movem junto, em toda a plataforma. */
+function Atraso({ dia, tatame }: { dia: number; tatame: number }) {
+  const d = useDados();
+  const chave = chaveDoAtraso(dia, tatame);
+  const atual = d.estado.atrasos[chave] ?? 0;
+  const mudar = (delta: number) => d.despachar({ tipo: "atraso", chave, minutos: atual + delta });
+  return (
+    <div className={`mb-3 flex flex-wrap items-center gap-2 rounded-md px-3 py-2 text-sm ${atual ? "bg-ouro/15" : "bg-papel"}`}>
+      <span className="font-medium">{atual ? `Tatame ${atual} min atrasado` : "Tatame no horário"}</span>
+      <span className="text-xs text-tinta-3">Registre o atraso para os horários previstos acompanharem a realidade: atleta, professor e painel veem a mesma previsão.</span>
+      <span className="ml-auto flex gap-1">
+        {[-5, 5, 15].map((n) => <button key={n} id={n === 5 ? "atraso-mais-5" : undefined} className="botao-contorno !px-2 !py-1 text-xs" onClick={() => mudar(n)}>{n > 0 ? `+${n}` : n} min</button>)}
+        {atual > 0 && <button className="botao-contorno !px-2 !py-1 text-xs" onClick={() => d.despachar({ tipo: "atraso", chave, minutos: 0 })}>Zerar</button>}
+      </span>
+    </div>
+  );
+}
 
 /** Abre a tela do público: em outra janela, para arrastar ao monitor virado para a arquibancada, ou nesta mesma. */
 function BotoesDaTela({ tatame, escuro }: { tatame: number; escuro?: boolean }) {
@@ -307,16 +335,24 @@ export function Placar() {
   const cat = d.categoriaPorId.get(decodeURIComponent(catId ?? ""));
   const luta = cat && d.resolvidas.get(cat.id)?.lutas.find((l) => l.id === lutaId);
   const total = (cat?.minutos ?? 5) * 60;
-  const [resta, setResta] = useState(total);
+  const chaveGravada = chaveDaLutaAberta(chaveDoResultado(decodeURIComponent(catId ?? ""), lutaId ?? ""));
+  const gravado = useMemo(() => { try { const b = localStorage.getItem(chaveGravada); return b ? JSON.parse(b) as { m: [Marcador, Marcador]; resta: number; combatividade: { lado: 0 | 1; resta: number } | null; lances: { t: number; lado: 0 | 1; texto: string }[]; iniciadaEm?: string } : null; } catch { return null; } }, [chaveGravada]);
+  const [resta, setResta] = useState(gravado?.resta ?? total);
   const [rodando, setRodando] = useState(false);
-  const [m, setM] = useState<[Marcador, Marcador]>([zero, zero]);
+  const [m, setM] = useState<[Marcador, Marcador]>(gravado?.m ?? [zero, zero]);
+  const [retomada, setRetomada] = useState(!!gravado);
   const [encerrando, setEncerrando] = useState(false);
-  const [combatividade, setCombatividade] = useState<{ lado: 0 | 1; resta: number } | null>(null);
+  const [combatividade, setCombatividade] = useState<{ lado: 0 | 1; resta: number } | null>(gravado?.combatividade ?? null);
+  // cada mudança fica gravada no aparelho; fechar a tela ou recarregar não perde a luta
+  useEffect(() => {
+    if (resta === total && !m[0].pontos && !m[1].pontos && !m[0].vantagens && !m[1].vantagens && !m[0].punicoes && !m[1].punicoes) return;
+    try { localStorage.setItem(chaveGravada, JSON.stringify({ m, resta, combatividade, lances: lances.current, iniciadaEm: iniciadaEm.current })); } catch { /* sem armazenamento */ }
+  }, [m, resta, combatividade, chaveGravada, total]);
   const [vencedor, setVencedor] = useState<{ lado: 0 | 1; metodo: string; registro: string; semSegundaLuta?: boolean } | null>(null);
   const [aviso, setAviso] = useState("");
   const historico = useRef<[Marcador, Marcador][]>([]);
-  const lances = useRef<{ t: number; lado: 0 | 1; texto: string }[]>([]);
-  const iniciadaEm = useRef<string | undefined>(undefined);
+  const lances = useRef<{ t: number; lado: 0 | 1; texto: string }[]>(gravado?.lances ?? []);
+  const iniciadaEm = useRef<string | undefined>(gravado?.iniciadaEm);
   useEffect(() => { if (rodando && !iniciadaEm.current) iniciadaEm.current = new Date().toISOString(); }, [rodando]);
   const pessoa = usePessoa();
 
@@ -390,8 +426,10 @@ export function Placar() {
     if (!vencedor) return;
     d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro, perdedorSemDireitoASegundaLuta: vencedor.semSegundaLuta || undefined },
       sumula: { tatame: noTatame, mesario: pessoa.nome, encerradaEm: new Date().toISOString(), arbitro: d.estado.arbitros[noTatame] || undefined, iniciadaEm: iniciadaEm.current, duracao: total - resta, regulamentar: total, placar: m, metodo: vencedor.metodo, lances: lances.current } });
+    try { localStorage.removeItem(chaveGravada); } catch { /* sem armazenamento */ }
     nav(voltar);
   };
+  const zerarTudo = () => { setRodando(false); setResta(total); setM([zero, zero]); setCombatividade(null); lances.current = []; iniciadaEm.current = undefined; historico.current = []; try { localStorage.removeItem(chaveGravada); } catch { /* sem armazenamento */ } };
   // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro
   const sugerido = regrasIbjjf.vencedorPeloPlacar(m[0], m[1]);
 
@@ -420,6 +458,7 @@ export function Placar() {
         <RelatarOcorrencia tatame={noTatame} escuro />
         <button className="rounded border border-white/30 px-3 py-1.5 text-xs hover:bg-white/10" onClick={() => window.open(enderecoDaTela(noTatame), `tela-tatame-${noTatame}`, "popup,width=1280,height=720")}>Abrir tela do público</button>
       </div>
+      {retomada && <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md bg-ouro/20 px-3 py-2 text-sm"><span><b>Luta retomada.</b> O placar e o relógio foram recuperados de onde pararam; o relógio está pausado.</span><span className="flex gap-2"><button className="rounded border border-white/30 px-3 py-1 text-xs" onClick={() => { zerarTudo(); setRetomada(false); }}>Começar do zero</button><button className="rounded bg-white px-3 py-1 text-xs text-tinta" onClick={() => setRetomada(false)}>Continuar</button></span></div>}
       {/* o mesmo placar que o público vê, na proporção do vídeo de referência */}
       <div id="placar-mesario" className="mx-auto overflow-hidden" style={{ maxWidth: "calc(58vh * 16 / 9)" }}>
         <Telao altura="auto" lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}

@@ -8,6 +8,7 @@ import { quadroDeMedalhas } from "@/lib/resultados";
 
 export const navOrganizacao = [
   { para: "/app/organizacao", nome: "Eventos", fim: true },
+  { para: "/app/organizacao/modelos", nome: "Modelos de categorias" },
   { para: "/app/organizacao/ranking", nome: "Ranking" },
   { para: "/app/organizacao/membros", nome: "Membros e papéis" },
   { para: "/app/organizacao/dados", nome: "Dados da organização" },
@@ -100,7 +101,7 @@ export function NovoEvento() {
               <option>Eliminatória simples com dois bronzes</option><option>Eliminatória simples com disputa de terceiro</option><option>Eliminatória com repescagem</option><option>Todos contra todos até 5 atletas, eliminatória acima</option>
             </select>
           </Campo>
-          <Campo rotulo="Tabela de categorias" dica="Divisões de idade, faixas e pesos. Pode ser editada depois."><select id="ev-tabela" className="campo"><option>Jiu-Jitsu: idades e pesos da IBJJF</option><option>Copiar da Copa Horizonte 2026</option></select></Campo>
+          <Campo rotulo="Tabela de categorias" dica="Divisões de idade, faixas e pesos. Pode ser editada depois."><select id="ev-tabela" className="campo"><option>IBJJF (padrão da plataforma)</option>{d.estado.modelos.map((m) => <option key={m.id}>{m.nome}</option>)}</select></Campo>
           <Campo rotulo="Tatames"><input id="ev-tatames" className="campo w-32" type="number" min={1} max={20} value={f.tatames} onChange={(e) => mudar("tatames", Number(e.target.value))} /></Campo>
         </>}
         {passo === 3 && <>
