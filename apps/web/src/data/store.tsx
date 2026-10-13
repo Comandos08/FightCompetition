@@ -9,6 +9,8 @@ export interface Parceiro { id: string; nome: string; url: string; logo: string;
 /** Registro oficial de uma luta, gravado quando a mesa confirma o resultado. */
 export interface Sumula {
   tatame: number; mesario: string; encerradaEm: string;
+  /** momento em que o relógio foi iniciado pela primeira vez */
+  iniciadaEm?: string;
   /** segundos de luta decorridos e tempo regulamentar da categoria */
   duracao: number; regulamentar: number;
   placar: [{ pontos: number; vantagens: number; punicoes: number }, { pontos: number; vantagens: number; punicoes: number }];
@@ -16,6 +18,8 @@ export interface Sumula {
   /** o que a mesa marcou, na ordem, com o tempo de luta em segundos */
   lances: { t: number; lado: 0 | 1; texto: string }[];
 }
+/** Caso extraordinário do evento (falta de luz, acidente, incidente...), registrado pela organização. */
+export interface Ocorrencia { id: string; tipo: string; descricao: string; inicio: string; fim: string; tatame: string; quem: string; registradaEm: string; }
 export interface Remanejo { tatame: number; origem: number; motivo: string; quem: string; quando: string; }
 export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
 
@@ -37,6 +41,7 @@ interface Estado {
   /** lutas levadas de um tatame para outro durante o evento, com motivo e autor */
   remanejadas: Record<string, Remanejo>;
   sumulas: Record<string, Sumula>;
+  ocorrencias: Ocorrencia[];
   capaEvento: string;
   sessao: Persona | null;
   novosAtletas: Atleta[];
@@ -66,7 +71,7 @@ const vazio: Estado = {
     { id: "p3", nome: "Tatames Litoral", url: "", logo: "", ativo: true },
     { id: "p4", nome: "Instituto Guarda Viva", url: "", logo: "", ativo: true },
   ],
-  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {},
+  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {}, ocorrencias: [],
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
@@ -89,6 +94,8 @@ type Acao =
   | { tipo: "parceiro-remover"; id: string }
   | { tipo: "org-suspender"; nome: string; valor: boolean }
   | { tipo: "remanejar"; chave: string; remanejo: Remanejo | null }
+  | { tipo: "ocorrencia"; ocorrencia: Ocorrencia }
+  | { tipo: "ocorrencia-remover"; id: string }
   | { tipo: "auditar"; registro: RegistroAuditoria }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
@@ -130,6 +137,8 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "parceiro-remover": return { ...e, parceiros: e.parceiros.filter((p) => p.id !== a.id) };
     case "org-suspender": return { ...e, orgsSuspensas: { ...e.orgsSuspensas, [a.nome]: a.valor } };
     case "sincronizar": return a.estado;
+    case "ocorrencia": return { ...e, ocorrencias: [...e.ocorrencias, a.ocorrencia] };
+    case "ocorrencia-remover": return { ...e, ocorrencias: e.ocorrencias.filter((o) => o.id !== a.id) };
     case "remanejar": { const r = { ...e.remanejadas }; if (a.remanejo) r[a.chave] = a.remanejo; else delete r[a.chave]; return { ...e, remanejadas: r }; }
     case "auditar": return { ...e, auditoria: [a.registro, ...e.auditoria].slice(0, 100) };
     case "entrar": return { ...e, sessao: a.persona };

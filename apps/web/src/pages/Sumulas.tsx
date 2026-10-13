@@ -1,13 +1,14 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDados } from "@/data/store";
 import { EVENTO_ID, eventos } from "@/data/seed";
-import { TATAME_DO_MESARIO } from "@/data/sessao";
+import { TATAME_DO_MESARIO, usePessoa } from "@/data/sessao";
 import { Simbolo, Vazio } from "@/components/ui";
 import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada } from "@/lib/competicao";
 import { quadroDeMedalhas } from "@/lib/resultados";
 
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+const hora = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "não registrado");
 const dataHora = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
 /** Folha de documento: na tela parece papel; na impressão, só ela sai. */
@@ -66,7 +67,7 @@ export function SumulaDaLuta() {
         <Campo rotulo="Categoria">{cat.modalidade} · {cat.nome}</Campo>
         <Campo rotulo="Fase">{nomeRodada(luta.rodada, bloco.chave.totalRodadas)}</Campo>
         <Campo rotulo="Tatame">Tatame {tatame}{rem ? ` (programada no ${rem.origem})` : ""}</Campo>
-        <Campo rotulo="Horário">{s ? `encerrada em ${dataHora(s.encerradaEm)}` : `previsto ${hhmm(horarioDaLuta(bloco, luta.id))}`}</Campo>
+        <Campo rotulo="Início e fim">{s ? `${hora(s.iniciadaEm)} a ${hora(s.encerradaEm)} · ${new Date(s.encerradaEm).toLocaleDateString("pt-BR")}` : `previsto ${hhmm(horarioDaLuta(bloco, luta.id))}`}</Campo>
       </div>
       <table className="tabela mt-6">
         <thead><tr><th>Atleta</th><th>Equipe</th><th>Pontos</th><th>Vantagens</th><th>Punições</th><th>Resultado</th></tr></thead>
@@ -86,11 +87,12 @@ export function SumulaDaLuta() {
         <Campo rotulo="Tempo de luta">{s ? `${mmss(s.duracao)} de ${mmss(s.regulamentar)}` : `regulamentar de ${cat.minutos} min`}</Campo>
         <Campo rotulo="Mesário">{s?.mesario ?? "não registrado"}</Campo>
       </div>
-      <h3 className="mb-2 mt-6 text-sm font-semibold">Lances marcados pela mesa</h3>
+      <h3 className="mb-2 mt-6 text-sm font-semibold">Pontuações, vantagens, punições e faltas, na ordem em que a mesa marcou</h3>
       {s?.lances.length ? (
         <table className="tabela"><thead><tr><th className="w-24">Tempo</th><th>Atleta</th><th>Marcação</th></tr></thead>
           <tbody>{s.lances.map((l, k) => <tr key={k}><td className="font-mono">{mmss(l.t)}</td><td>{d.nomeDe(lados[l.lado])}</td><td>{l.texto}</td></tr>)}</tbody></table>
       ) : <p className="text-sm text-tinta-3">{s ? "Nenhuma marcação de pontos, vantagem ou punição nesta luta." : "Resultado lançado sem o placar da mesa; não há lances registrados."}</p>}
+      {s && <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">{lados.map((id, k) => { const f = s.lances.filter((l) => l.lado === k && l.texto.includes("punição")); return <Campo key={k} rotulo={`Faltas de ${d.nomeDe(id)}`}>{f.length ? f.map((l) => `${l.texto.replace(/ \(.*\)$/, "")} (${mmss(l.t)})`).join("; ") : "nenhuma"}</Campo>; })}</div>}
       {rem && <p className="mt-4 text-sm"><b>Ocorrência:</b> luta trazida do Tatame {rem.origem} por {rem.quem}. Motivo: {rem.motivo}.</p>}
       <div className="mt-6"><div className="rotulo">Observações do árbitro</div><div className="mt-1 h-16 rounded border border-linha" /></div>
       <Assinaturas quem={["Árbitro central", "Mesário", "Coordenação"]} />
@@ -131,27 +133,92 @@ export function SumulaDoCampeonato() {
       <h3 className="mb-2 mt-8 text-sm font-semibold">Lutas por método de vitória</h3>
       {porMetodo.size ? <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">{[...porMetodo].sort((a, b) => b[1] - a[1]).map(([m, n]) => <span key={m}><b>{n}</b> {m}</span>)}</div> : <p className="text-sm text-tinta-3">Sem lutas encerradas.</p>}
 
-      <h3 className="mb-2 mt-8 text-sm font-semibold">Pódios e lutas por categoria</h3>
+      <h3 className="mb-2 mt-8 text-sm font-semibold">Pódios</h3>
       {!concluidas.length && <p className="text-sm text-tinta-3">Os pódios entram conforme as categorias terminam.</p>}
       {concluidas.map((c) => {
-        const r = d.resolvidas.get(c.id)!; const total = d.chaves.get(c.id)!.totalRodadas;
+        const r = d.resolvidas.get(c.id)!;
         return (
-          <div key={c.id} className="mb-4 break-inside-avoid rounded-md border border-linha p-3 text-sm">
+          <div key={c.id} className="mb-2 break-inside-avoid rounded-md border border-linha p-3 text-sm">
             <div className="font-semibold">{c.modalidade} · {c.nome}</div>
             <div className="mt-1 grid gap-x-6 sm:grid-cols-2">
               {[["1º", r.campeaoId], ["2º", r.viceId], ...r.semifinalistasDerrotados.map((x) => ["3º", x] as const)].map(([p, x], k) => <div key={k}><b className="inline-block w-7">{p}</b>{d.nomeDe(x)} <span className="text-tinta-3">{d.equipeDe(x)}</span></div>)}
-            </div>
-            <div className="mt-2 space-y-0.5 text-xs text-tinta-2">
-              {r.lutas.filter((l) => l.vencedorId).map((l) => <div key={l.id}>{nomeRodada(l.rodada, total)}: <b>{d.nomeDe(l.vencedorId)}</b> venceu {d.nomeDe(l.vencedorId === l.a ? l.b : l.a)} · {l.metodo ?? "método não informado"} <Link className="nao-imprimir text-marinho hover:underline" to={`/app/mesa/sumula/${encodeURIComponent(c.id)}/${l.id}`}>súmula</Link></div>)}
             </div>
           </div>
         );
       })}
 
-      <h3 className="mb-2 mt-8 text-sm font-semibold">Ocorrências</h3>
-      {remanejos.length ? <ul className="list-disc space-y-1 pl-5 text-sm">{remanejos.map(([k, r]) => <li key={k}>Luta levada do Tatame {r.origem} para o Tatame {r.tatame} por {r.quem}. Motivo: {r.motivo}.</li>)}</ul> : <p className="text-sm text-tinta-3">Nenhuma luta mudou de tatame.</p>}
-      <div className="mt-4"><div className="rotulo">Observações da organização</div><div className="mt-1 h-20 rounded border border-linha" /></div>
+      <h3 className="mb-2 mt-8 text-sm font-semibold">Todas as lutas realizadas, com detalhes</h3>
+      {!feitas.length && <p className="text-sm text-tinta-3">Nenhuma luta encerrada ainda.</p>}
+      {comChave.filter((c) => d.resolvidas.get(c.id)!.lutas.some((l) => l.vencedorId)).map((c) => {
+        const r = d.resolvidas.get(c.id)!; const ch = d.chaves.get(c.id)!; const bloco = d.blocos.find((b) => b.categoria.id === c.id);
+        return (
+          <div key={c.id} className="mb-5 break-inside-avoid">
+            <div className="mb-1 text-sm font-semibold">{c.modalidade} · {c.nome}</div>
+            <div className="overflow-x-auto">
+              <table className="tabela text-xs">
+                <thead><tr><th>Luta</th><th>Fase</th><th>Atleta</th><th>Pts</th><th>Vant.</th><th>Pun.</th><th>Resultado</th><th>Início</th><th>Fim</th><th>Tempo</th></tr></thead>
+                <tbody>
+                  {r.lutas.filter((l) => l.vencedorId).map((l) => {
+                    const k = chaveDoResultado(c.id, l.id); const s = d.estado.sumulas[k];
+                    const tatame = s?.tatame ?? d.estado.remanejadas[k]?.tatame ?? bloco?.tatame;
+                    const faltas = (lado: number) => s?.lances.filter((x) => x.lado === lado && x.texto.includes("punição")).map((x) => x.texto.replace(/^\dª punição por /, "").replace(/ \(.*\)$/, "")) ?? [];
+                    return [l.a, l.b].map((id, lado) => (
+                      <tr key={l.id + lado} className={lado === 1 ? "border-b-2 border-linha" : ""}>
+                        {lado === 0 && <><td rowSpan={2} className="align-top font-medium">{tatame}-{ch.lutas.findIndex((x) => x.id === l.id) + 1}<Link className="nao-imprimir block font-normal text-marinho hover:underline" to={`/app/mesa/sumula/${encodeURIComponent(c.id)}/${l.id}`}>súmula</Link></td><td rowSpan={2} className="align-top">{nomeRodada(l.rodada, ch.totalRodadas)}</td></>}
+                        <td><span className={l.vencedorId === id ? "font-semibold" : ""}>{d.nomeDe(id)}</span> <span className="text-tinta-3">{d.equipeDe(id)}</span>{faltas(lado).length > 0 && <div className="text-tinta-3">Faltas: {faltas(lado).join(", ")}</div>}</td>
+                        <td>{s ? s.placar[lado]!.pontos : "·"}</td><td>{s ? s.placar[lado]!.vantagens : "·"}</td><td>{s ? s.placar[lado]!.punicoes : "·"}</td>
+                        <td>{l.vencedorId === id ? `Venceu por ${(s?.metodo ?? l.metodo ?? "método não informado").toLowerCase()}` : ""}</td>
+                        {lado === 0 && <><td rowSpan={2} className="align-top">{hora(s?.iniciadaEm)}</td><td rowSpan={2} className="align-top">{hora(s?.encerradaEm)}</td><td rowSpan={2} className="align-top">{s ? mmss(s.duracao) : "·"}</td></>}
+                      </tr>
+                    ));
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })}
+
+      <h3 className="mb-2 mt-8 text-sm font-semibold">Casos extraordinários</h3>
+      {d.estado.ocorrencias.length ? (
+        <table className="tabela text-sm">
+          <thead><tr><th>Tipo</th><th>Início</th><th>Fim</th><th>Onde</th><th>Parecer</th><th>Registrado por</th><th className="nao-imprimir" /></tr></thead>
+          <tbody>{d.estado.ocorrencias.map((o) => <tr key={o.id}><td className="font-medium">{o.tipo}</td><td>{o.inicio || "·"}</td><td>{o.fim || "·"}</td><td>{o.tatame}</td><td>{o.descricao}</td><td>{o.quem}</td><td className="nao-imprimir"><button className="text-xs text-perigo hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-remover", id: o.id })}>remover</button></td></tr>)}</tbody>
+        </table>
+      ) : <p className="text-sm text-tinta-3">Nenhum caso extraordinário registrado.</p>}
+      <NovaOcorrencia />
+
+      <h3 className="mb-2 mt-8 text-sm font-semibold">Lutas que mudaram de tatame</h3>
+      {remanejos.length ? <ul className="list-disc space-y-1 pl-5 text-sm">{remanejos.map(([k, r]) => <li key={k}>Luta levada do Tatame {r.origem} para o Tatame {r.tatame} por {r.quem}. Motivo: {r.motivo}.</li>)}</ul> : <p className="text-sm text-tinta-3">Nenhuma.</p>}
+      <div className="mt-6"><div className="rotulo">Parecer final da organização</div><div className="mt-1 h-20 rounded border border-linha" /></div>
       <Assinaturas quem={["Diretor técnico", "Organização"]} />
     </Documento>
+  );
+}
+
+const TIPOS = ["Falta de luz", "Acidente ou atendimento médico", "Incidente disciplinar", "Problema de equipamento", "Atraso ou paralisação", "Outro"];
+
+/** Formulário da organização para registrar um caso extraordinário na súmula do campeonato. */
+function NovaOcorrencia() {
+  const d = useDados();
+  const pessoa = usePessoa();
+  const [f, setF] = useState({ tipo: TIPOS[0]!, descricao: "", inicio: "", fim: "", tatame: "Evento todo" });
+  const mudar = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
+  const salvar = () => {
+    d.despachar({ tipo: "ocorrencia", ocorrencia: { ...f, descricao: f.descricao.trim(), id: `oc-${Date.now()}`, quem: pessoa.nome, registradaEm: new Date().toISOString() } });
+    setF({ tipo: TIPOS[0]!, descricao: "", inicio: "", fim: "", tatame: "Evento todo" });
+  };
+  return (
+    <div className="nao-imprimir mt-3 rounded-md border border-dashed border-linha bg-papel p-3">
+      <div className="mb-2 text-sm font-medium">Registrar caso extraordinário</div>
+      <div className="grid gap-2 sm:grid-cols-4">
+        <select id="oc-tipo" className="campo" value={f.tipo} onChange={(e) => mudar("tipo", e.target.value)}>{TIPOS.map((t) => <option key={t}>{t}</option>)}</select>
+        <select id="oc-onde" className="campo" value={f.tatame} onChange={(e) => mudar("tatame", e.target.value)}>{["Evento todo", ...[1, 2, 3, 4, 5, 6].map((t) => `Tatame ${t}`), "Área de pesagem", "Arquibancada"].map((t) => <option key={t}>{t}</option>)}</select>
+        <label className="flex items-center gap-2 text-xs text-tinta-2">Início<input id="oc-inicio" type="time" className="campo" value={f.inicio} onChange={(e) => mudar("inicio", e.target.value)} /></label>
+        <label className="flex items-center gap-2 text-xs text-tinta-2">Fim<input id="oc-fim" type="time" className="campo" value={f.fim} onChange={(e) => mudar("fim", e.target.value)} /></label>
+      </div>
+      <textarea id="oc-descricao" className="campo mt-2" rows={2} placeholder="Parecer: o que aconteceu, quem foi afetado e que providência foi tomada." value={f.descricao} onChange={(e) => mudar("descricao", e.target.value)} />
+      <button id="oc-salvar" className="botao-primario mt-2" disabled={!f.descricao.trim()} onClick={salvar}>Adicionar à súmula</button>
+    </div>
   );
 }
