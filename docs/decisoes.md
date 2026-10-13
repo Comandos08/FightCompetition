@@ -52,6 +52,10 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | O formato oficial é eliminação simples com dois bronzes, e a chave de três é a única exceção. Os demais formatos pedidos (repescagem, todos contra todos, disputa de terceiro) ficam como opção do organizador, fora do padrão IBJJF | Claude | É o que o Regulamento Geral, art. 2, define; a CBJJS segue esse padrão |
 | 13/10/2026 | No placar, a punição aplica sozinha a consequência prevista (vantagem, dois pontos ou desclassificação), e o operador pode desfazer | Claude | Tira do mesário a conta de cabeça e segue o art. 7.2 |
 | 13/10/2026 | Na inscrição, quem já tem dependente cadastrado escolhe o dependente em vez de digitar de novo; atleta recém-cadastrado começa sem histórico | Claude | Lacunas apontadas na auditoria |
+| 13/10/2026 | O mesário não tem área de atleta: enxerga só os próprios dados, a escala e a fila do tatame em que foi escalado | Fundador | Perfil esportivo, dependentes e pedidos não fazem parte do trabalho da mesa; quem também compete usa a conta de atleta |
+| 13/10/2026 | O placar tem duas visões: a do mesário (relógio, controles, miniatura do que o público vê) e a tela do tatame virada para o público, em janela própria (`/telao/:tatame`), sem nenhum controle | Fundador | O operador precisa de botões e o público precisa só do placar; a tela pública acompanha a mesa em tempo real |
+| 13/10/2026 | Entre uma luta e outra, a tela do público chama a próxima luta e, se o mesário ligar, mostra ao lado as lutas seguintes daquele tatame. A tela do mesário não muda | Fundador | O painel do tatame aproveita o intervalo sem atrapalhar quem opera |
+| 13/10/2026 | A tela do público abre sem login | Claude | Mostra só o que já é público (nomes, equipes, placar) e evita deixar uma conta logada no aparelho virado para a arquibancada. No produto, o aparelho será pareado por código do tatame |
 
 ## Em aberto
 
@@ -70,7 +74,8 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
 - Origem e licença dos avatares padrão (`apps/web/src/assets/avatar-*.webp`): anotar o banco de imagens e a licença.
 - Remanejamento de luta entre tatames: o mesário faz sozinho ou precisa de aprovação da coordenação? Hoje faz sozinho, com registro.
-- Telão em segunda tela: no produto, o telão do tatame é outro aparelho sincronizado em tempo real com a mesa; no protótipo é a mesma tela.
+- Tela do público em outro aparelho: no protótipo a sincronia vale entre janelas do mesmo navegador (um computador com dois monitores). Entre aparelhos diferentes depende do tempo real do Supabase, na construção.
+- Se o operador fecha o placar no meio da luta, o estado da luta se perde; no produto ele precisa ficar gravado.
 - Cores do telão: hoje seguem a referência (amarelo e verde contra preto e branco); definir cores próprias junto com a marca.
 - Como o produto ajuda o organizador a juntar categorias: com as categorias de idade oficiais, a maioria fica com um atleta só.
 - Desclassificações em semifinais e finais (Regulamento Geral, art. 2.4): exigem distinguir falta técnica de disciplinar no resultado.

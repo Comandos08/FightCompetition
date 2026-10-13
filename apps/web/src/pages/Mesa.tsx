@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDados, type Contexto } from "@/data/store";
 import { EVENTO_ID } from "@/data/seed";
-import { TATAME_DO_MESARIO } from "@/data/sessao";
-import { Selo, Titulo, Vazio } from "@/components/ui";
+import { TATAME_DO_MESARIO, usePessoa } from "@/data/sessao";
+import { enderecoDaTela, publicarTela, useTela, type Marcador } from "@/data/telaPublica";
+import { Campo, Secao, Selo, SubNav, Titulo, Vazio } from "@/components/ui";
 import { regrasIbjjf } from "@engine";
 import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada, type Bloco } from "@/lib/competicao";
 
@@ -80,7 +81,9 @@ export function Mesa() {
   const mudar = (k: string, v: number) => { const n = new URLSearchParams(sp); n.set(k, String(v)); setSp(n); };
   return (
     <>
-      <Titulo sobre="Mesa do tatame" acoes={<>{!soMeuTatame && <Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link>}<Link to={`/eventos/${EVENTO_ID}/painel?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link></>}>Tatame {tatame}</Titulo>
+      <Titulo sobre="Mesa do tatame" acoes={<>{!soMeuTatame && <Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link>}{!soMeuTatame && <Link to={`/eventos/${EVENTO_ID}/painel?dia=${dia}`} className="botao-contorno">Painel geral do ginásio</Link>}</>}>Tatame {tatame}</Titulo>
+      {soMeuTatame && <SubNav itens={navMesario} />}
+      <TelaDoPublico tatame={tatame} dia={dia} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
@@ -115,7 +118,6 @@ export function Mesa() {
   );
 }
 
-interface Marcador { pontos: number; vantagens: number; punicoes: number; }
 const zero: Marcador = { pontos: 0, vantagens: 0, punicoes: 0 };
 /** Livro de Regras da IBJJF, art. 7.3.1. */
 const COMBATIVIDADE_SEG = regrasIbjjf.COMBATIVIDADE_SEGUNDOS;
@@ -158,10 +160,10 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
   );
   const letreiro = `${categoria}\u2003\u2003\u2003`;
   return (
-    <div className="relative flex select-none flex-col overflow-hidden bg-[#1B1C1F] font-placar uppercase" style={{ height: altura, containerType: "size", gap: "0.3cqh" }}>
+    <div className="relative flex select-none flex-col overflow-hidden bg-[#1B1C1F] font-placar uppercase" style={{ height: altura, aspectRatio: altura === "auto" ? "16 / 9" : undefined, containerType: "size", gap: "0.3cqh" }}>
       {linha(0)}{linha(1)}
       <div className="relative flex min-h-0 items-stretch bg-[#1D1E21]" style={{ flex: 215 }}>
-        <div className="grid shrink-0 place-items-center bg-white font-medium text-black" style={{ width: "13cqw", fontSize: "20.5cqh", lineHeight: 0.8, letterSpacing: "-0.01em" }}>{rotulo}</div>
+        <div className="grid shrink-0 place-items-center overflow-hidden whitespace-nowrap bg-white font-medium text-black" style={{ width: "13cqw", fontSize: "20.5cqh", lineHeight: 0.8, letterSpacing: "-0.01em" }}>{rotulo}</div>
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="absolute inset-x-0 font-medium text-[#F7F8FB]" style={{ top: "7.3cqh", fontSize: "6.8cqh", lineHeight: 1, paddingLeft: "1.4cqw" }}>
             <span className="letreiro"><span>{letreiro}</span><span>{letreiro}</span></span>
@@ -183,6 +185,117 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
   );
 }
 
+const tituloDaCategoria = (cat: { modalidade: string; nome: string }) => `Copa Horizonte 2026 / ${cat.modalidade === "Gi" ? "Jiu-Jitsu" : "Jiu-Jitsu sem quimono"} / ${cat.nome.split(" · ").join(" / ")}`;
+
+const navMesario = [{ para: "/app/mesa", nome: "Fila do tatame", fim: true }, { para: "/app/mesa/dados", nome: "Meus dados" }];
+
+/** Abre a tela do público: em outra janela, para arrastar ao monitor virado para a arquibancada, ou nesta mesma. */
+function BotoesDaTela({ tatame, escuro }: { tatame: number; escuro?: boolean }) {
+  const b = escuro ? "rounded border border-white/30 px-3 py-1.5 text-xs text-white hover:bg-white/10" : "botao-contorno !py-1.5 text-xs";
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      <button className={b} onClick={() => window.open(enderecoDaTela(tatame), `tela-tatame-${tatame}`, "popup,width=1280,height=720")}>Abrir em outra janela</button>
+      {!escuro && <Link className={b} to={`/telao/${tatame}`}>Ver nesta janela</Link>}
+    </div>
+  );
+}
+
+/** Na fila: o que a tela virada para o público mostra e o que o mesário pode ligar nela entre uma luta e outra. */
+function TelaDoPublico({ tatame, dia }: { tatame: number; dia: number }) {
+  const tela = useTela(tatame);
+  useEffect(() => { if (tela.dia !== dia) publicarTela(tatame, { dia }); }, [tatame, dia, tela.dia]);
+  return (
+    <div className="cartao mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 p-3">
+      <div className="min-w-[13rem] flex-1">
+        <div className="rotulo">Tela do público do Tatame {tatame}</div>
+        <div className="text-sm text-tinta-2">{tela.luta ? "Mostrando o placar da luta em andamento." : tela.proximas ? "Entre lutas: chamada da próxima luta e lista das seguintes." : "Entre lutas: só a chamada da próxima luta."}</div>
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input id="tela-proximas" type="checkbox" checked={tela.proximas} onChange={(e) => publicarTela(tatame, { proximas: e.target.checked })} />Mostrar próximas lutas ao lado, entre uma luta e outra</label>
+      <BotoesDaTela tatame={tatame} />
+    </div>
+  );
+}
+
+/**
+ * Tela do tatame virada para o público. Não tem controle nenhum: durante a luta mostra o placar,
+ * e entre uma luta e outra chama a próxima, com a lista das seguintes ao lado quando o mesário liga.
+ */
+export function TelaDoTatame() {
+  const d = useDados();
+  const tatame = Number(useParams().tatame);
+  const tela = useTela(tatame);
+  if (!(tatame >= 1 && tatame <= 6)) return <div className="grid min-h-screen place-items-center bg-[#1B1C1F] text-white">Tatame não encontrado.</div>;
+  const voltar = d.estado.sessao && <Link to="/app/mesa" className="fixed right-2 top-2 z-40 rounded bg-black/40 px-2 py-1 text-[11px] text-white/30 hover:text-white">voltar à mesa</Link>;
+  if (tela.luta) return <div className="bg-[#1B1C1F]">{voltar}<Telao altura="100vh" {...tela.luta} /></div>;
+  const prontas = filaDoTatame(d, tela.dia, tatame).filter((f) => !f.vencedorId && f.pronta);
+  const [proxima, ...resto] = prontas;
+  return (
+    <div className="flex min-h-screen flex-col bg-[#1B1C1F] p-[3vh] font-placar uppercase text-white">
+      {voltar}
+      <div className="flex items-baseline justify-between" style={{ fontSize: "4vh" }}><span className="font-bold">Tatame {tatame}</span><span className="text-white/50">Copa Horizonte 2026</span></div>
+      <div className={`mt-[3vh] grid flex-1 gap-[3vh] ${tela.proximas && resto.length ? "lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]" : ""}`}>
+        <div className="flex min-w-0 flex-col justify-center rounded-lg bg-white/5 p-[4vh]">
+          {proxima ? (
+            <>
+              <div className="text-[#F5E61E]" style={{ fontSize: "3.4vh" }}>Próxima luta · {hhmm(proxima.horario)}</div>
+              <div className="text-white/60" style={{ fontSize: "2.8vh" }}>{proxima.bloco.categoria.nome} · {nomeRodada(proxima.rodada, proxima.bloco.chave.totalRodadas)}</div>
+              {[proxima.a, proxima.b].map((id, k) => (
+                <div key={k} className="mt-[3vh] flex items-center gap-[2vh]">
+                  <span className={`shrink-0 rounded-sm ${k === 0 ? "bg-[#F5E61E]" : "border border-white/60 bg-black"}`} style={{ width: "1.6vh", height: "11vh" }} />
+                  <div className="min-w-0"><div className="font-bold leading-none" style={{ fontSize: "min(8vh, 3.4vw)" }}>{d.nomeDe(id)}</div><div className="truncate text-white/60" style={{ fontSize: "3.6vh" }}>{d.equipeDe(id)}</div></div>
+                </div>
+              ))}
+            </>
+          ) : <div className="text-center text-white/50" style={{ fontSize: "5vh" }}>Sem lutas pendentes neste tatame</div>}
+        </div>
+        {tela.proximas && resto.length > 0 && (
+          <div id="proximas-do-tatame" className="min-w-0 rounded-lg bg-white/5 p-[3vh]">
+            <div className="mb-[1.5vh] text-white/50" style={{ fontSize: "3vh" }}>Em seguida</div>
+            {resto.slice(0, 4).map((f) => (
+              <div key={f.bloco.categoria.id + f.lutaId} className="border-b border-white/10 py-[1.6vh] last:border-0">
+                <div className="text-white/50" style={{ fontSize: "2.2vh" }}>{hhmm(f.horario)} · {f.bloco.categoria.nome}</div>
+                <div className="font-bold leading-tight" style={{ fontSize: "min(3.4vh, 1.9vw)" }}><div className="truncate">{d.nomeDe(f.a)}</div><div className="truncate">{d.nomeDe(f.b)}</div></div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Dados da própria conta do mesário e a escala dele. Nada de perfil esportivo, dependentes ou pedidos. */
+export function DadosDoMesario() {
+  const pessoa = usePessoa();
+  const [salvo, setSalvo] = useState(false);
+  return (
+    <>
+      <Titulo sobre="Mesa do tatame">Meus dados</Titulo>
+      <SubNav itens={navMesario} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Secao titulo="Dados pessoais">
+          <div className="space-y-4">
+            <Campo rotulo="Nome completo"><input id="mesario-nome" className="campo" defaultValue={pessoa.nome} onChange={() => setSalvo(false)} /></Campo>
+            <Campo rotulo="Celular" dica="A coordenação usa este número no dia do evento."><input id="mesario-cel" className="campo" placeholder="(21) 90000-0000" onChange={() => setSalvo(false)} /></Campo>
+            <Campo rotulo="E-mail de acesso"><input className="campo" disabled defaultValue={`${pessoa.nome.split(" ")[0]!.toLowerCase()}@exemplo.com`} /></Campo>
+            <div className="flex items-center gap-3"><button className="botao-primario" onClick={() => setSalvo(true)}>Salvar</button>{salvo && <span className="text-sm text-tatame">Dados salvos.</span>}</div>
+          </div>
+        </Secao>
+        <Secao titulo="Minha escala">
+          <table className="tabela">
+            <thead><tr><th>Evento</th><th>Dia</th><th>Função</th><th>Tatame</th></tr></thead>
+            <tbody>
+              <tr><td className="font-medium">Copa Horizonte 2026</td><td>Sábado · Gi</td><td>Mesário</td><td><Selo tom="ok">Tatame {TATAME_DO_MESARIO}</Selo></td></tr>
+              <tr><td className="font-medium">Copa Horizonte 2026</td><td>Domingo · No-Gi</td><td>Mesário</td><td><Selo tom="ok">Tatame {TATAME_DO_MESARIO}</Selo></td></tr>
+            </tbody>
+          </table>
+          <p className="mt-3 text-xs text-tinta-3">Quem define a escala é a organização do evento. Esta conta enxerga só a fila e o placar do tatame em que foi escalada.</p>
+        </Secao>
+      </div>
+    </>
+  );
+}
+
 export function Placar() {
   const { tatame, catId, lutaId } = useParams();
   const [sp] = useSearchParams();
@@ -197,7 +310,6 @@ export function Placar() {
   const [encerrando, setEncerrando] = useState(false);
   const [combatividade, setCombatividade] = useState<{ lado: 0 | 1; resta: number } | null>(null);
   const [vencedor, setVencedor] = useState<{ lado: 0 | 1; metodo: string; registro: string; semSegundaLuta?: boolean } | null>(null);
-  const [telao, setTelao] = useState(false);
   const [aviso, setAviso] = useState("");
   const historico = useRef<[Marcador, Marcador][]>([]);
 
@@ -212,6 +324,20 @@ export function Placar() {
     const t = setInterval(() => setCombatividade((c) => (c && c.resta > 0 ? { ...c, resta: c.resta - 1 } : c)), 1000);
     return () => clearInterval(t);
   }, [rodando, combatividade?.lado]);
+
+  // tudo o que muda na luta vai para a tela do público do tatame; ao sair do placar, a tela volta ao intervalo
+  const noTatame = Number(tatame);
+  const valida = !!(cat && luta && luta.a && luta.b);
+  useEffect(() => {
+    if (!valida) return;
+    const ch = d.chaves.get(cat!.id)!;
+    publicarTela(noTatame, { luta: {
+      lados: [luta!.a, luta!.b].map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) })), m, resta, rodando, iniciada: resta !== total || rodando,
+      rotulo: `${tatame}-${ch.lutas.findIndex((l) => l.id === luta!.id) + 1}`, categoria: tituloDaCategoria(cat!), fase: nomeRodada(luta!.rodada, ch.totalRodadas),
+      combatividade, vencedor: vencedor && { lado: vencedor.lado, metodo: vencedor.metodo },
+    } });
+  }, [valida, m, resta, rodando, combatividade, vencedor]);
+  useEffect(() => () => publicarTela(noTatame, { luta: null }), [noTatame]);
 
   if (!cat || !luta || !luta.a || !luta.b) return <div className="p-10"><Vazio>Luta não encontrada ou ainda sem os dois atletas definidos.</Vazio></div>;
   // a luta só abre no tatame em que está na fila: trocar o número no endereço não dá acesso
@@ -261,7 +387,9 @@ export function Placar() {
 
   const controles = (lado: 0 | 1) => (
     <div key={lado} className="flex-1 rounded-lg bg-white/5 p-3">
-      <div className="mb-2 flex items-center gap-2 text-sm text-white"><span className={`h-3 w-3 rounded-sm ${lado === 0 ? "bg-[#F5E61E]" : "border border-white/60 bg-black"}`} /><span className="truncate font-semibold">{d.nomeDe(lados[lado])}</span></div>
+      <div className="mb-2 flex items-center gap-2 text-sm text-white"><span className={`h-3 w-3 rounded-sm ${lado === 0 ? "bg-[#F5E61E]" : "border border-white/60 bg-black"}`} /><span className="min-w-0 flex-1 truncate font-semibold">{d.nomeDe(lados[lado])}</span>
+        <span className="font-mono text-3xl font-semibold tabular-nums leading-none">{m[lado].pontos}</span>
+        <span className="text-xs leading-tight"><span className="block text-[#4ADE4A]">{m[lado].vantagens} vant.</span><span className="block text-[#FF6B6B]">{m[lado].punicoes} pun.</span></span></div>
       <div className="grid grid-cols-3 gap-2">
         {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className="rounded-md bg-white py-3 text-xl font-semibold text-tinta">+{n}</button>)}
         <button onClick={() => somar(lado, "vantagens", 1)} className="rounded-md border border-[#4ADE4A]/70 py-2.5 text-sm font-semibold text-[#4ADE4A]">+ Vantagem</button>
@@ -271,37 +399,60 @@ export function Placar() {
     </div>
   );
 
+  const rotulo = `${tatame}-${chave.lutas.findIndex((l) => l.id === luta.id) + 1}`;
+  const seguintes = filaDoTatame(d, Number(sp.get("dia") ?? 1), noTatame).filter((f) => !f.vencedorId && f.pronta && !(f.bloco.categoria.id === cat.id && f.lutaId === luta.id)).slice(0, 3);
   return (
-    <div className="flex min-h-screen flex-col bg-[#17181A]">
-      <Telao altura={telao ? "100vh" : "min(64vh, 56.25vw)"} lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
-        rotulo={`${tatame}-${chave.lutas.findIndex((l) => l.id === luta.id) + 1}`} categoria={`Copa Horizonte 2026 / ${cat.modalidade === "Gi" ? "Jiu-Jitsu" : "Jiu-Jitsu sem quimono"} / ${cat.nome.split(" · ").join(" / ")}`}
-        fase={nomeRodada(luta.rodada, chave.totalRodadas)} combatividade={combatividade} vencedor={vencedor} />
-      {telao ? (
-        <button onClick={() => setTelao(false)} className="fixed right-3 top-3 z-40 rounded bg-black/50 px-3 py-1.5 text-xs text-white/70 hover:text-white">Sair do telão</button>
-      ) : (
-        <div className="flex-1 space-y-3 p-3 sm:p-4">
+    <div className="min-h-screen bg-[#17181A] p-3 text-white sm:p-4">
+      <div className="mx-auto grid max-w-[1400px] gap-4 lg:grid-cols-[1fr_22rem]">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Link to={voltar} className="text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
+            <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">Luta {rotulo}</span>
+            <span className="min-w-0 flex-1 truncate text-sm text-white/70">{cat.nome} · {nomeRodada(luta.rodada, chave.totalRodadas)}</span>
+            <span className="text-xs uppercase tracking-wide text-white/40">Visão do mesário</span>
+          </div>
           {vencedor ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4 text-white">
-              <span>Resultado anunciado no telão: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.{vencedor.semSegundaLuta ? " Na chave de três, quem não compareceu perde o direito à segunda luta." : ""}</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4">
+              <span>Resultado anunciado na tela do público: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.{vencedor.semSegundaLuta ? " Na chave de três, quem não compareceu perde o direito à segunda luta." : ""}</span>
               <span className="flex gap-2"><button onClick={() => setVencedor(null)} className="rounded border border-white/30 px-3 py-2 text-sm">Corrigir</button><button onClick={confirmar} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Confirmar e voltar à fila</button></span>
             </div>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2 text-white">
-                <Link to={voltar} className="mr-auto text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
-                <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-5 py-2 text-sm font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
-                <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-3 py-2 text-sm">Zerar relógio</button>
-                <button onClick={desfazer} className="rounded border border-white/30 px-3 py-2 text-sm">Desfazer</button>
-                <button onClick={() => setTelao(true)} className="rounded border border-white/30 px-3 py-2 text-sm">Modo telão</button>
-                <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Encerrar luta</button>
+              <div className="flex flex-wrap items-center gap-3 rounded-lg bg-white/5 p-3">
+                <div id="relogio-mesario" className={`font-mono text-6xl font-semibold tabular-nums leading-none ${rodando ? "text-white" : "text-white/50"}`}>{seg(resta)}</div>
+                <div className="mr-auto text-xs text-white/50">{rodando ? "correndo" : resta === total ? "aguardando início" : "pausado"}<br />{cat.minutos} min nesta categoria</div>
+                <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-6 py-3 text-base font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
+                <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-3 py-3 text-sm">Zerar relógio</button>
+                <button onClick={desfazer} className="rounded border border-white/30 px-3 py-3 text-sm">Desfazer</button>
+                <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-4 py-3 text-sm font-semibold text-tinta">Encerrar luta</button>
               </div>
               <div className="flex flex-col gap-3 md:flex-row">{controles(0)}{controles(1)}</div>
               {aviso && <div className="rounded-md bg-[#F5E61E]/15 px-3 py-2 text-sm text-[#F5E61E]">{aviso} Use "Desfazer" se foi engano.</div>}
-              <p className="text-xs text-white/40">A parte de cima é o que aparece no telão do tatame. Regras da IBJJF (Livro de Regras v6.1): {cat.minutos} min de luta nesta categoria, combatividade de {COMBATIVIDADE_SEG} s, e punições com efeito automático: a 2ª dá vantagem ao oponente, a 3ª dá dois pontos{ate15 ? ", a 4ª e a 5ª dão dois pontos cada e a 6ª desclassifica (até 15 anos)" : " e a 4ª desclassifica"}.</p>
+              <p className="text-xs text-white/40">Regras da IBJJF (Livro de Regras v6.1): combatividade de {COMBATIVIDADE_SEG} s e punições com efeito automático: a 2ª dá vantagem ao oponente, a 3ª dá dois pontos{ate15 ? ", a 4ª mais dois pontos e a 5ª desclassifica (até 15 anos)" : " e a 4ª desclassifica"}.</p>
             </>
           )}
         </div>
-      )}
+        <aside className="space-y-3">
+          <div className="rounded-lg bg-white/5 p-3">
+            <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-white/50"><span>Tela do público</span><span className="flex items-center gap-1.5 normal-case text-[#4ADE4A]"><span className="h-1.5 w-1.5 rounded-full bg-[#4ADE4A]" />ao vivo</span></div>
+            <div className="overflow-hidden rounded">
+              <Telao altura="auto" lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
+                rotulo={rotulo} categoria={tituloDaCategoria(cat)} fase={nomeRodada(luta.rodada, chave.totalRodadas)} combatividade={combatividade} vencedor={vencedor} />
+            </div>
+            <BotoesDaTela tatame={noTatame} escuro />
+          </div>
+          <div className="rounded-lg bg-white/5 p-3">
+            <div className="mb-2 text-xs uppercase tracking-wide text-white/50">A seguir neste tatame</div>
+            {seguintes.map((f) => (
+              <div key={f.bloco.categoria.id + f.lutaId} className="border-b border-white/10 py-2 text-sm last:border-0">
+                <div className="font-mono text-[11px] text-white/40">{hhmm(f.horario)} · {f.bloco.categoria.nome}</div>
+                <div className="truncate">{d.nomeDe(f.a)} <span className="text-white/40">x</span> {d.nomeDe(f.b)}</div>
+              </div>
+            ))}
+            {!seguintes.length && <div className="text-sm text-white/40">Nenhuma outra luta pronta.</div>}
+          </div>
+        </aside>
+      </div>
 
       {encerrando && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={() => setEncerrando(false)}>

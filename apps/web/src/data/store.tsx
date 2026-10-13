@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode, useRef } from "react";
 import type { ChaveEliminatoria, ChaveResolvida, Resultado } from "@engine";
 import { gerarBase, type Atleta, type Inscricao, type StatusPagamento, type StatusPesagem } from "./seed";
 import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, type Categoria } from "@/lib/competicao";
@@ -81,7 +81,9 @@ type Acao =
   | { tipo: "auditar"; registro: RegistroAuditoria }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
-  | { tipo: "reiniciar" };
+  | { tipo: "reiniciar" }
+  /** outra janela do mesmo navegador mudou os dados (a tela do público acompanha a mesa) */
+  | { tipo: "sincronizar"; estado: Estado };
 
 function reduzir(e: Estado, a: Acao): Estado {
   switch (a.tipo) {
@@ -116,6 +118,7 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "parceiro-mudar": return { ...e, parceiros: e.parceiros.map((p) => (p.id === a.id ? { ...p, ...a.campos } : p)) };
     case "parceiro-remover": return { ...e, parceiros: e.parceiros.filter((p) => p.id !== a.id) };
     case "org-suspender": return { ...e, orgsSuspensas: { ...e.orgsSuspensas, [a.nome]: a.valor } };
+    case "sincronizar": return a.estado;
     case "remanejar": { const r = { ...e.remanejadas }; if (a.remanejo) r[a.chave] = a.remanejo; else delete r[a.chave]; return { ...e, remanejadas: r }; }
     case "auditar": return { ...e, auditoria: [a.registro, ...e.auditoria].slice(0, 100) };
     case "entrar": return { ...e, sessao: a.persona };
@@ -154,7 +157,20 @@ export const inscricoesOriginais = base.inscricoes;
 
 export function Provedor({ children }: { children: ReactNode }) {
   const [estado, despachar] = useReducer(reduzir, undefined, carregar);
-  useEffect(() => { try { localStorage.setItem(CHAVE_LOCAL, JSON.stringify(estado)); } catch { /* sem armazenamento */ } }, [estado]);
+  const veioDeFora = useRef(false);
+  useEffect(() => {
+    if (veioDeFora.current) { veioDeFora.current = false; return; }
+    try { localStorage.setItem(CHAVE_LOCAL, JSON.stringify(estado)); } catch { /* sem armazenamento */ }
+  }, [estado]);
+  // duas janelas do mesmo navegador (mesa e tela do público) enxergam os mesmos dados
+  useEffect(() => {
+    const ouvir = (e: StorageEvent) => {
+      if (e.key !== CHAVE_LOCAL || !e.newValue) return;
+      try { veioDeFora.current = true; despachar({ tipo: "sincronizar", estado: { ...vazio, ...JSON.parse(e.newValue) } }); } catch { veioDeFora.current = false; }
+    };
+    window.addEventListener("storage", ouvir);
+    return () => window.removeEventListener("storage", ouvir);
+  }, []);
 
   const valor = useMemo<Contexto>(() => {
     const todosAtletas = [...base.atletas, ...estado.novosAtletas, ...estado.dependentes];

@@ -1,10 +1,11 @@
+import type { ReactNode } from "react";
 import { BrowserRouter, MemoryRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Provedor } from "@/data/store";
 import { contextos, personas, usePessoa } from "@/data/sessao";
 import { Entrar, LayoutLogado, LayoutPublico } from "@/components/Layout";
 import { Agenda, Evento, Inscricao } from "@/pages/Publico";
 import { Organizador } from "@/pages/Organizador";
-import { Arena, Mesa, Placar, TV } from "@/pages/Mesa";
+import { Arena, DadosDoMesario, Mesa, Placar, TelaDoTatame, TV } from "@/pages/Mesa";
 import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
 import { Cadastro, Dependentes, Pedidos, Perfil } from "@/pages/Conta";
 import { PaginaEquipe, PerfilAtleta, Rankings } from "@/pages/Vitrine";
@@ -20,7 +21,12 @@ function InicioDaConta() {
 }
 
 // na versão de página única (demonstração) não há servidor para resolver rotas
-const Roteador = import.meta.env.MODE === "pagina-unica" ? MemoryRouter : BrowserRouter;
+function Roteador({ children }: { children: ReactNode }) {
+  // a tela do público abre em outra janela; na página única a rota inicial vem depois do "#"
+  return import.meta.env.MODE === "pagina-unica"
+    ? <MemoryRouter initialEntries={[window.location.hash.slice(1) || "/"]}>{children}</MemoryRouter>
+    : <BrowserRouter>{children}</BrowserRouter>;
+}
 
 export default function App() {
   return (
@@ -41,6 +47,7 @@ export default function App() {
             <Route path="/equipes/:nome" element={<PaginaEquipe />} />
           </Route>
           <Route path="/eventos/:id/painel" element={<TV />} />
+          <Route path="/telao/:tatame" element={<TelaDoTatame />} />
 
           {/* exige conta; cada área exige o papel correspondente */}
           <Route path="/app" element={<LayoutLogado />}>
@@ -66,6 +73,7 @@ export default function App() {
             <Route path="plataforma/:aba" element={<Plataforma />} />
             <Route path="mesa" element={<Mesa />} />
             <Route path="mesa/arena" element={<Arena />} />
+            <Route path="mesa/dados" element={<DadosDoMesario />} />
             <Route path="mesa/placar/:tatame/:catId/:lutaId" element={<Placar />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
