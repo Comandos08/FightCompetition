@@ -4,7 +4,9 @@ Plataforma da SportCombat para organização de competições de esportes de com
 
 ## Estado atual
 
-Repositório recém-criado. Ainda não há código funcional: esta estrutura organiza o trabalho que começa pelo motor de chaves.
+O motor gera a estrutura da eliminatória simples (posições, byes e separação por equipe) com sorteio reproduzível. Ainda não há regra de colocação, regra de três atletas, pacote de regras IBJJF nem o kit.
+
+Para rodar os testes: `cd packages/engine && npm install && npm test`.
 
 ## Trilhas
 
