@@ -59,6 +59,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | O produto se chama Arena. Símbolo e logo oficiais em `docs/marca` | Fundador | Nome aprovado depois do uso no protótipo |
 | 13/10/2026 | Pesos seguem a Tabela de Pesos Oficial da IBJJF enviada pelo fundador; no feminino juvenil, adulto e master a última classe é o Super-pesado | Fundador | Substitui os pesos ilustrativos. Até os 15 anos a tabela tem limite para quimono liso e trançado; o protótipo mostra o liso |
 | 13/10/2026 | Gi e No-Gi usam as mesmas categorias de peso e os mesmos limites | Fundador | Uma tabela só para as duas modalidades. A IBJJF publica limites próprios, mais baixos, para o No-Gi; se um evento seguir a IBJJF à risca, a tabela do No-Gi entra como configuração do evento |
+| 13/10/2026 | Toda luta encerrada pelo placar gera súmula (atletas, placar final, método, tempo, lances marcados, mesário, ocorrência de remanejamento e campos de assinatura); o evento tem a súmula do campeonato (números, quadro de medalhas, pódios, lutas e ocorrências), parcial até a última categoria encerrar | Fundador pediu; conteúdo definido por Claude | Documento oficial de cada luta e do evento, pronto para imprimir ou salvar em PDF |
 
 ## Em aberto
 
@@ -76,6 +77,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Preço por inscrição e taxa da plataforma (as telas de financeiro e plano mostram valores de exemplo).
 - Quais formatos de chave entram primeiro no motor além da eliminatória simples.
 - Provedor de mapa (Google Maps é pago acima da franquia; OpenStreetMap é gratuito) e regra de moderação de imagens enviadas.
+- Súmulas: confirmar com a CBJJS o modelo oficial (campos obrigatórios, quem assina, nome do árbitro por luta, que hoje não é registrado) e se a súmula precisa de numeração e trava contra edição depois de assinada.
 - Registro do método de vitória por luta (pontos, finalização e qual, vantagens, decisão): exige que a mesa informe isso a cada luta; decidir o nível de detalhe.
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
 - Origem e licença dos avatares padrão (`apps/web/src/assets/avatar-*.webp`): anotar o banco de imagens e a licença.

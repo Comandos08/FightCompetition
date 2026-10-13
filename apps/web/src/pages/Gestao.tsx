@@ -276,7 +276,7 @@ export function ResultadosOrg() {
         )}
         <p className="mt-3 text-xs text-tinta-3">Regulamento Geral da IBJJF, art. 3: 9, 3 e 1 pontos; categoria com um atleta, ou com dois da mesma academia, não pontua.</p>
       </Secao>
-      <Secao titulo={`Pódios · ${concluidas.length} de ${d.chaves.size} categorias`} acao={<button className="botao-contorno !py-1.5 text-xs">Imprimir súmulas</button>}>
+      <Secao titulo={`Pódios · ${concluidas.length} de ${d.chaves.size} categorias`} acao={<Link className="botao-primario !py-1.5 text-xs" to={`/app/organizacao/eventos/${EVENTO_ID}/sumula`}>Súmula do campeonato</Link>}>
         {!concluidas.length ? <Vazio>Os pódios aparecem conforme as categorias terminam.</Vazio> : (
           <div className="max-h-[60vh] space-y-3 overflow-auto">
             {concluidas.map((c) => {

@@ -6,6 +6,16 @@ import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, 
 export type Persona = "atleta" | "professor" | "organizador" | "diretor" | "mesario" | "admin";
 
 export interface Parceiro { id: string; nome: string; url: string; logo: string; ativo: boolean; }
+/** Registro oficial de uma luta, gravado quando a mesa confirma o resultado. */
+export interface Sumula {
+  tatame: number; mesario: string; encerradaEm: string;
+  /** segundos de luta decorridos e tempo regulamentar da categoria */
+  duracao: number; regulamentar: number;
+  placar: [{ pontos: number; vantagens: number; punicoes: number }, { pontos: number; vantagens: number; punicoes: number }];
+  metodo: string;
+  /** o que a mesa marcou, na ordem, com o tempo de luta em segundos */
+  lances: { t: number; lado: 0 | 1; texto: string }[];
+}
 export interface Remanejo { tatame: number; origem: number; motivo: string; quem: string; quando: string; }
 export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
 
@@ -26,6 +36,7 @@ interface Estado {
   auditoria: RegistroAuditoria[];
   /** lutas levadas de um tatame para outro durante o evento, com motivo e autor */
   remanejadas: Record<string, Remanejo>;
+  sumulas: Record<string, Sumula>;
   capaEvento: string;
   sessao: Persona | null;
   novosAtletas: Atleta[];
@@ -55,7 +66,7 @@ const vazio: Estado = {
     { id: "p3", nome: "Tatames Litoral", url: "", logo: "", ativo: true },
     { id: "p4", nome: "Instituto Guarda Viva", url: "", logo: "", ativo: true },
   ],
-  orgsSuspensas: {}, auditoria: [], remanejadas: {},
+  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {},
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
@@ -65,7 +76,7 @@ type Acao =
   | { tipo: "fundir"; inscricaoIds: string[]; categoriaId: string }
   | { tipo: "sortear"; categoriaId: string }
   | { tipo: "publicar"; categoriaIds: string[]; valor: boolean }
-  | { tipo: "resultado"; chave: string; resultado: Resultado }
+  | { tipo: "resultado"; chave: string; resultado: Resultado; sumula?: Sumula }
   | { tipo: "config"; chave: keyof Config; valor: boolean }
   | { tipo: "membro"; membro: Membro }
   | { tipo: "cupom"; cupom: Cupom }
@@ -106,7 +117,7 @@ function reduzir(e: Estado, a: Acao): Estado {
       for (const id of a.categoriaIds) publicadas[id] = a.valor;
       return { ...e, publicadas };
     }
-    case "resultado": return { ...e, resultados: { ...e.resultados, [a.chave]: a.resultado } };
+    case "resultado": return { ...e, resultados: { ...e.resultados, [a.chave]: a.resultado }, sumulas: a.sumula ? { ...e.sumulas, [a.chave]: a.sumula } : e.sumulas };
     case "config": return { ...e, config: { ...e.config, [a.chave]: a.valor } };
     case "membro": return { ...e, membros: [...e.membros, a.membro] };
     case "cupom": return { ...e, cupons: [...e.cupons, a.cupom] };
