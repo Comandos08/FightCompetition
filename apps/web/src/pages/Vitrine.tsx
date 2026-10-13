@@ -20,7 +20,7 @@ function Emblema({ nome, className = "h-10 w-10 text-sm" }: { nome: string; clas
 
 function LinhasRanking({ fichas, inicio = 0 }: { fichas: FichaAtleta[]; inicio?: number }) {
   return (
-    <table className="tabela">
+    <div className="overflow-x-auto"><table className="tabela">
       <thead><tr><th className="w-10">#</th><th>Atleta</th><th>Pontos</th><th>Cartel</th><th className="hidden sm:table-cell">Faixa</th></tr></thead>
       <tbody>
         {fichas.map((f, k) => (
@@ -34,7 +34,7 @@ function LinhasRanking({ fichas, inicio = 0 }: { fichas: FichaAtleta[]; inicio?:
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   );
 }
 

@@ -87,7 +87,7 @@ export function Campo({ rotulo, children, dica }: { rotulo: string; children: Re
 }
 
 export function Secao({ titulo, acao, children }: { titulo: string; acao?: ReactNode; children: ReactNode }) {
-  return <section className="cartao p-6"><div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">{titulo}</h2>{acao}</div>{children}</section>;
+  return <section className="cartao min-w-0 p-4 sm:p-6"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{titulo}</h2>{acao}</div><div className="overflow-x-auto">{children}</div></section>;
 }
 
 const FUNDOS = ["#DCE6F4", "#E3EFE4", "#F6E9D2", "#EADFF2", "#F4DEDE", "#D9EEF0", "#ECECEC"];
