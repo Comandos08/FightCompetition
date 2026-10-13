@@ -134,19 +134,19 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
   // medidas tiradas do vídeo de referência (1280 × 720): 1cqh = 1% da altura, 1cqw = 1% da largura do telão
   const indicador = (rotuloInd: string, valor: number, cor: string) => (
     <>
-      <div className="font-medium" style={{ fontSize: "1.9cqh", letterSpacing: "0.02em", color: valor ? cor : "#A9AAAD" }}>{rotuloInd}</div>
-      <div className="font-semibold" style={{ fontSize: "14.4cqh", lineHeight: 0.84, color: valor ? cor : "#A9AAAD" }}>{valor}</div>
+      <div className="font-semibold" style={{ fontSize: "1.9cqh", letterSpacing: "0.02em", color: valor ? cor : "#A9AAAD" }}>{rotuloInd}</div>
+      <div className="font-bold" style={{ fontSize: "14.4cqh", lineHeight: 0.84, color: valor ? cor : "#A9AAAD" }}>{valor}</div>
     </>
   );
   const linha = (lado: 0 | 1) => (
     <div className="flex min-h-0 items-stretch bg-[#232427]" style={{ flex: 250 }}>
       <div className="flex min-w-0 flex-1 flex-col justify-center" style={{ paddingLeft: "1.4cqw" }}>
-        <div className="truncate font-medium text-[#F7F8FB]" style={{ fontSize: `${15.2 * Math.min(1, (combatividade?.lado === lado ? 17 : 27) / lados[lado]!.nome.length)}cqh`, lineHeight: 0.86 }}>{lados[lado]!.nome}</div>
-        <div className="truncate font-medium text-[#97989B]" style={{ fontSize: "10.9cqh", lineHeight: 0.9, marginTop: "1.4cqh" }}>{lados[lado]!.equipe}</div>
+        <div className="truncate font-bold text-[#F7F8FB]" style={{ fontSize: `${15.2 * Math.min(1, (combatividade?.lado === lado ? 14 : 27) / lados[lado]!.nome.length)}cqh`, lineHeight: 0.86 }}>{lados[lado]!.nome}</div>
+        <div className="truncate font-semibold text-[#97989B]" style={{ fontSize: "10.9cqh", lineHeight: 0.9, marginTop: "1.4cqh" }}>{lados[lado]!.equipe}</div>
       </div>
       {combatividade?.lado === lado && (
         <div className="flex shrink-0 flex-col items-center justify-center bg-[#FAD70C] text-[#5A1A12]" style={{ width: "22.9cqw", margin: "2.1cqh 0", borderRadius: "0.9cqh", boxShadow: "0 0 1.2cqh rgba(250,215,12,.35)" }}>
-          <div className="font-semibold tabular-nums" style={{ fontSize: "18cqh", lineHeight: 0.86, letterSpacing: "-0.05em", marginRight: "-0.05em" }}>{seg(combatividade.resta)}</div>
+          <div className="font-bold tabular-nums" style={{ fontSize: "18cqh", lineHeight: 0.86, letterSpacing: "-0.05em", marginRight: "-0.05em" }}>{seg(combatividade.resta)}</div>
           <div className="font-semibold" style={{ fontSize: "7.6cqh", lineHeight: 0.9, marginTop: "1.6cqh" }}>Combatividade</div>
         </div>
       )}
@@ -155,7 +155,7 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
         <div style={{ height: "1.6cqh" }} />
         {indicador("Punição", m[lado].punicoes, "#E8203A")}
       </div>
-      <div className={`grid shrink-0 place-items-center font-bold ${lado === 0 ? "bg-[#F8D91D] text-[#12965A]" : "bg-black text-white"}`} style={{ width: "29.7cqh", fontSize: "39.5cqh", lineHeight: 0.8 }}>{m[lado].pontos}</div>
+      <div className={`grid shrink-0 place-items-center font-extrabold ${lado === 0 ? "bg-[#F8D91D] text-[#12965A]" : "bg-black text-white"}`} style={{ width: "29.7cqh", fontSize: "39.5cqh", lineHeight: 0.8 }}>{m[lado].pontos}</div>
     </div>
   );
   const letreiro = `${categoria}\u2003\u2003\u2003`;
@@ -163,21 +163,21 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
     <div className="relative flex select-none flex-col overflow-hidden bg-[#1B1C1F] font-placar uppercase" style={{ height: altura, aspectRatio: altura === "auto" ? "16 / 9" : undefined, containerType: "size", gap: "0.3cqh" }}>
       {linha(0)}{linha(1)}
       <div className="relative flex min-h-0 items-stretch bg-[#1D1E21]" style={{ flex: 215 }}>
-        <div className="grid shrink-0 place-items-center overflow-hidden whitespace-nowrap bg-white font-medium text-black" style={{ width: "13cqw", fontSize: "20.5cqh", lineHeight: 0.8, letterSpacing: "-0.01em" }}>{rotulo}</div>
+        <div className="grid shrink-0 place-items-center overflow-hidden whitespace-nowrap bg-white font-semibold text-black" style={{ width: "13cqw", fontSize: "20.5cqh", lineHeight: 0.8, letterSpacing: "0.02em" }}>{rotulo}</div>
         <div className="relative min-w-0 flex-1 overflow-hidden">
-          <div className="absolute inset-x-0 font-medium text-[#F7F8FB]" style={{ top: "7.3cqh", fontSize: "6.8cqh", lineHeight: 1, paddingLeft: "1.4cqw" }}>
+          <div className="absolute inset-x-0 font-semibold text-[#F7F8FB]" style={{ top: "6.9cqh", fontSize: "7.4cqh", lineHeight: 1, paddingLeft: "2.3cqw" }}>
             <span className="letreiro"><span>{letreiro}</span><span>{letreiro}</span></span>
           </div>
-          <div className="absolute font-medium text-[#D4A91C]" style={{ top: "15.4cqh", left: "2.4cqw", fontSize: "6.8cqh", lineHeight: 1 }}>{fase}</div>
+          <div className="absolute font-semibold text-[#D4A91C]" style={{ top: "15.2cqh", left: "2.3cqw", fontSize: "7.2cqh", lineHeight: 1 }}>{fase}</div>
         </div>
-        <div className="flex shrink-0 items-center bg-[#1D1E21] font-semibold tabular-nums" style={{ fontSize: "30.5cqh", lineHeight: 0.8, letterSpacing: "-0.055em", paddingLeft: "1.2cqw", paddingRight: "1.9cqw", boxShadow: "-2cqw 0 2cqw #1D1E21", color: !iniciada ? "#6B6C6F" : rodando ? "#F7F8FB" : "#F2C21B" }}>{seg(resta)}</div>
+        <div className="flex shrink-0 items-center bg-[#1D1E21] font-bold tabular-nums" style={{ fontSize: "30.5cqh", lineHeight: 0.8, letterSpacing: "-0.055em", paddingLeft: "1.2cqw", paddingRight: "1.9cqw", boxShadow: "-2cqw 0 2cqw #1D1E21", color: !iniciada ? "#6B6C6F" : rodando ? "#F7F8FB" : "#F2C21B" }}>{seg(resta)}</div>
       </div>
       {vencedor && (
         <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center bg-[#232427]" style={{ height: "70%" }}>
           <div className="anuncio flex flex-col items-center">
             <div className="bg-[#F2EA1E] font-semibold text-black" style={{ fontSize: "9.8cqh", lineHeight: 1, padding: "0.6cqh 1.1cqw" }}>Vencedor por {vencedor.metodo}</div>
-            <div className="font-medium text-[#F7F8FB]" style={{ fontSize: "23.5cqh", lineHeight: 0.86, marginTop: "2.2cqh" }}>{lados[vencedor.lado]!.nome}</div>
-            <div className="font-medium text-[#97989B]" style={{ fontSize: "11cqh", lineHeight: 0.9, marginTop: "2.2cqh" }}>{lados[vencedor.lado]!.equipe}</div>
+            <div className="font-bold text-[#F7F8FB]" style={{ fontSize: "23.5cqh", lineHeight: 0.86, marginTop: "2.2cqh" }}>{lados[vencedor.lado]!.nome}</div>
+            <div className="font-semibold text-[#97989B]" style={{ fontSize: "11cqh", lineHeight: 0.9, marginTop: "2.2cqh" }}>{lados[vencedor.lado]!.equipe}</div>
           </div>
         </div>
       )}
@@ -385,27 +385,15 @@ export function Placar() {
   // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro
   const sugerido = regrasIbjjf.vencedorPeloPlacar(m[0], m[1]);
 
-  const botao = "rounded-md py-4 text-base font-semibold";
+  const botao = "rounded-md px-1 py-2.5 text-xs font-semibold sm:text-sm";
   const controles = (lado: 0 | 1) => (
-    <div key={lado} className="flex flex-1 flex-col overflow-hidden rounded-lg bg-white/5">
-      <div className="flex min-h-[7.5rem] flex-1 items-stretch">
-        <span className={`w-2.5 shrink-0 ${lado === 0 ? "bg-[#F5E61E]" : "bg-white"}`} />
-        <div className="min-w-0 flex-1 self-center px-3 sm:px-4">
-          <div className="line-clamp-3 text-lg font-semibold leading-tight sm:line-clamp-1 sm:text-4xl">{d.nomeDe(lados[lado])}</div>
-          <div className="truncate text-sm text-white/50 sm:text-xl">{d.equipeDe(lados[lado])}</div>
-          {combatividade?.lado === lado && <div className="mt-1 inline-block rounded bg-[#F5E61E] px-2 py-0.5 text-sm font-semibold text-black">Combatividade: {combatividade.resta} s</div>}
-        </div>
-        <div className="grid shrink-0 grid-cols-2 content-center gap-x-2 px-2 text-center sm:gap-x-4 sm:px-5">
-          <div><div className="text-[9px] uppercase tracking-wide text-white/50 sm:text-[11px]">Vantagem</div><div className={`font-mono text-3xl font-semibold tabular-nums sm:text-5xl ${m[lado].vantagens ? "text-[#4ADE4A]" : "text-white/40"}`}>{m[lado].vantagens}</div></div>
-          <div><div className="text-[9px] uppercase tracking-wide text-white/50 sm:text-[11px]">Punição</div><div className={`font-mono text-3xl font-semibold tabular-nums sm:text-5xl ${m[lado].punicoes ? "text-[#FF6B6B]" : "text-white/40"}`}>{m[lado].punicoes}</div></div>
-        </div>
-        <div className={`grid w-20 shrink-0 place-items-center font-mono text-6xl font-bold tabular-nums sm:w-44 sm:text-8xl ${lado === 0 ? "bg-[#F5E61E] text-[#0E9F4F]" : "bg-black text-white"}`}>{m[lado].pontos}</div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 p-3 sm:grid-cols-6">
-        {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className={`${botao} bg-white !text-2xl text-tinta`}>+{n}</button>)}
+    <div key={lado} className="flex-1 rounded-lg bg-white/5 p-2.5">
+      <div className="mb-2 flex items-center gap-2 text-sm"><span className={`h-3 w-3 rounded-sm ${lado === 0 ? "bg-[#F8D91D]" : "border border-white/60 bg-black"}`} /><span className="truncate font-semibold">{d.nomeDe(lados[lado])}</span></div>
+      <div className="grid grid-cols-3 gap-2">
+        {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className={`${botao} bg-white !text-xl text-tinta`}>+{n}</button>)}
         <button onClick={() => somar(lado, "vantagens", 1)} className={`${botao} border border-[#4ADE4A]/70 text-[#4ADE4A]`}>+ Vantagem</button>
         <button onClick={() => punir(lado)} className={`${botao} bg-perigo text-white`}>+ Punição</button>
-        <button onClick={() => setCombatividade(combatividade?.lado === lado ? null : { lado, resta: COMBATIVIDADE_SEG })} className={`${botao} ${combatividade?.lado === lado ? "bg-[#F5E61E] text-black" : "border border-white/30 text-white"}`}>{combatividade?.lado === lado ? "Parar contagem" : "Combatividade"}</button>
+        <button onClick={() => setCombatividade(combatividade?.lado === lado ? null : { lado, resta: COMBATIVIDADE_SEG })} className={`${botao} ${combatividade?.lado === lado ? "bg-[#F8D91D] text-black" : "border border-white/30 text-white"}`}>{combatividade?.lado === lado ? "Parar contagem" : "Combatividade"}</button>
       </div>
     </div>
   );
@@ -413,56 +401,38 @@ export function Placar() {
   const rotulo = `${tatame}-${chave.lutas.findIndex((l) => l.id === luta.id) + 1}`;
   const seguintes = filaDoTatame(d, Number(sp.get("dia") ?? 1), noTatame).filter((f) => !f.vencedorId && f.pronta && !(f.bloco.categoria.id === cat.id && f.lutaId === luta.id)).slice(0, 3);
   return (
-    <div className="min-h-screen bg-[#17181A] p-3 text-white sm:p-4">
-      <div className="grid gap-4 lg:min-h-[calc(100vh-2rem)] lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <Link to={voltar} className="text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
-            <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">Luta {rotulo}</span>
-            <span className="min-w-0 flex-1 truncate text-sm text-white/70">{cat.nome} · {nomeRodada(luta.rodada, chave.totalRodadas)}</span>
-            <span className="text-xs uppercase tracking-wide text-white/40">Visão do mesário</span>
+    <div className="min-h-screen bg-[#17181A] p-3 text-white">
+      <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <Link to={voltar} className="text-sm opacity-70 hover:opacity-100">← Fila do tatame {tatame}</Link>
+        <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">Luta {rotulo}</span>
+        <span className="min-w-0 flex-1 truncate text-sm text-white/70">{cat.nome} · {nomeRodada(luta.rodada, chave.totalRodadas)}</span>
+        <span className="text-xs uppercase tracking-wide text-white/40">Visão do mesário</span>
+        <button className="rounded border border-white/30 px-3 py-1.5 text-xs hover:bg-white/10" onClick={() => window.open(enderecoDaTela(noTatame), `tela-tatame-${noTatame}`, "popup,width=1280,height=720")}>Abrir tela do público</button>
+      </div>
+      {/* o mesmo placar que o público vê, na proporção do vídeo de referência */}
+      <div id="placar-mesario" className="mx-auto overflow-hidden" style={{ maxWidth: "calc(58vh * 16 / 9)" }}>
+        <Telao altura="auto" lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
+          rotulo={rotulo} categoria={tituloDaCategoria(cat)} fase={nomeRodada(luta.rodada, chave.totalRodadas)} combatividade={combatividade} vencedor={vencedor} />
+      </div>
+      <div className="mx-auto mt-3 space-y-2" style={{ maxWidth: "calc(58vh * 16 / 9)" }}>
+        {vencedor ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4">
+            <span>Resultado anunciado na tela do público: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.{vencedor.semSegundaLuta ? " Na chave de três, quem não compareceu perde o direito à segunda luta." : ""}</span>
+            <span className="flex gap-2"><button onClick={() => setVencedor(null)} className="rounded border border-white/30 px-3 py-2 text-sm">Corrigir</button><button onClick={confirmar} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Confirmar e voltar à fila</button></span>
           </div>
-          {vencedor ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4">
-              <span>Resultado anunciado na tela do público: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.{vencedor.semSegundaLuta ? " Na chave de três, quem não compareceu perde o direito à segunda luta." : ""}</span>
-              <span className="flex gap-2"><button onClick={() => setVencedor(null)} className="rounded border border-white/30 px-3 py-2 text-sm">Corrigir</button><button onClick={confirmar} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Confirmar e voltar à fila</button></span>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <button id="relogio-mesario" onClick={() => setRodando((r) => !r)} className="rounded bg-white px-8 py-3 text-base font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
+              <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-3 py-3 text-sm">Zerar relógio</button>
+              <button onClick={desfazer} className="rounded border border-white/30 px-3 py-3 text-sm">Desfazer</button>
+              <span className="min-w-0 flex-1 truncate px-2 text-xs text-white/40">{seguintes[0] ? `A seguir: ${d.nomeDe(seguintes[0].a)} x ${d.nomeDe(seguintes[0].b)} · ${hhmm(seguintes[0].horario)}` : ""}</span>
+              <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-6 py-3 text-sm font-semibold text-tinta">Encerrar luta</button>
             </div>
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center gap-3 rounded-lg bg-white/5 p-3">
-                <div id="relogio-mesario" className={`font-mono text-7xl font-semibold tabular-nums leading-none sm:text-8xl ${rodando ? "text-white" : "text-white/50"}`}>{seg(resta)}</div>
-                <div className="mr-auto text-sm text-white/50">{rodando ? "correndo" : resta === total ? "aguardando início" : "pausado"}<br />{cat.minutos} min nesta categoria</div>
-                <button onClick={() => setRodando((r) => !r)} className="rounded bg-white px-10 py-5 text-xl font-semibold text-tinta">{rodando ? "Pausar" : resta === total ? "Iniciar" : "Retomar"}</button>
-                <button onClick={() => { setRodando(false); setResta(total); }} className="rounded border border-white/30 px-4 py-5 text-sm">Zerar relógio</button>
-                <button onClick={desfazer} className="rounded border border-white/30 px-4 py-5 text-sm">Desfazer</button>
-                <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-6 py-5 text-base font-semibold text-tinta">Encerrar luta</button>
-              </div>
-              <div className="flex flex-1 flex-col gap-3">{controles(0)}{controles(1)}</div>
-              {aviso && <div className="rounded-md bg-[#F5E61E]/15 px-3 py-2 text-sm text-[#F5E61E]">{aviso} Use "Desfazer" se foi engano.</div>}
-              <p className="text-xs text-white/40">Regras da IBJJF (Livro de Regras v6.1): combatividade de {COMBATIVIDADE_SEG} s e punições com efeito automático: a 2ª dá vantagem ao oponente, a 3ª dá dois pontos{ate15 ? ", a 4ª mais dois pontos e a 5ª desclassifica (até 15 anos)" : " e a 4ª desclassifica"}.</p>
-            </>
-          )}
-        </div>
-        <aside className="space-y-3">
-          <div className="rounded-lg bg-white/5 p-3">
-            <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide text-white/50"><span>Tela do público</span><span className="flex items-center gap-1.5 normal-case text-[#4ADE4A]"><span className="h-1.5 w-1.5 rounded-full bg-[#4ADE4A]" />ao vivo</span></div>
-            <div className="overflow-hidden rounded">
-              <Telao altura="auto" lados={lados.map((id) => ({ nome: d.nomeDe(id), equipe: d.equipeDe(id) }))} m={m} resta={resta} rodando={rodando} iniciada={resta !== total || rodando}
-                rotulo={rotulo} categoria={tituloDaCategoria(cat)} fase={nomeRodada(luta.rodada, chave.totalRodadas)} combatividade={combatividade} vencedor={vencedor} />
-            </div>
-            <BotoesDaTela tatame={noTatame} escuro />
-          </div>
-          <div className="rounded-lg bg-white/5 p-3">
-            <div className="mb-2 text-xs uppercase tracking-wide text-white/50">A seguir neste tatame</div>
-            {seguintes.map((f) => (
-              <div key={f.bloco.categoria.id + f.lutaId} className="border-b border-white/10 py-2 text-sm last:border-0">
-                <div className="font-mono text-[11px] text-white/40">{hhmm(f.horario)} · {f.bloco.categoria.nome}</div>
-                <div className="truncate">{d.nomeDe(f.a)} <span className="text-white/40">x</span> {d.nomeDe(f.b)}</div>
-              </div>
-            ))}
-            {!seguintes.length && <div className="text-sm text-white/40">Nenhuma outra luta pronta.</div>}
-          </div>
-        </aside>
+            <div className="flex flex-col gap-2 md:flex-row">{controles(0)}{controles(1)}</div>
+            {aviso && <div className="rounded-md bg-[#F8D91D]/15 px-3 py-2 text-sm text-[#F8D91D]">{aviso} Use "Desfazer" se foi engano.</div>}
+          </>
+        )}
       </div>
 
       {encerrando && (
