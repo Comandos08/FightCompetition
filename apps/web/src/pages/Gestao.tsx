@@ -274,7 +274,7 @@ export function ResultadosOrg() {
             <tbody>{quadro.map((l, k) => <tr key={l.equipe}><td className="font-semibold">{k + 1}º</td><td className="font-medium">{l.equipe}</td><td>{l.ouro}</td><td>{l.prata}</td><td>{l.bronze}</td><td className="font-semibold text-marinho">{l.pontos}</td></tr>)}</tbody>
           </table>
         )}
-        <p className="mt-3 text-xs text-tinta-3">Critério ilustrativo de 9, 3 e 1 pontos, configurável por evento.</p>
+        <p className="mt-3 text-xs text-tinta-3">Regulamento Geral da IBJJF, art. 3: 9, 3 e 1 pontos; categoria com um atleta, ou com dois da mesma academia, não pontua.</p>
       </Secao>
       <Secao titulo={`Pódios · ${concluidas.length} de ${d.chaves.size} categorias`} acao={<button className="botao-contorno !py-1.5 text-xs">Imprimir súmulas</button>}>
         {!concluidas.length ? <Vazio>Os pódios aparecem conforme as categorias terminam.</Vazio> : (

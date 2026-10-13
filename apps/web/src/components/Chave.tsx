@@ -28,14 +28,14 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
   const bloco = d.blocos.find((b) => b.chave === chave);
   const [cartao, setCartao] = useState<{ id: string; x: number; y: number } | null>(null);
 
-  const Lado = ({ id, vencedor, bye, cor }: { id?: string; vencedor: boolean; bye?: boolean; cor: string }) => (
+  const Lado = ({ id, vencedor, bye, cor, espera }: { id?: string; vencedor: boolean; bye?: boolean; cor: string; espera?: string }) => (
     <div className={`flex items-center justify-between gap-2 border-l-[3px] px-2.5 py-1.5 ${id ? cor : "border-transparent"} ${vencedor ? "bg-tatame-claro" : ""}`}
       onMouseEnter={(e) => { if (!id) return; const r = e.currentTarget.getBoundingClientRect(); setCartao({ id, x: Math.min(r.left + 24, window.innerWidth - 300), y: r.bottom + 4 }); }}
       onMouseLeave={() => setCartao(null)}
       onClick={() => { const destino = !aoAbrirLuta && perfilDe(id); if (destino) { setCartao(null); nav(destino); } }}
       style={!aoAbrirLuta && perfilDe(id) ? { cursor: "pointer" } : undefined}>
       <div className="min-w-0">
-        <div className={`truncate text-[13px] leading-tight ${id ? (vencedor ? "font-semibold text-marinho" : "font-medium text-marinho") : "italic text-tinta-3"}`}>{nomeDe(id)}</div>
+        <div className={`truncate text-[13px] leading-tight ${id ? (vencedor ? "font-semibold text-marinho" : "font-medium text-marinho") : "italic text-tinta-3"}`}>{id ? nomeDe(id) : espera ?? nomeDe(id)}</div>
         {id && <div className="truncate text-[10px] text-tinta-3">{equipeDe(id)}{bye ? " · bye" : ""}</div>}
       </div>
       {vencedor && <span className="font-mono text-[10px] font-semibold text-tatame">V</span>}
@@ -47,7 +47,7 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
     aoAbrirLuta ? <button onClick={() => aoAbrirLuta(lutaId)} className={className}>{children}</button> : <div className={className}>{children}</div>;
 
   const No = ({ origem, espelhado }: { origem: Origem; espelhado?: boolean }) => {
-    if (origem.tipo === "participante") return null;
+    if (origem.tipo !== "vencedor") return null;
     const def = definicao.get(origem.lutaId)!;
     const est = estado.get(origem.lutaId)!;
     const temFilhos = def.ladoA.tipo === "vencedor" || def.ladoB.tipo === "vencedor";
@@ -69,7 +69,7 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
           <Caixa lutaId={def.id}
             className={`w-full overflow-hidden rounded-md border bg-papel/70 text-left transition ${est.pronta ? "border-ouro shadow-cartao" : "border-linha"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}
           >
-            <Lado id={est.a} cor="border-marinho" vencedor={!!est.vencedorId && est.vencedorId === est.a} bye={def.ladoA.tipo === "participante" && def.rodada > 1} />
+            <Lado id={est.a} cor="border-marinho" vencedor={!!est.vencedorId && est.vencedorId === est.a} bye={def.ladoA.tipo === "participante" && def.rodada > 1} espera={def.ladoA.tipo === "perdedor" ? (est.vencedorId ? "Sem direito à segunda luta" : `Perdedor da luta ${def.ladoA.lutaId.slice(1)}`) : undefined} />
             <div className="h-px bg-linha/70" />
             <Lado id={est.b} cor="border-perigo" vencedor={!!est.vencedorId && est.vencedorId === est.b} bye={def.ladoB.tipo === "participante" && def.rodada > 1} />
           </Caixa>
@@ -104,6 +104,7 @@ export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
 
   return (
     <div className="overflow-x-auto pb-2">
+      {chave.formato === "chave-de-tres" && <p className="mb-2 px-1 text-xs text-tinta-3">Chave de três: quem perde a primeira luta enfrenta o terceiro atleta, e o vencedor dessa segunda luta faz a final contra o vencedor da primeira. Há um único terceiro colocado.</p>}
       <div className="inline-block min-w-full p-1">
         {doisLados ? (
           <div className="flex items-center justify-between gap-0">

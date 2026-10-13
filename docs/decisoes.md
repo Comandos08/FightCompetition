@@ -48,13 +48,17 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | O operador da mesa não fica preso à programação: pode abrir as lutas prontas do tatame em qualquer ordem e trazer uma luta de outro tatame, informando o motivo. O remanejamento fica registrado com hora e autor e aparece para a coordenação | Fundador (regra: não engessar o operador) e Claude (desenho) | Imprevisto acontece em todo evento. Substitui o bloqueio rígido por tatame; o que se impede é só o acesso sem registro, por endereço forjado |
 | 13/10/2026 | Placar refeito no formato de telão do vídeo de referência enviado pelo fundador: atletas empilhados, placar grande à direita, vantagem e punição ao lado, barra inferior com luta, categoria, fase e relógio, contagem de combatividade e anúncio do vencedor. Os controles do operador ficam abaixo, com "Modo telão" para tela cheia | Fundador (referência) e Claude (execução) | Leitura à distância no ginásio. A referência é o telão do Smoothcomp; cores e tipografia próprias ficam para a definição de marca |
 | 13/10/2026 | Telão ajustado para reproduzir o vídeo de referência com as medidas tiradas quadro a quadro: proporção das faixas, tamanho e peso das letras, cores, caixa de combatividade, letreiro corrido na barra inferior e entrada animada do anúncio do vencedor. Fonte Sofia Sans Extra Condensed, a gratuita mais próxima da original | Fundador (pediu fidelidade) e Claude (execução) | A primeira versão seguia a estrutura, mas não as proporções nem a tipografia |
+| 13/10/2026 | Regras do produto passam a vir do Livro de Regras da IBJJF v6.1 (jun. 2024), enviado pelo fundador. Entram no motor, com testes: categorias de idade e tempos de luta, descanso mínimo, chave de três, pontos do placar, sequência de punições, combatividade e disputa por academias. Ver `docs/regras-ibjjf.md` | Fundador (enviou o livro) e Claude (extração e código) | Cumpre a regra do repositório de não escrever regra esportiva de memória |
+| 13/10/2026 | O formato oficial é eliminação simples com dois bronzes, e a chave de três é a única exceção. Os demais formatos pedidos (repescagem, todos contra todos, disputa de terceiro) ficam como opção do organizador, fora do padrão IBJJF | Claude | É o que o Regulamento Geral, art. 2, define; a CBJJS segue esse padrão |
+| 13/10/2026 | No placar, a punição aplica sozinha a consequência prevista (vantagem, dois pontos ou desclassificação), e o operador pode desfazer | Claude | Tira do mesário a conta de cabeça e segue o art. 7.2 |
+| 13/10/2026 | Na inscrição, quem já tem dependente cadastrado escolhe o dependente em vez de digitar de novo; atleta recém-cadastrado começa sem histórico | Claude | Lacunas apontadas na auditoria |
 
 ## Em aberto
 
 - Paleta definitiva: manter azul-marinho e amarelo ou adotar cores próprias com a mesma estrutura.
 
 - Nome do produto.
-- Livro de regras e tabela de pesos oficiais (PDF), para o pacote de regras.
+- Tabela de pesos e sistema de faixas por idade: não vieram no livro de regras; o arquivo enviado como tabela de pesos é o guia de atualização de 2024.
 - Regra para atleta sozinho na categoria e para inscrição no absoluto.
 - Se byes devem ser sorteados ou seguir ranking ou ordem de inscrição.
 - Provedor de pagamento e enquadramento do repasse.
@@ -68,3 +72,5 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Remanejamento de luta entre tatames: o mesário faz sozinho ou precisa de aprovação da coordenação? Hoje faz sozinho, com registro.
 - Telão em segunda tela: no produto, o telão do tatame é outro aparelho sincronizado em tempo real com a mesa; no protótipo é a mesma tela.
 - Cores do telão: hoje seguem a referência (amarelo e verde contra preto e branco); definir cores próprias junto com a marca.
+- Como o produto ajuda o organizador a juntar categorias: com as categorias de idade oficiais, a maioria fica com um atleta só.
+- Desclassificações em semifinais e finais (Regulamento Geral, art. 2.4): exigem distinguir falta técnica de disciplinar no resultado.

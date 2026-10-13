@@ -1,5 +1,5 @@
-import { gerarEliminatoriaSimples, resolverChave, type ChaveEliminatoria, type ChaveResolvida, type Resultado } from "@engine";
-import { minutosDeLuta, type Atleta, type Inscricao, type Modalidade } from "@/data/seed";
+import { gerarChaveDeTres, gerarEliminatoriaSimples, resolverChave, type ChaveEliminatoria, type ChaveResolvida, type Resultado } from "@engine";
+import { divisoes, minutosDeLuta, type Atleta, type Inscricao, type Modalidade } from "@/data/seed";
 
 export interface Categoria {
   id: string;
@@ -54,7 +54,9 @@ export function gerarChave(cat: Categoria, atletas: Map<string, Atleta>, sorteio
   const participantes = [...cat.inscricoes]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((i) => ({ id: i.id, equipe: atletas.get(i.atletaId)!.equipe }));
-  return gerarEliminatoriaSimples(participantes, { semente: (hash(cat.id) + sorteio) >>> 0 });
+  const semente = (hash(cat.id) + sorteio) >>> 0;
+  // três atletas: chave de três, a única exceção à eliminação simples (Regulamento Geral, art. 2.3)
+  return participantes.length === 3 ? gerarChaveDeTres(participantes, { semente }) : gerarEliminatoriaSimples(participantes, { semente });
 }
 
 export const chaveDoResultado = (categoriaId: string, lutaId: string) => `${categoriaId}::${lutaId}`;
@@ -92,7 +94,9 @@ export interface Bloco {
  * Ainda não respeita descanso nem conflito de atleta em duas categorias.
  */
 export function montarProgramacao(categorias: Categoria[], chaves: Map<string, ChaveEliminatoria>): Bloco[] {
-  const ordemDivisao = ["Mirim", "Infantil", "Infanto-juvenil", "Juvenil", "Master 2", "Master 1", "Adulto"];
+  // crianças primeiro, depois os masters do mais velho ao mais novo, e o adulto por último
+  const nomes = divisoes.map((x) => x.nome);
+  const ordemDivisao = [...nomes.filter((n) => !n.startsWith("Master") && n !== "Adulto"), ...nomes.filter((n) => n.startsWith("Master")).reverse(), "Adulto"];
   const blocos: Bloco[] = [];
   for (const dia of [1, 2] as const) {
     const carga = Array.from({ length: TATAMES }, () => INICIO_MIN);

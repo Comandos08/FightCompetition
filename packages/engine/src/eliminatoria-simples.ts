@@ -9,7 +9,9 @@ export interface Participante {
 /** De onde vem o ocupante de um lado da luta. */
 export type Origem =
   | { tipo: "participante"; participanteId: string }
-  | { tipo: "vencedor"; lutaId: string };
+  | { tipo: "vencedor"; lutaId: string }
+  /** Só existe na chave de três: quem perde a primeira luta enfrenta o terceiro atleta. */
+  | { tipo: "perdedor"; lutaId: string };
 
 export interface Luta {
   id: string;
@@ -20,7 +22,7 @@ export interface Luta {
 }
 
 export interface ChaveEliminatoria {
-  formato: "eliminatoria-simples";
+  formato: "eliminatoria-simples" | "chave-de-tres";
   semente: number;
   /** Número de posições da chave cheia (potência de dois). */
   tamanho: number;
