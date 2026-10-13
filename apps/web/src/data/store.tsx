@@ -144,6 +144,8 @@ export interface Contexto {
 
 const Ctx = createContext<Contexto | null>(null);
 const base = gerarBase();
+/** Situação de cada inscrição como veio do cadastro, antes de qualquer ação no protótipo. */
+export const inscricoesOriginais = base.inscricoes;
 
 export function Provedor({ children }: { children: ReactNode }) {
   const [estado, despachar] = useReducer(reduzir, undefined, carregar);
