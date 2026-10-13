@@ -17,6 +17,8 @@ export interface Atleta {
   faixa: string;
   menor: boolean;
   responsavel?: string;
+  /** conta que cadastrou este atleta no protótipo */
+  conta?: string;
 }
 
 export type StatusPagamento = "pago" | "pendente" | "aguardando-autorizacao" | "estornado";
@@ -32,6 +34,10 @@ export interface Inscricao {
   pagamento: StatusPagamento;
   pesagem: StatusPesagem;
   valor: number;
+  /** conta que fez a inscrição no protótipo */
+  conta?: string;
+  /** inscrição feita em lote pelo professor */
+  lote?: boolean;
 }
 
 export interface EventoResumo {

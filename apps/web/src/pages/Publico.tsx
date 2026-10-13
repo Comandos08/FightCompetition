@@ -143,6 +143,7 @@ export function Evento() {
     return `${a.nome} ${a.equipe}`.toLowerCase().includes(busca.toLowerCase());
   }), [dados.inscricoes, dados.atletas, busca]);
 
+  if (id !== EVENTO_ID) return <Vazio>{eventos.some((e) => e.id === id) ? "Este evento existe só como cartão na demonstração. Abra a Copa Horizonte 2026 para ver uma página completa." : "Evento não encontrado."} <Link to="/" className="font-medium text-marinho hover:underline">Ver eventos</Link></Vazio>;
   return (
     <>
       <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-tinta-3">
@@ -219,10 +220,9 @@ export function Evento() {
                 {inscritos.slice(0, 200).map((i) => {
                   const a = dados.atletas.get(i.atletaId)!;
                   const reservado = a.menor && dados.estado.config.ocultarMenores;
-                  const partes = a.nome.split(" ");
                   return (
                     <tr key={i.id}>
-                      <td className="font-medium">{reservado ? `${partes[0]} ${partes[partes.length - 1]![0]}.` : <Link to={`/atletas/${a.id}`} className="text-marinho hover:underline">{a.nome}</Link>}</td>
+                      <td className="font-medium">{reservado ? a.nome : <Link to={`/atletas/${a.id}`} className="text-marinho hover:underline">{a.nome}</Link>}</td>
                       <td><Link to={`/equipes/${encodeURIComponent(a.equipe)}`} className="hover:underline">{a.equipe}</Link></td>
                       <td>{i.modalidade}</td><td>{i.divisao}</td><td><Faixa cor={i.faixa} /></td><td>{i.peso}</td>
                     </tr>
@@ -232,7 +232,7 @@ export function Evento() {
             </table>
           </div>
           {inscritos.length > 200 && <p className="mt-2 text-xs text-tinta-3">Mostrando 200 de {inscritos.length}. Use a busca para encontrar um atleta.</p>}
-          {dados.estado.config.ocultarMenores && <p className="mt-2 text-xs text-tinta-3">Menores de idade aparecem com o sobrenome abreviado e sem perfil público.</p>}
+          {dados.estado.config.ocultarMenores && <p className="mt-2 text-xs text-tinta-3">Menores de idade aparecem na lista, mas não têm perfil público, foto nem ranking individual.</p>}
         </>
       ))}
 

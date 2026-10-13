@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDados, type Config } from "@/data/store";
 import { EVENTO_ID, eventos } from "@/data/seed";
+import { RESTRITO_AO_DONO } from "@/data/sessao";
 import { Campo, EnviarImagem, Indicador, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo } from "@/components/ui";
 import { quadroDeMedalhas } from "@/lib/resultados";
 
@@ -12,6 +13,12 @@ export const navOrganizacao = [
   { para: "/app/organizacao/dados", nome: "Dados da organização" },
 ];
 
+/** O diretor técnico só vê a lista de eventos da organização. */
+export function SubNavOrg() {
+  const d = useDados();
+  return <SubNav itens={navOrganizacao.filter((i) => d.estado.sessao !== "diretor" || !RESTRITO_AO_DONO.includes(i.para))} />;
+}
+
 const reais = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
 export function ListaEventos() {
@@ -19,8 +26,8 @@ export function ListaEventos() {
   const meus = [eventos.find((e) => e.id === EVENTO_ID)!];
   return (
     <>
-      <Titulo sobre="Organização" acoes={<Link to="/app/organizacao/novo" className="botao-acao">Criar evento</Link>}>Liga Horizonte de Jiu-Jitsu</Titulo>
-      <SubNav itens={navOrganizacao} />
+      <Titulo sobre="Organização" acoes={d.estado.sessao !== "diretor" && <Link to="/app/organizacao/novo" className="botao-acao">Criar evento</Link>}>Liga Horizonte de Jiu-Jitsu</Titulo>
+      <SubNavOrg />
       <div className="cartao overflow-auto">
         <table className="tabela">
           <thead><tr><th>Evento</th><th>Data</th><th>Local</th><th>Inscrições</th><th>Situação</th><th></th></tr></thead>
@@ -156,7 +163,7 @@ export function Membros() {
   return (
     <>
       <Titulo sobre="Organização">Membros e papéis</Titulo>
-      <SubNav itens={navOrganizacao} />
+      <SubNavOrg />
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Secao titulo="Quem tem acesso"><TabelaMembros />
           <p className="mt-3 text-xs text-tinta-3">Cada pessoa usa a própria conta. O papel define o que ela faz e o escopo define onde: um mesário do Tatame 2 não vê inscrições nem financeiro.</p></Secao>
@@ -171,7 +178,7 @@ export function DadosOrganizacao() {
   return (
     <>
       <Titulo sobre="Organização">Dados da organização</Titulo>
-      <SubNav itens={navOrganizacao} />
+      <SubNavOrg />
       <div className="grid gap-4 lg:grid-cols-2">
         <Secao titulo="Perfil público">
           <div className="space-y-4">
@@ -302,7 +309,7 @@ export function EquipeEvento() {
 
 const opcoes: { chave: keyof Config; nome: string; dica: string }[] = [
   { chave: "inscritosPublicos", nome: "Lista de inscritos pública", dica: "Qualquer visitante vê quem está inscrito em cada categoria." },
-  { chave: "ocultarMenores", nome: "Reservar dados de menores", dica: "Menores aparecem com sobrenome abreviado e sem perfil público." },
+  { chave: "ocultarMenores", nome: "Reservar perfil, foto e ranking de menores", dica: "O nome do menor aparece em inscritos, chaves e resultados, como em qualquer campeonato. Perfil público, foto e ranking individual ficam reservados." },
   { chave: "painelPublico", nome: "Painel de próximas lutas aberto ao público", dica: "Pais e atletas acompanham pelo celular e a TV do ginásio abre sem login. Desligado, só quem está logado vê." },
   { chave: "exigirVinculo", nome: "Exigir vínculo confirmado com a equipe", dica: "A inscrição só entra na chave depois que o professor confirma o atleta." },
   { chave: "cpfObrigatorio", nome: "Exigir CPF na inscrição", dica: "Reduz cadastros duplicados. O CPF nunca é exibido." },

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDados, type Persona } from "@/data/store";
-import { contextos, personas, usePessoa, type ContextoId } from "@/data/sessao";
+import { ABAS_RESTRITAS, RESTRITO_AO_DONO, TATAME_DO_MESARIO, contextos, personas, usePessoa, type ContextoId } from "@/data/sessao";
 
 function Marca() {
   return (
@@ -106,8 +106,12 @@ export function LayoutLogado() {
   const daConta = ["/app/perfil", "/app/desempenho", "/app/dependentes", "/app/pedidos", "/app/inscricao"].some((r) => loc.pathname.startsWith(r));
   const atual = daConta ? "atleta" : (Object.keys(contextos) as ContextoId[]).find((c) => loc.pathname.startsWith(contextos[c].rota));
   const semAcesso = atual && !pessoa.contextos.includes(atual);
+  // dentro de uma área, o papel ainda limita o que se vê
+  const tatameDaRota = Number(loc.pathname.match(/\/placar\/(\d+)\//)?.[1] ?? TATAME_DO_MESARIO);
+  const foraDoEscopo = pessoa.persona === "mesario" ? (loc.pathname.startsWith("/app/mesa/arena") || tatameDaRota !== TATAME_DO_MESARIO ? `O mesário opera só o Tatame ${TATAME_DO_MESARIO}, em que foi escalado. A coordenação e os outros tatames ficam com a direção do evento.` : "")
+    : pessoa.persona === "diretor" && (RESTRITO_AO_DONO.some((r) => loc.pathname.startsWith(r)) || ABAS_RESTRITAS.some((a) => loc.pathname.endsWith(`/${a}`))) ? "O diretor técnico cuida da parte esportiva do evento. Financeiro, equipe de trabalho, configurações e os dados da organização ficam com o dono da organização." : "";
   // o placar ocupa a tela inteira, mas só para quem tem o papel de mesa
-  if (loc.pathname.includes("/placar/") && !semAcesso) return <Outlet />;
+  if (loc.pathname.includes("/placar/") && !semAcesso && !foraDoEscopo) return <Outlet />;
   return (
     <div className="flex min-h-screen flex-col">
       <Cabecalho
@@ -129,7 +133,7 @@ export function LayoutLogado() {
       <main className="entrada mx-auto w-full max-w-[1240px] flex-1 px-5 py-8" key={loc.pathname.split("/").slice(0, 5).join("/")}>
         {semAcesso
           ? <SemAcesso><b>{contextos[atual].nome}</b> exige o papel de {contextos[atual].papel.toLowerCase()}. A conta de {personas[pessoa.persona].rotulo.toLowerCase()} não tem esse papel.</SemAcesso>
-          : <Outlet />}
+          : foraDoEscopo ? <SemAcesso>{foraDoEscopo}</SemAcesso> : <Outlet />}
       </main>
       <Rodape />
     </div>

@@ -23,3 +23,4 @@ O estresse termina quando as frentes 1 a 4 não revelam lacuna nova por duas rod
 | Data | Frente | Lacuna | Situação |
 |---|---|---|---|
 | 13/10/2026 | 1 | Página inicial, Meu desempenho, Perfil esportivo, Equipe, Atletas e vínculos e Financeiro alargavam a página no celular | Corrigido |
+| 13/10/2026 | 2 | Auditoria de 32 rotas com 6 perfis: mesário abria qualquer tatame e a coordenação; inscrições de uma conta apareciam em outra; nome de menor abreviado na lista e inteiro na chave; painel do evento ignorava o evento do endereço; organizador era papel único; `/app` negava acesso ao administrador; contas sem perfil de atleta viam graduação e desempenho | Corrigido |

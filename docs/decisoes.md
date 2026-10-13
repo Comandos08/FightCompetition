@@ -41,6 +41,9 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Faixa "Seja um competidor" na página inicial, chamando para criar o perfil de atleta | Fundador (referência) e Claude (execução) | Converte o visitante atraído pelo ranking em conta |
 | 13/10/2026 | Avatar padrão passa a ser uma silhueta neutra em cinza, uma para homens e outra para mulheres; substitui os avatares coloridos gerados por código | Fundador (pediu padrão claro, com referência) e Claude (desenho próprio) | Um padrão único é mais limpo. As silhuetas foram redesenhadas em vez de usar os arquivos de referência, cuja licença é desconhecida |
 | 13/10/2026 | Avatar padrão usa os dois arquivos enviados pelo fundador (silhueta masculina e feminina), informados como de banco de imagens gratuito; substitui o desenho próprio | Fundador | Padrão escolhido por ele. Falta registrar o nome do banco e a licença antes de publicar o produto |
+| 13/10/2026 | Nome de menor é público em inscritos, chaves, pódios e painel, como em qualquer campeonato; a opção do organizador reserva só perfil público, foto e ranking individual | Claude (recomendação apresentada ao fundador, que pediu a correção) | A versão anterior abreviava o nome na lista de inscritos e o exibia inteiro na chave, uma proteção que não protegia. Depende da revisão jurídica |
+| 13/10/2026 | Papel limita o que se vê dentro da área: mesário só o tatame em que foi escalado; diretor técnico vê a parte esportiva do evento, sem financeiro, equipe de trabalho, configurações nem dados da organização | Claude | Auditoria de rotas mostrou que o escopo estava na descrição do papel, mas não nas telas |
+| 13/10/2026 | Cada inscrição e cada dependente guardam a conta que os criou; uma conta não vê pedidos de outra | Claude | Auditoria de rotas: inscrições de uma conta apareciam em todas |
 
 ## Em aberto
 

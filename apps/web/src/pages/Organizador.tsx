@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Configuracoes, EquipeEvento, Financeiro, ResultadosOrg } from "@/pages/Gestao";
 import { useDados } from "@/data/store";
 import { EVENTO_ID, divisoes, eventos } from "@/data/seed";
+import { ABAS_RESTRITAS } from "@/data/sessao";
 import { Abas, Faixa, Indicador, Selo, Titulo, Vazio, pagamentoSelo, pesagemSelo } from "@/components/ui";
 import { Chave, Podio } from "@/components/Chave";
 import { hhmm, type Categoria } from "@/lib/competicao";
@@ -24,6 +25,8 @@ export function Organizador() {
   const totalLutas = [...d.chaves.values()].reduce((s, c) => s + c.lutas.length, 0);
   const feitas = [...d.resolvidas.values()].reduce((s, r) => s + r.lutas.filter((l) => l.vencedorId).length, 0);
   const publicadas = d.categorias.filter((c) => d.estado.publicadas[c.id]).length;
+  const tecnico = d.estado.sessao === "diretor";
+  if (params.id !== EVENTO_ID) return <Vazio>Evento não encontrado nesta organização. <Link to="/app/organizacao" className="font-medium text-marinho hover:underline">Ver os eventos</Link></Vazio>;
 
   return (
     <>
@@ -32,18 +35,18 @@ export function Organizador() {
         acoes={<><button className="botao-contorno" onClick={() => nav(`/eventos/${ev.id}`)}>Ver página pública</button><button className="botao-primario" onClick={() => nav("/app/mesa/arena")}>Coordenar tatames</button></>}>
         {ev.nome}
       </Titulo>
-      <Abas<Aba> ativa={aba} aoMudar={setAba} abas={[
+      <Abas<Aba> ativa={aba} aoMudar={setAba} abas={([
         { id: "visao", nome: "Visão geral" }, { id: "inscritos", nome: "Inscritos", conta: d.inscricoes.length },
         { id: "categorias", nome: "Categorias", conta: d.categorias.length }, { id: "chaves", nome: "Chaves", conta: d.chaves.size },
         { id: "programacao", nome: "Programação" }, { id: "pesagem", nome: "Check-in e pesagem" },
         { id: "financeiro", nome: "Financeiro" }, { id: "resultados", nome: "Resultados" }, { id: "equipe", nome: "Equipe" }, { id: "config", nome: "Configurações" },
-      ]} />
+      ] as { id: Aba; nome: string; conta?: number }[]).filter((x) => !tecnico || !ABAS_RESTRITAS.includes(x.id))} />
 
       {aba === "visao" && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Indicador rotulo="Inscrições" valor={d.inscricoes.length} detalhe={`${atletasUnicos} atletas únicos`} />
-            <Indicador rotulo="Recebido" valor={`R$ ${(pagos.reduce((s, i) => s + i.valor, 0) / 1000).toFixed(1).replace(".", ",")} mil`} detalhe={`${d.inscricoes.length - pagos.length} inscrições sem pagamento`} />
+            {!tecnico && <Indicador rotulo="Recebido" valor={`R$ ${(pagos.reduce((s, i) => s + i.valor, 0) / 1000).toFixed(1).replace(".", ",")} mil`} detalhe={`${d.inscricoes.length - pagos.length} inscrições sem pagamento`} />}
             <Indicador rotulo="Categorias" valor={d.categorias.length} detalhe={`${sozinhos.length} com atleta sozinho`} />
             <Indicador rotulo="Lutas" valor={`${feitas}/${totalLutas}`} detalhe={`${publicadas} chaves publicadas`} />
           </div>
@@ -51,7 +54,7 @@ export function Organizador() {
             <div className="cartao p-5">
               <h2 className="mb-3 text-xl font-bold">O que falta antes do evento</h2>
               {[
-                [`${d.inscricoes.filter((i) => i.pagamento === "pendente").length} pagamentos pendentes`, "inscritos", "aviso"],
+                ...(tecnico ? [] : [[`${d.inscricoes.filter((i) => i.pagamento === "pendente").length} pagamentos pendentes`, "inscritos", "aviso"]]),
                 [`${d.inscricoes.filter((i) => i.pagamento === "aguardando-autorizacao").length} menores aguardando autorização do responsável`, "inscritos", "acao"],
                 [`${sozinhos.length} categorias com um atleta só`, "categorias", "aviso"],
                 [`${d.chaves.size - publicadas} chaves ainda não publicadas`, "chaves", "neutro"],
@@ -91,6 +94,7 @@ export function Organizador() {
 
 function Inscritos() {
   const d = useDados();
+  const tecnico = d.estado.sessao === "diretor";
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState("todos");
   const lista = useMemo(() => d.inscricoes.filter((i) => {
@@ -120,7 +124,7 @@ function Inscritos() {
                   <td><div>{i.modalidade} · {i.divisao} · {i.peso}</div><div className="text-xs"><Faixa cor={i.faixa} /></div></td>
                   <td>{pagamentoSelo(i.pagamento)}</td>
                   <td className="text-right">
-                    {i.pagamento === "pendente" && <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "pagamento", id: i.id, status: "pago" })}>Confirmar pagamento</button>}
+                    {!tecnico && i.pagamento === "pendente" && <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "pagamento", id: i.id, status: "pago" })}>Confirmar pagamento</button>}
                     {i.pagamento === "aguardando-autorizacao" && <button className="botao-contorno !py-1 text-xs" onClick={() => d.despachar({ tipo: "pagamento", id: i.id, status: "pago" })}>Registrar autorização</button>}
                   </td>
                 </tr>

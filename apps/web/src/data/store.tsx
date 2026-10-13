@@ -3,7 +3,7 @@ import type { ChaveEliminatoria, ChaveResolvida, Resultado } from "@engine";
 import { gerarBase, type Atleta, type Inscricao, type StatusPagamento, type StatusPesagem } from "./seed";
 import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, type Categoria } from "@/lib/competicao";
 
-export type Persona = "atleta" | "professor" | "organizador" | "mesario" | "admin";
+export type Persona = "atleta" | "professor" | "organizador" | "diretor" | "mesario" | "admin";
 
 export interface Parceiro { id: string; nome: string; url: string; logo: string; ativo: boolean; }
 export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
@@ -82,7 +82,11 @@ type Acao =
 function reduzir(e: Estado, a: Acao): Estado {
   switch (a.tipo) {
     case "inscrever":
-      return { ...e, novosAtletas: a.atleta ? [...e.novosAtletas, a.atleta] : e.novosAtletas, novasInscricoes: [...e.novasInscricoes, ...a.inscricoes] };
+      {
+      // cada inscrição guarda a conta que a fez: uma conta não enxerga o pedido de outra
+      const conta = e.sessao ?? undefined;
+      return { ...e, novosAtletas: a.atleta ? [...e.novosAtletas, { ...a.atleta, conta }] : e.novosAtletas, novasInscricoes: [...e.novasInscricoes, ...a.inscricoes.map((i) => ({ ...i, conta }))] };
+    }
     case "pagamento": return { ...e, pagamentos: { ...e.pagamentos, [a.id]: a.status } };
     case "pesagem": return { ...e, pesagens: { ...e.pesagens, [a.id]: a.status } };
     case "fundir": {
@@ -101,7 +105,7 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "membro": return { ...e, membros: [...e.membros, a.membro] };
     case "cupom": return { ...e, cupons: [...e.cupons, a.cupom] };
     case "evento": return { ...e, eventosNovos: [...e.eventosNovos, a.evento] };
-    case "dependente": return { ...e, dependentes: [...e.dependentes, a.atleta] };
+    case "dependente": return { ...e, dependentes: [...e.dependentes, { ...a.atleta, conta: e.sessao ?? undefined }] };
     case "foto": return { ...e, fotos: { ...e.fotos, [a.atletaId]: a.url } };
     case "capa": return { ...e, capaEvento: a.url };
     case "parceiro": return { ...e, parceiros: [...e.parceiros, a.parceiro] };
@@ -115,7 +119,7 @@ function reduzir(e: Estado, a: Acao): Estado {
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v5";
+const CHAVE_LOCAL = "arena-prototipo-v6";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);
