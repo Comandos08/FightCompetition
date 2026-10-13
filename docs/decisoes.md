@@ -57,6 +57,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Entre uma luta e outra, a tela do público chama a próxima luta e, se o mesário ligar, mostra ao lado as lutas seguintes daquele tatame. A tela do mesário não muda | Fundador | O painel do tatame aproveita o intervalo sem atrapalhar quem opera |
 | 13/10/2026 | A tela do público abre sem login | Claude | Mostra só o que já é público (nomes, equipes, placar) e evita deixar uma conta logada no aparelho virado para a arquibancada. No produto, o aparelho será pareado por código do tatame |
 | 13/10/2026 | O produto se chama Arena. Símbolo e logo oficiais em `docs/marca` | Fundador | Nome aprovado depois do uso no protótipo |
+| 13/10/2026 | Pesos seguem a Tabela de Pesos Oficial da IBJJF enviada pelo fundador; no feminino juvenil, adulto e master a última classe é o Super-pesado | Fundador | Substitui os pesos ilustrativos. Até os 15 anos a tabela tem limite para quimono liso e trançado; o protótipo mostra o liso |
 
 ## Em aberto
 
@@ -64,7 +65,10 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 
 - Logo: o arquivo recebido traz a palavra ARENA como texto na fonte Neoverse Sans, que não está no projeto. Falta a versão com o texto convertido em curvas, ou a licença da fonte para a web. Até lá o cabeçalho usa o símbolo oficial com a palavra em Inter.
 - Verificar registro da marca "Arena" no INPI para software e eventos esportivos, e domínio.
-- Tabela de pesos e sistema de faixas por idade: não vieram no livro de regras; o arquivo enviado como tabela de pesos é o guia de atualização de 2024.
+- Sistema de faixas por idade: não veio no livro de regras; as faixas infantis seguem ilustrativas.
+- Pesos sem quimono (No-Gi): a folha recebida só traz pesos com quimono; hoje o No-Gi usa as mesmas classes sem limite cadastrado.
+- A tabela de pesos recebida é de 2023: conferir com a versão vigente.
+- Na pesagem, registrar o peso medido e o tipo de quimono (liso ou trançado, até 15 anos) e comparar com o limite; hoje a pesagem só marca aprovado ou reprovado.
 - Regra para atleta sozinho na categoria e para inscrição no absoluto.
 - Se byes devem ser sorteados ou seguir ranking ou ordem de inscrição.
 - Provedor de pagamento e enquadramento do repasse.

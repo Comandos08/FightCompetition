@@ -6,6 +6,6 @@ Arena: plataforma da SportCombat para competições de esportes de combate. Dono
 - Claude tem autonomia para decidir e executar dentro deste repositório. Ficam para o fundador: gastos, contato com terceiros, dados reais de atletas e qualquer publicação além de demonstração com dados fictícios. Ver `docs/decisoes.md`.
 - `apps/web` é o protótipo: React, Vite, Tailwind, sem banco nem login, com dados fictícios gerados em `src/data/seed.ts`. As chaves são geradas pelo motor real.
 - `packages/engine` é lógica pura em TypeScript, sem dependência de tela ou banco, e toda regra tem teste.
-- Regras esportivas não são escritas de memória: vêm do livro de regras ou de decisão registrada em `docs/`. As regras da IBJJF já extraídas estão em `docs/regras-ibjjf.md` e em `packages/engine/src/regras-ibjjf.ts`.
+- Regras esportivas não são escritas de memória: vêm do livro de regras ou de decisão registrada em `docs/`. As regras da IBJJF já extraídas estão em `docs/regras-ibjjf.md`, `packages/engine/src/regras-ibjjf.ts` e `packages/engine/src/pesos-ibjjf.ts` (tabela de pesos).
 - Nunca versionar dados pessoais reais. Fixtures usam nomes fictícios.
 - Determinismo: sorteio recebe uma semente explícita.
