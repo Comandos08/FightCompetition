@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useDados } from "@/data/store";
 
@@ -12,6 +13,7 @@ const areas = [
 export function Layout() {
   const { despachar } = useDados();
   const { pathname } = useLocation();
+  const [confirmando, setConfirmando] = useState(false);
   const telaCheia = pathname.startsWith("/mesa/tv") || pathname.includes("/placar/");
   if (telaCheia) return <Outlet />;
   return (
@@ -31,8 +33,10 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          <button className="text-xs text-tinta-3 underline-offset-2 hover:underline" onClick={() => { if (confirm("Apagar o que você alterou no protótipo e voltar aos dados iniciais?")) despachar({ tipo: "reiniciar" }); }}>
-            Reiniciar dados
+          <button className={`text-xs underline-offset-2 hover:underline ${confirmando ? "font-semibold text-acao" : "text-tinta-3"}`}
+            onBlur={() => setConfirmando(false)}
+            onClick={() => { if (confirmando) { despachar({ tipo: "reiniciar" }); setConfirmando(false); } else setConfirmando(true); }}>
+            {confirmando ? "Clique de novo para apagar suas alterações" : "Reiniciar dados"}
           </button>
         </div>
         <div className="border-t border-linha bg-aviso-claro/70">

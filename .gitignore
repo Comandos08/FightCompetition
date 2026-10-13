@@ -7,3 +7,4 @@ dados/
 *.xlsx
 *.csv
 !fixtures/**/*.csv
+dist-pagina-unica/
