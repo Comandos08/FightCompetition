@@ -108,7 +108,7 @@ export function Mesa() {
                 ))}
               </div>
             </div>
-            {f.vencedorId ? <Selo tom="ok">{f.metodo ?? "encerrada"}</Selo>
+            {f.vencedorId ? <span className="flex items-center gap-2"><Selo tom="ok">{f.metodo ?? "encerrada"}</Selo><Link className="botao-contorno !py-1.5 text-xs" to={`/app/mesa/sumula/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}`}>Súmula</Link></span>
               : f.pronta ? <span className="flex items-center gap-2">{f.veioDe && <button className="botao-contorno !py-1.5 text-xs" onClick={() => d.despachar({ tipo: "remanejar", chave: chaveDoResultado(f.bloco.categoria.id, f.lutaId), remanejo: null })}>Devolver ao T{f.veioDe}</button>}<Link className="botao-acao" to={`/app/mesa/placar/${tatame}/${encodeURIComponent(f.bloco.categoria.id)}/${f.lutaId}?dia=${dia}`}>Abrir placar</Link></span>
               : <Selo>aguarda luta anterior</Selo>}
           </div>
@@ -312,6 +312,8 @@ export function Placar() {
   const [vencedor, setVencedor] = useState<{ lado: 0 | 1; metodo: string; registro: string; semSegundaLuta?: boolean } | null>(null);
   const [aviso, setAviso] = useState("");
   const historico = useRef<[Marcador, Marcador][]>([]);
+  const lances = useRef<{ t: number; lado: 0 | 1; texto: string }[]>([]);
+  const pessoa = usePessoa();
 
   useEffect(() => {
     if (!rodando) return;
@@ -350,6 +352,7 @@ export function Placar() {
   const ate15 = regrasIbjjf.ehAte15Anos(cat.divisao);
   const somar = (lado: 0 | 1, campo: keyof Marcador, n: number) => {
     historico.current.push(m);
+    lances.current.push({ t: total - resta, lado, texto: campo === "pontos" ? `+${n} pontos` : "Vantagem" });
     setAviso("");
     setM((x) => { const c: [Marcador, Marcador] = [{ ...x[0] }, { ...x[1] }]; c[lado][campo] = Math.max(0, c[lado][campo] + n); return c; });
   };
@@ -359,6 +362,7 @@ export function Placar() {
     const numero = m[lado].punicoes + 1;
     const efeito = regrasIbjjf.efeitoDaPunicao(numero, ate15);
     historico.current.push(m);
+    lances.current.push({ t: total - resta, lado, texto: `${numero}ª punição${efeito.desclassifica ? " (desclassificação)" : efeito.pontosAoOponente ? " (dois pontos ao oponente)" : efeito.vantagemAoOponente ? " (vantagem ao oponente)" : ""}` });
     const c: [Marcador, Marcador] = [{ ...m[0] }, { ...m[1] }];
     c[lado].punicoes = numero;
     c[outro].vantagens += efeito.vantagemAoOponente;
@@ -369,7 +373,7 @@ export function Placar() {
     setAviso(efeito.desclassifica ? `${numero}ª punição de ${nome}: desclassificação.` : efeito.pontosAoOponente ? `${numero}ª punição de ${nome}: dois pontos para o oponente.` : efeito.vantagemAoOponente ? `${numero}ª punição de ${nome}: uma vantagem para o oponente.` : `1ª punição de ${nome}: só a marcação.`);
     if (efeito.desclassifica) anunciar(outro, "DQ do oponente");
   };
-  const desfazer = () => { const ant = historico.current.pop(); if (ant) { setM(ant); setAviso(""); } };
+  const desfazer = () => { const ant = historico.current.pop(); if (ant) { lances.current.pop(); setM(ant); setAviso(""); } };
   const anunciar = (lado: 0 | 1, metodo: string) => {
     const placar = metodo === "Pontos" ? ` ${m[0].pontos}x${m[1].pontos}` : "";
     setRodando(false); setCombatividade(null); setEncerrando(false);
@@ -379,7 +383,8 @@ export function Placar() {
   };
   const confirmar = () => {
     if (!vencedor) return;
-    d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro, perdedorSemDireitoASegundaLuta: vencedor.semSegundaLuta || undefined } });
+    d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro, perdedorSemDireitoASegundaLuta: vencedor.semSegundaLuta || undefined },
+      sumula: { tatame: noTatame, mesario: pessoa.nome, encerradaEm: new Date().toISOString(), duracao: total - resta, regulamentar: total, placar: m, metodo: vencedor.metodo, lances: lances.current } });
     nav(voltar);
   };
   // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro

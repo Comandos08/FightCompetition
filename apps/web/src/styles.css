@@ -38,3 +38,11 @@ main .grid > *, main .cartao { min-width: 0; }
 .letreiro { display: inline-flex; white-space: nowrap; animation: letreiro 22s linear infinite; }
 @keyframes anuncio { 0% { opacity: 0; transform: perspective(60cqh) rotateX(70deg) scale(0.8); } 100% { opacity: 1; transform: none; } }
 .anuncio { animation: anuncio 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* súmulas e outros documentos: na impressão sai só a folha */
+@media print {
+  body * { visibility: hidden; }
+  .documento, .documento * { visibility: visible; }
+  .documento { position: absolute; left: 0; top: 0; width: 100%; max-width: none; border: 0; box-shadow: none; padding: 0; }
+  .nao-imprimir { display: none !important; }
+}
