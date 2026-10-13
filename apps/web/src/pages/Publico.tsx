@@ -16,7 +16,9 @@ const LOCAL = "M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12.5a2.5 2.5
 /** Arte do evento: um bloco de cor com o nome, no lugar do logotipo que cada organizador enviará. */
 function Arte({ nome, tom, alta, imagem }: { nome: string; tom: number; alta?: boolean; imagem?: string }) {
   const tons = ["from-[#1A447D] to-[#0F2B52]", "from-[#1F8A5B] to-[#12583A]", "from-[#C97A0A] to-[#8F5303]", "from-[#5B3A8C] to-[#3A2260]"];
-  if (imagem) return <img src={imagem} alt={`Imagem do evento ${nome}`} className={`w-full object-cover ${alta ? "h-56 rounded-lg sm:h-72" : "h-32 rounded-t-lg"}`} />;
+  if (imagem) return alta
+    ? <img src={imagem} alt={`Imagem do evento ${nome}`} className="h-56 w-full rounded-lg object-cover sm:h-72" />
+    : <div className="grid h-32 place-items-center rounded-t-lg border-b border-linha/70 bg-white p-3"><img src={imagem} alt={`Imagem do evento ${nome}`} className="max-h-full max-w-full object-contain" /></div>;
   return (
     <div className={`relative overflow-hidden bg-gradient-to-br ${tons[tom % tons.length]} ${alta ? "h-56 rounded-lg" : "h-32 rounded-t-lg"}`}>
       <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full border-[28px] border-white/10" />
