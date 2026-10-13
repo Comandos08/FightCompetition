@@ -40,6 +40,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Desempenho na área logada: o atleta vê o próprio cartel e posições, o professor vê os alunos (inclusive menores) e a organização define a regra e acompanha o próprio ranking | Fundador (direção) e Claude (execução) | Cada papel enxerga o recorte que lhe pertence |
 | 13/10/2026 | Faixa "Seja um competidor" na página inicial, chamando para criar o perfil de atleta | Fundador (referência) e Claude (execução) | Converte o visitante atraído pelo ranking em conta |
 | 13/10/2026 | Avatar padrão passa a ser uma silhueta neutra em cinza, uma para homens e outra para mulheres; substitui os avatares coloridos gerados por código | Fundador (pediu padrão claro, com referência) e Claude (desenho próprio) | Um padrão único é mais limpo. As silhuetas foram redesenhadas em vez de usar os arquivos de referência, cuja licença é desconhecida |
+| 13/10/2026 | Avatar padrão usa os dois arquivos enviados pelo fundador (silhueta masculina e feminina), informados como de banco de imagens gratuito; substitui o desenho próprio | Fundador | Padrão escolhido por ele. Falta registrar o nome do banco e a licença antes de publicar o produto |
 
 ## Em aberto
 
@@ -56,3 +57,4 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Provedor de mapa (Google Maps é pago acima da franquia; OpenStreetMap é gratuito) e regra de moderação de imagens enviadas.
 - Registro do método de vitória por luta (pontos, finalização e qual, vantagens, decisão): exige que a mesa informe isso a cada luta; decidir o nível de detalhe.
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
+- Origem e licença dos avatares padrão (`apps/web/src/assets/avatar-*.webp`): anotar o banco de imagens e a licença.
