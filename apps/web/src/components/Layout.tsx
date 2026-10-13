@@ -18,7 +18,7 @@ function AvisoPrototipo() {
   return (
     <div className="border-b border-linha bg-ouro-claro">
       <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-x-4 px-5 py-1.5 text-xs text-aviso">
-        <span>Protótipo · nome provisório · dados fictícios · login e pagamento simulados · tabela de pesos e tempos ilustrativa</span>
+        <span>Protótipo · nome provisório · dados fictícios · login e pagamento simulados · tabela de pesos e faixas por idade ilustrativa</span>
         <button className={`underline-offset-2 hover:underline ${confirmando ? "font-semibold text-perigo" : ""}`} onBlur={() => setConfirmando(false)}
           onClick={() => { if (confirmando) { despachar({ tipo: "reiniciar" }); setConfirmando(false); } else setConfirmando(true); }}>
           {confirmando ? "Clique de novo para apagar suas alterações" : "Reiniciar dados"}

@@ -42,8 +42,10 @@ function historico(a: Atleta) {
   let c = cache.get(a.id);
   if (c) return c;
   const r = gerador(a.id + a.nome);
+  // quem se cadastrou no protótipo começa do zero: sem lutas nem pódios inventados
+  const novo = Boolean(a.conta);
   const nivel = nivelDaFaixa(a.faixa);
-  const lutas = Math.floor(r() * 8 * nivel) + nivel;
+  const lutas = novo ? 0 : Math.floor(r() * 8 * nivel) + nivel;
   const taxa = 0.35 + r() * 0.5;
   const v = Math.round(lutas * taxa), dr = lutas - v;
   const repartir = (total: number, pesos: number[]) => {
@@ -58,7 +60,7 @@ function historico(a: Atleta) {
   const finalizacoes = repartir(vitoriasPor[1]!, [3, 2.5, 1.5, 1, 1, 1.5]);
   const base: Conquista[] = [];
   for (const e of EVENTOS_PASSADOS) {
-    if (r() > 0.16 + taxa * 0.38) continue;
+    if (novo || r() > 0.16 + taxa * 0.38) continue;
     const x = r();
     const colocacao = (x < taxa * 0.45 ? 1 : x < taxa * 0.9 ? 2 : 3) as 1 | 2 | 3;
     const p = [9, 3, 1][colocacao - 1]!;

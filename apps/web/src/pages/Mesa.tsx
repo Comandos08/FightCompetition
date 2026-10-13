@@ -4,6 +4,7 @@ import { useDados, type Contexto } from "@/data/store";
 import { EVENTO_ID } from "@/data/seed";
 import { TATAME_DO_MESARIO } from "@/data/sessao";
 import { Selo, Titulo, Vazio } from "@/components/ui";
+import { regrasIbjjf } from "@engine";
 import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada, type Bloco } from "@/lib/competicao";
 
 export interface ItemFila {
@@ -116,7 +117,8 @@ export function Mesa() {
 
 interface Marcador { pontos: number; vantagens: number; punicoes: number; }
 const zero: Marcador = { pontos: 0, vantagens: 0, punicoes: 0 };
-const COMBATIVIDADE_SEG = 20;
+/** Livro de Regras da IBJJF, art. 7.3.1. */
+const COMBATIVIDADE_SEG = regrasIbjjf.COMBATIVIDADE_SEGUNDOS;
 
 /**
  * Telão da luta: o que atleta, técnico e público enxergam. Dois atletas empilhados, placar grande à direita,
@@ -137,7 +139,7 @@ function Telao({ altura, lados, m, resta, rodando, iniciada, rotulo, categoria, 
   const linha = (lado: 0 | 1) => (
     <div className="flex min-h-0 items-stretch bg-[#232427]" style={{ flex: 250 }}>
       <div className="flex min-w-0 flex-1 flex-col justify-center" style={{ paddingLeft: "1.4cqw" }}>
-        <div className="truncate font-medium text-[#F7F8FB]" style={{ fontSize: "15.2cqh", lineHeight: 0.86 }}>{lados[lado]!.nome}</div>
+        <div className="truncate font-medium text-[#F7F8FB]" style={{ fontSize: `${15.2 * Math.min(1, (combatividade?.lado === lado ? 17 : 27) / lados[lado]!.nome.length)}cqh`, lineHeight: 0.86 }}>{lados[lado]!.nome}</div>
         <div className="truncate font-medium text-[#97989B]" style={{ fontSize: "10.9cqh", lineHeight: 0.9, marginTop: "1.4cqh" }}>{lados[lado]!.equipe}</div>
       </div>
       {combatividade?.lado === lado && (
@@ -194,8 +196,9 @@ export function Placar() {
   const [m, setM] = useState<[Marcador, Marcador]>([zero, zero]);
   const [encerrando, setEncerrando] = useState(false);
   const [combatividade, setCombatividade] = useState<{ lado: 0 | 1; resta: number } | null>(null);
-  const [vencedor, setVencedor] = useState<{ lado: 0 | 1; metodo: string; registro: string } | null>(null);
+  const [vencedor, setVencedor] = useState<{ lado: 0 | 1; metodo: string; registro: string; semSegundaLuta?: boolean } | null>(null);
   const [telao, setTelao] = useState(false);
+  const [aviso, setAviso] = useState("");
   const historico = useRef<[Marcador, Marcador][]>([]);
 
   useEffect(() => {
@@ -218,22 +221,43 @@ export function Placar() {
   const voltar = `/app/mesa?dia=${sp.get("dia") ?? 1}&tatame=${tatame}`;
   const lados = [luta.a, luta.b] as const;
   const chave = d.chaves.get(cat.id)!;
+  const ate15 = regrasIbjjf.ehAte15Anos(cat.divisao);
   const somar = (lado: 0 | 1, campo: keyof Marcador, n: number) => {
     historico.current.push(m);
+    setAviso("");
     setM((x) => { const c: [Marcador, Marcador] = [{ ...x[0] }, { ...x[1] }]; c[lado][campo] = Math.max(0, c[lado][campo] + n); return c; });
   };
-  const desfazer = () => { const ant = historico.current.pop(); if (ant) setM(ant); };
+  /** Marca a punição e aplica a consequência prevista no Livro de Regras, art. 7.2.1 e 7.2.4, num só passo. */
+  const punir = (lado: 0 | 1) => {
+    const outro = (1 - lado) as 0 | 1;
+    const numero = m[lado].punicoes + 1;
+    const efeito = regrasIbjjf.efeitoDaPunicao(numero, ate15);
+    historico.current.push(m);
+    const c: [Marcador, Marcador] = [{ ...m[0] }, { ...m[1] }];
+    c[lado].punicoes = numero;
+    c[outro].vantagens += efeito.vantagemAoOponente;
+    c[outro].pontos += efeito.pontosAoOponente;
+    setM(c);
+    if (combatividade?.lado === lado) setCombatividade(null);
+    const nome = d.nomeDe(lados[lado]);
+    setAviso(efeito.desclassifica ? `${numero}ª punição de ${nome}: desclassificação.` : efeito.pontosAoOponente ? `${numero}ª punição de ${nome}: dois pontos para o oponente.` : efeito.vantagemAoOponente ? `${numero}ª punição de ${nome}: uma vantagem para o oponente.` : `1ª punição de ${nome}: só a marcação.`);
+    if (efeito.desclassifica) anunciar(outro, "DQ do oponente");
+  };
+  const desfazer = () => { const ant = historico.current.pop(); if (ant) { setM(ant); setAviso(""); } };
   const anunciar = (lado: 0 | 1, metodo: string) => {
     const placar = metodo === "Pontos" ? ` ${m[0].pontos}x${m[1].pontos}` : "";
     setRodando(false); setCombatividade(null); setEncerrando(false);
-    setVencedor({ lado, metodo: metodo === "DQ do oponente" ? "desclassificação" : metodo, registro: metodo + placar });
+    // chave de três: quem não comparece à primeira luta perde o direito à segunda (Regulamento Geral, art. 2.3.4)
+    const semSegundaLuta = chave.formato === "chave-de-tres" && luta.id === "L1" && metodo === "W.O.";
+    setVencedor({ lado, metodo: metodo === "DQ do oponente" ? "desclassificação" : metodo, registro: metodo + placar, semSegundaLuta });
   };
   const confirmar = () => {
     if (!vencedor) return;
-    d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro } });
+    d.despachar({ tipo: "resultado", chave: chaveDoResultado(cat.id, luta.id), resultado: { vencedorId: lados[vencedor.lado], metodo: vencedor.registro, perdedorSemDireitoASegundaLuta: vencedor.semSegundaLuta || undefined } });
     nav(voltar);
   };
-  const sugerido: 0 | 1 | null = m[0].pontos !== m[1].pontos ? (m[0].pontos > m[1].pontos ? 0 : 1) : m[0].vantagens !== m[1].vantagens ? (m[0].vantagens > m[1].vantagens ? 0 : 1) : m[0].punicoes !== m[1].punicoes ? (m[0].punicoes < m[1].punicoes ? 0 : 1) : null;
+  // pontos, depois vantagens, depois menos punições (Livro de Regras, art. 2.5); empate total é decisão do árbitro
+  const sugerido = regrasIbjjf.vencedorPeloPlacar(m[0], m[1]);
 
   const controles = (lado: 0 | 1) => (
     <div key={lado} className="flex-1 rounded-lg bg-white/5 p-3">
@@ -241,7 +265,7 @@ export function Placar() {
       <div className="grid grid-cols-3 gap-2">
         {[2, 3, 4].map((n) => <button key={n} onClick={() => somar(lado, "pontos", n)} className="rounded-md bg-white py-3 text-xl font-semibold text-tinta">+{n}</button>)}
         <button onClick={() => somar(lado, "vantagens", 1)} className="rounded-md border border-[#4ADE4A]/70 py-2.5 text-sm font-semibold text-[#4ADE4A]">+ Vantagem</button>
-        <button onClick={() => somar(lado, "punicoes", 1)} className="rounded-md bg-perigo py-2.5 text-sm font-semibold text-white">+ Punição</button>
+        <button onClick={() => punir(lado)} className="rounded-md bg-perigo py-2.5 text-sm font-semibold text-white">+ Punição</button>
         <button onClick={() => setCombatividade(combatividade?.lado === lado ? null : { lado, resta: COMBATIVIDADE_SEG })} className={`rounded-md py-2.5 text-sm font-semibold ${combatividade?.lado === lado ? "bg-[#F5E61E] text-black" : "border border-white/30 text-white"}`}>{combatividade?.lado === lado ? "Parar contagem" : "Combatividade"}</button>
       </div>
     </div>
@@ -258,7 +282,7 @@ export function Placar() {
         <div className="flex-1 space-y-3 p-3 sm:p-4">
           {vencedor ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white/5 p-4 text-white">
-              <span>Resultado anunciado no telão: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.</span>
+              <span>Resultado anunciado no telão: <b>{d.nomeDe(lados[vencedor.lado])}</b> por {vencedor.metodo.toLowerCase()}.{vencedor.semSegundaLuta ? " Na chave de três, quem não compareceu perde o direito à segunda luta." : ""}</span>
               <span className="flex gap-2"><button onClick={() => setVencedor(null)} className="rounded border border-white/30 px-3 py-2 text-sm">Corrigir</button><button onClick={confirmar} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Confirmar e voltar à fila</button></span>
             </div>
           ) : (
@@ -272,7 +296,8 @@ export function Placar() {
                 <button onClick={() => setEncerrando(true)} className="rounded bg-ouro px-4 py-2 text-sm font-semibold text-tinta">Encerrar luta</button>
               </div>
               <div className="flex flex-col gap-3 md:flex-row">{controles(0)}{controles(1)}</div>
-              <p className="text-xs text-white/40">A parte de cima é o que aparece no telão do tatame. A contagem de combatividade usa {COMBATIVIDADE_SEG} segundos como exemplo; o tempo oficial entra com o pacote de regras.</p>
+              {aviso && <div className="rounded-md bg-[#F5E61E]/15 px-3 py-2 text-sm text-[#F5E61E]">{aviso} Use "Desfazer" se foi engano.</div>}
+              <p className="text-xs text-white/40">A parte de cima é o que aparece no telão do tatame. Regras da IBJJF (Livro de Regras v6.1): {cat.minutos} min de luta nesta categoria, combatividade de {COMBATIVIDADE_SEG} s, e punições com efeito automático: a 2ª dá vantagem ao oponente, a 3ª dá dois pontos{ate15 ? ", a 4ª e a 5ª dão dois pontos cada e a 6ª desclassifica (até 15 anos)" : " e a 4ª desclassifica"}.</p>
             </>
           )}
         </div>

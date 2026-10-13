@@ -1,9 +1,9 @@
 /**
  * Dados FICTÍCIOS do protótipo. Nenhum nome, equipe ou evento aqui é real.
- * Divisões, pesos e tempos de luta são ilustrativos: a tabela oficial entra
- * quando o pacote de regras for escrito a partir do livro de regras.
+ * Categorias de idade e tempos de luta vêm do pacote de regras IBJJF (Regulamento Geral, art. 1.3).
+ * Pesos e faixas por idade continuam ilustrativos: não estão no livro de regras recebido.
  */
-import { criarRng, type Rng } from "@engine";
+import { criarRng, regrasIbjjf, type Rng } from "@engine";
 
 export type Sexo = "M" | "F";
 export type Modalidade = "Gi" | "No-Gi";
@@ -78,17 +78,30 @@ const pesosAdulto = ["Galo", "Pluma", "Pena", "Leve", "Médio", "Meio-pesado", "
 const pesosKids = ["Pluma", "Pena", "Leve", "Médio", "Pesado"];
 const faixasAdulto = ["Branca", "Azul", "Roxa", "Marrom", "Preta"];
 const faixasKids = ["Branca", "Cinza", "Amarela", "Laranja", "Verde"];
-const minutosAdulto = (f: string) => ({ Branca: 5, Azul: 6, Roxa: 7, Marrom: 8, Preta: 10 })[f] ?? 5;
-
-export const divisoes: DivisaoDef[] = [
-  { nome: "Mirim", idadeMin: 7, idadeMax: 9, faixas: faixasKids.slice(0, 3), pesos: pesosKids, minutos: () => 3, peso: 9 },
-  { nome: "Infantil", idadeMin: 10, idadeMax: 12, faixas: faixasKids, pesos: pesosKids, minutos: () => 4, peso: 11 },
-  { nome: "Infanto-juvenil", idadeMin: 13, idadeMax: 15, faixas: faixasKids, pesos: pesosKids, minutos: () => 4, peso: 9 },
-  { nome: "Juvenil", idadeMin: 16, idadeMax: 17, faixas: ["Branca", "Azul"], pesos: pesosAdulto.slice(0, 7), minutos: () => 5, peso: 6 },
-  { nome: "Adulto", idadeMin: 18, idadeMax: 29, faixas: faixasAdulto, pesos: pesosAdulto, minutos: minutosAdulto, peso: 38 },
-  { nome: "Master 1", idadeMin: 30, idadeMax: 35, faixas: faixasAdulto, pesos: pesosAdulto, minutos: () => 5, peso: 15 },
-  { nome: "Master 2", idadeMin: 36, idadeMax: 45, faixas: faixasAdulto, pesos: pesosAdulto, minutos: () => 5, peso: 12 },
+/** Peso de sorteio de cada categoria na base fictícia e as faixas e pesos ilustrativos de cada grupo. */
+const grupos: { prefixo: string; faixas: string[]; pesos: string[]; chance: number; ate?: number }[] = [
+  { prefixo: "Pré-Mirim", faixas: faixasKids.slice(0, 2), pesos: pesosKids, chance: 0.7 },
+  { prefixo: "Mirim", faixas: faixasKids.slice(0, 3), pesos: pesosKids, chance: 3 },
+  { prefixo: "Infantil", faixas: faixasKids, pesos: pesosKids, chance: 3.6 },
+  { prefixo: "Infanto-Juvenil", faixas: faixasKids, pesos: pesosKids, chance: 3 },
+  { prefixo: "Juvenil", faixas: ["Branca", "Azul"], pesos: pesosAdulto.slice(0, 7), chance: 3 },
+  { prefixo: "Adulto", faixas: faixasAdulto, pesos: pesosAdulto, chance: 38 },
+  { prefixo: "Master 1", faixas: faixasAdulto, pesos: pesosAdulto, chance: 14 },
+  { prefixo: "Master 2", faixas: faixasAdulto, pesos: pesosAdulto, chance: 8 },
+  { prefixo: "Master 3", faixas: faixasAdulto, pesos: pesosAdulto, chance: 4 },
+  { prefixo: "Master 4", faixas: faixasAdulto, pesos: pesosAdulto, chance: 1.5 },
+  { prefixo: "Master 5", faixas: faixasAdulto, pesos: pesosAdulto, chance: 0.6 },
+  { prefixo: "Master 6", faixas: faixasAdulto, pesos: pesosAdulto, chance: 0.3 },
+  { prefixo: "Master 7", faixas: faixasAdulto, pesos: pesosAdulto, chance: 0.2 },
 ];
+
+/** Uma entrada por categoria de idade do Regulamento Geral, art. 1.3, na ordem do livro. */
+export const divisoes: DivisaoDef[] = regrasIbjjf.CATEGORIAS_DE_IDADE.map((c, i, todas) => {
+  const g = grupos.find((x) => c.nome === x.prefixo || c.nome.startsWith(`${x.prefixo} `) && !x.prefixo.startsWith("Master"))!;
+  // para a base fictícia, cada atleta cai na categoria mais específica da idade dele
+  const proxima = todas[i + 1];
+  return { nome: c.nome, idadeMin: c.idadeMinima, idadeMax: c.idadeExata ?? (proxima ? proxima.idadeMinima - 1 : 75), faixas: g.faixas, pesos: g.pesos, minutos: (f: string) => c.minutos(f), peso: g.chance };
+});
 
 export const ANO_EVENTO = 2026;
 export const VALOR_INSCRICAO = 120;

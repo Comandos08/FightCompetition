@@ -306,7 +306,7 @@ export function Evento() {
                 ))}
               </tbody>
             </table>
-            <p className="px-4 py-3 text-xs text-tinta-3">Pontuação ilustrativa de 9, 3 e 1 pontos. No produto, cada organizador define o critério no regulamento.</p>
+            <p className="px-4 py-3 text-xs text-tinta-3">Disputa por academias conforme o Regulamento Geral da IBJJF, art. 3: 9, 3 e 1 pontos. Categoria com um só atleta, ou com dois da mesma academia, não pontua.</p>
           </div>
         );
       })()}
@@ -329,7 +329,9 @@ export function Evento() {
 export function Inscricao() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { atletas, despachar, inscricoes } = useDados();
+  const { atletas, despachar, inscricoes, estado } = useDados();
+  const meusDependentes = estado.dependentes.filter((a) => a.conta === estado.sessao);
+  const [dependenteId, setDependenteId] = useState("");
   const [passo, setPasso] = useState(1);
   const [quem, setQuem] = useState<"eu" | "dependente">("eu");
   const [f, setF] = useState({ nome: "", ano: "", sexo: "M", equipe: equipes[0]!, faixa: "", peso: "", responsavel: "", gi: true, nogi: false, aceite: false });
@@ -343,9 +345,11 @@ export function Inscricao() {
   const mudar = (k: string, v: unknown) => setF((x) => ({ ...x, [k]: v }));
 
   const concluir = () => {
-    const atleta: Atleta = { id: `AT9${String(atletas.size).padStart(3, "0")}`, nome: f.nome.trim(), sexo: f.sexo as "M" | "F", anoNascimento: Number(f.ano), equipe: f.equipe, faixa: f.faixa, menor, responsavel: menor ? f.responsavel : undefined };
+    const existente = quem === "dependente" ? meusDependentes.find((a) => a.id === dependenteId) : undefined;
+    const atleta: Atleta = existente ?? { id: `AT9${String(atletas.size).padStart(3, "0")}`, nome: f.nome.trim(), sexo: f.sexo as "M" | "F", anoNascimento: Number(f.ano), equipe: f.equipe, faixa: f.faixa, menor, responsavel: menor ? f.responsavel : undefined };
     const novas: TInscricao[] = modalidades.map((m, k) => ({ id: `I9${String(inscricoes.length + k).padStart(3, "0")}`, atletaId: atleta.id, modalidade: m, divisao: div!.nome, faixa: f.faixa, peso: f.peso, pagamento: "pago", pesagem: "nao-pesado", valor: VALOR_INSCRICAO }));
-    despachar({ tipo: "inscrever", atleta, inscricoes: novas });
+    // dependente já cadastrado não é criado de novo: a inscrição entra no atleta que já existe
+    despachar({ tipo: "inscrever", atleta: existente ? undefined : atleta, inscricoes: novas });
     setPasso(4);
   };
 
@@ -372,6 +376,17 @@ export function Inscricao() {
               </button>
             ))}
           </div>
+          {quem === "dependente" && (meusDependentes.length ? (
+            <div><span className="rotulo">Dependentes cadastrados</span>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {meusDependentes.map((a) => (
+                  <button key={a.id} onClick={() => { setDependenteId(a.id); setF((x) => ({ ...x, nome: a.nome, ano: String(a.anoNascimento), sexo: a.sexo, equipe: a.equipe, responsavel: "Responsável da conta" })); }}
+                    className={`rounded-md border px-3 py-2 text-left text-sm ${dependenteId === a.id ? "border-tinta bg-papel" : "border-linha"}`}><span className="font-medium">{a.nome}</span><span className="block text-xs text-tinta-3">{ANO_EVENTO - a.anoNascimento} anos · {a.equipe}</span></button>
+                ))}
+                <button onClick={() => { setDependenteId(""); setF((x) => ({ ...x, nome: "", ano: "", responsavel: "" })); }} className={`rounded-md border px-3 py-2 text-sm ${!dependenteId ? "border-tinta bg-papel" : "border-linha"}`}>Outro menor</button>
+              </div>
+              <span className="mt-1 block text-xs text-tinta-3">Escolha um dependente para não digitar os dados de novo. A autorização já registrada vale para esta inscrição.</span></div>
+          ) : <div className="rounded-md bg-papel px-3 py-2 text-sm text-tinta-2">Você ainda não tem dependentes cadastrados. Preencha abaixo ou cadastre em <Link to="/app/dependentes" className="font-medium text-marinho hover:underline">Dependentes</Link> para reaproveitar os dados nas próximas inscrições.</div>)}
           <label className="block"><span className="rotulo">Nome completo do atleta</span><input className="campo mt-1" value={f.nome} onChange={(e) => mudar("nome", e.target.value)} /></label>
           <div className="grid grid-cols-2 gap-3">
             <label><span className="rotulo">Ano de nascimento</span><input className="campo mt-1" inputMode="numeric" placeholder="ex.: 1998" value={f.ano} onChange={(e) => mudar("ano", e.target.value.replace(/\D/g, "").slice(0, 4))} /></label>
