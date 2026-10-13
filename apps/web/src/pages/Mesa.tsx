@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDados, type Contexto } from "@/data/store";
+import { EVENTO_ID } from "@/data/seed";
 import { Selo, Titulo, Vazio } from "@/components/ui";
 import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada, type Bloco } from "@/lib/competicao";
 
@@ -37,7 +38,7 @@ export function Mesa() {
   const mudar = (k: string, v: number) => { const n = new URLSearchParams(sp); n.set(k, String(v)); setSp(n); };
   return (
     <>
-      <Titulo sobre="Mesa do tatame" acoes={<><Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link><Link to={`/tv?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link></>}>Tatame {tatame}</Titulo>
+      <Titulo sobre="Mesa do tatame" acoes={<><Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link><Link to={`/eventos/${EVENTO_ID}/painel?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link></>}>Tatame {tatame}</Titulo>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
@@ -178,11 +179,16 @@ export function TV() {
   const d = useDados();
   const [sp] = useSearchParams();
   const dia = Number(sp.get("dia") ?? 1);
+  if (!d.estado.config.painelPublico && !d.estado.sessao) return (
+    <div className="grid min-h-screen place-items-center bg-[#1D1E1F] p-6 text-center text-white">
+      <div><div className="text-2xl font-semibold">Painel restrito</div><p className="mt-2 text-white/70">A organização deste evento reservou o painel para quem está logado.</p><Link to="/entrar" className="mt-5 inline-block rounded-md bg-white px-4 py-2 text-sm font-medium text-marinho">Entrar</Link></div>
+    </div>
+  );
   return (
     <div className="min-h-screen bg-[#1D1E1F] p-4 text-white">
       <div className="mb-4 flex items-center justify-between">
         <div className="font-display text-3xl font-bold uppercase">Próximas lutas<span className="text-ouro">.</span></div>
-        <Link to="/" className="text-sm opacity-60 hover:opacity-100">Voltar ao site</Link>
+        <Link to={`/eventos/${EVENTO_ID}`} className="text-sm opacity-60 hover:opacity-100">Copa Horizonte 2026 · voltar ao evento</Link>
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((t) => {
@@ -212,7 +218,7 @@ export function Arena() {
   const [dia, setDia] = useState(1);
   return (
     <>
-      <Titulo sobre="Coordenação de tatames" acoes={<Link to={`/tv?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link>}>Copa Horizonte 2026</Titulo>
+      <Titulo sobre="Coordenação de tatames" acoes={<Link to={`/eventos/${EVENTO_ID}/painel?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link>}>Copa Horizonte 2026</Titulo>
       <div className="mb-4 flex gap-2">{[1, 2].map((x) => <button key={x} onClick={() => setDia(x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}</div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((t) => {

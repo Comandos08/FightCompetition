@@ -139,7 +139,7 @@ export function Evento() {
             <span className="flex items-center gap-2 text-marinho"><Icone d={LOCAL} />{ev.local}, {ev.cidade}</span>
           </div>
         </div>
-        <Link to="/tv" className="botao-contorno">Painel do ginásio</Link>
+        {(dados.estado.config.painelPublico || dados.estado.sessao) && <Link to={`/eventos/${ev.id}/painel`} className="botao-contorno">Próximas lutas ao vivo</Link>}
       </div>
       <div className="mb-5"><Arte nome={ev.nome} tom={0} alta imagem={ev.id === EVENTO_ID ? dados.estado.capaEvento : undefined} /></div>
       <Abas<AbaEvento> ativa={aba} aoMudar={setAba} abas={[
