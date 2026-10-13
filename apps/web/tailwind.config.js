@@ -19,9 +19,9 @@ export default {
         perigo: { DEFAULT: "#C8372D", claro: "#FBEAE8" },
       },
       fontFamily: {
-        display: ['"Outfit"', "system-ui", "sans-serif"],
-        sans: ['"Outfit"', "system-ui", "sans-serif"],
-        mono: ['"Outfit"', "system-ui", "sans-serif"],
+        display: ['"Inter"', "system-ui", "sans-serif"],
+        sans: ['"Inter"', "system-ui", "sans-serif"],
+        mono: ['"Inter"', "system-ui", "sans-serif"],
       },
       boxShadow: { cartao: "0 1px 2px rgba(26,68,125,.04), 0 6px 20px -10px rgba(26,68,125,.14)" },
     },

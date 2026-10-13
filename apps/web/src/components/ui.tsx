@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 import { coresFaixa } from "@/data/seed";
 
 export function Faixa({ cor, comNome = true }: { cor: string; comNome?: boolean }) {
@@ -62,6 +63,27 @@ export function Vazio({ children }: { children: ReactNode }) {
 }
 
 export const pagamentoSelo = (s: string) =>
-  s === "pago" ? <Selo tom="ok">Pago</Selo> : s === "pendente" ? <Selo tom="aviso">Pagamento pendente</Selo> : <Selo tom="acao">Aguarda responsável</Selo>;
+  s === "pago" ? <Selo tom="ok">Pago</Selo> : s === "estornado" ? <Selo>Estornado</Selo> : s === "pendente" ? <Selo tom="aviso">Pagamento pendente</Selo> : <Selo tom="acao">Aguarda responsável</Selo>;
 export const pesagemSelo = (s: string) =>
   s === "ok" ? <Selo tom="ok">Peso ok</Selo> : s === "nao-bateu" ? <Selo tom="acao">Não bateu</Selo> : <Selo>Não pesado</Selo>;
+
+export function SubNav({ itens }: { itens: { para: string; nome: string; fim?: boolean }[] }) {
+  return (
+    <div className="mb-6 flex gap-1 overflow-x-auto rounded-md border border-linha bg-white p-1">
+      {itens.map((i) => (
+        <NavLink key={i.para} to={i.para} end={i.fim}
+          className={({ isActive }) => `whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium transition ${isActive ? "bg-marinho text-white" : "text-tinta-2 hover:text-marinho"}`}>
+          {i.nome}
+        </NavLink>
+      ))}
+    </div>
+  );
+}
+
+export function Campo({ rotulo, children, dica }: { rotulo: string; children: ReactNode; dica?: string }) {
+  return <label className="block"><span className="rotulo">{rotulo}</span><div className="mt-1">{children}</div>{dica && <span className="mt-1 block text-xs text-tinta-3">{dica}</span>}</label>;
+}
+
+export function Secao({ titulo, acao, children }: { titulo: string; acao?: ReactNode; children: ReactNode }) {
+  return <section className="cartao p-6"><div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">{titulo}</h2>{acao}</div>{children}</section>;
+}

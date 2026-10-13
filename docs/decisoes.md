@@ -17,6 +17,10 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Público sem login: agenda, página do evento, chaves publicadas, programação, resultados e painel do ginásio. Inscrição exige conta | Claude | Segue o bloco 1 do caderno funcional; a validar |
 | 13/10/2026 | Direção visual sóbria, inspirada no estudo "IBJJF Redesign" de Ruslan Iulaev (Behance): fundo #F7F9FC, cartões brancos, azul-marinho #1A447D, amarelo #FAAB19, cabeçalho em dois níveis, abas e cartões com o mesmo ritmo | Fundador (referência) e Claude (execução) | Substitui a primeira direção visual. A fonte da referência (TT Norms Pro) é paga; o protótipo usa Outfit, a alternativa gratuita mais próxima |
 | 13/10/2026 | A referência orienta estrutura e ritmo; marca, logotipo e nome do produto precisam ser próprios | Claude | Azul-marinho com amarelo é a identidade da IBJJF; um produto de terceiros com a mesma cara pode ser lido como oficial dela |
+| 13/10/2026 | Fonte do protótipo passa a ser Inter | Fundador | Pedido direto |
+| 13/10/2026 | Protótipo cobre todas as rotas previstas: cadastro e entrada, perfil esportivo, dependentes, pedidos, perfil público de atleta e de equipe, quadro de medalhas, regulamento, vínculos e inscrição em lote da equipe, lista e criação de eventos, financeiro, resultados, equipe de trabalho, configurações, membros e coordenação de tatames | Fundador (pedido) e Claude (escopo das telas) | Ver o produto inteiro antes de construir banco e login. Telas novas seguem o bloco 1 do caderno funcional |
+| 13/10/2026 | Menores aparecem com sobrenome abreviado na lista pública e sem perfil público, por padrão; o organizador pode mudar | Claude | Proteção por padrão; depende da revisão jurídica |
+| 13/10/2026 | Pontuação do quadro de medalhas (9, 3 e 1) e textos de regulamento, lotes e cancelamento são ilustrativos | Claude | Nenhuma regra esportiva ou comercial foi definida; servem para mostrar a tela |
 
 ## Em aberto
 
@@ -28,3 +32,5 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Se byes devem ser sorteados ou seguir ranking ou ordem de inscrição.
 - Provedor de pagamento e enquadramento do repasse.
 - Revisão jurídica para dados de menores.
+- Preço por inscrição e taxa da plataforma (as telas de financeiro e plano mostram valores de exemplo).
+- Quais formatos de chave entram primeiro no motor além da eliminatória simples.

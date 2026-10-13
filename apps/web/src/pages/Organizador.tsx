@@ -1,17 +1,21 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Configuracoes, EquipeEvento, Financeiro, ResultadosOrg } from "@/pages/Gestao";
 import { useDados } from "@/data/store";
 import { EVENTO_ID, divisoes, eventos } from "@/data/seed";
 import { Abas, Faixa, Indicador, Selo, Titulo, Vazio, pagamentoSelo, pesagemSelo } from "@/components/ui";
 import { Chave, Podio } from "@/components/Chave";
 import { hhmm, type Categoria } from "@/lib/competicao";
 
-type Aba = "visao" | "inscritos" | "categorias" | "chaves" | "programacao" | "pesagem";
+type Aba = "visao" | "inscritos" | "categorias" | "chaves" | "programacao" | "pesagem" | "financeiro" | "resultados" | "equipe" | "config";
+const ABAS: Aba[] = ["visao", "inscritos", "categorias", "chaves", "programacao", "pesagem", "financeiro", "resultados", "equipe", "config"];
 
 export function Organizador() {
   const d = useDados();
   const nav = useNavigate();
-  const [aba, setAba] = useState<Aba>("visao");
+  const params = useParams();
+  const aba: Aba = ABAS.includes(params.aba as Aba) ? (params.aba as Aba) : "visao";
+  const setAba = (a: Aba) => nav(`/app/organizacao/eventos/${EVENTO_ID}/${a}`);
   const ev = eventos.find((e) => e.id === EVENTO_ID)!;
 
   const pagos = d.inscricoes.filter((i) => i.pagamento === "pago");
@@ -23,14 +27,16 @@ export function Organizador() {
 
   return (
     <>
-      <Titulo sobre={`Painel do organizador · ${ev.organizador}`}
-        acoes={<><button className="botao-contorno" onClick={() => nav(`/eventos/${ev.id}`)}>Ver página pública</button><button className="botao-primario" onClick={() => nav("/app/mesa")}>Abrir mesa</button></>}>
+      <Link to="/app/organizacao" className="rotulo mb-2 inline-block hover:text-tinta">← Todos os eventos</Link>
+      <Titulo sobre={`Painel do evento · ${ev.organizador}`}
+        acoes={<><button className="botao-contorno" onClick={() => nav(`/eventos/${ev.id}`)}>Ver página pública</button><button className="botao-primario" onClick={() => nav("/app/mesa/arena")}>Coordenar tatames</button></>}>
         {ev.nome}
       </Titulo>
       <Abas<Aba> ativa={aba} aoMudar={setAba} abas={[
         { id: "visao", nome: "Visão geral" }, { id: "inscritos", nome: "Inscritos", conta: d.inscricoes.length },
         { id: "categorias", nome: "Categorias", conta: d.categorias.length }, { id: "chaves", nome: "Chaves", conta: d.chaves.size },
         { id: "programacao", nome: "Programação" }, { id: "pesagem", nome: "Check-in e pesagem" },
+        { id: "financeiro", nome: "Financeiro" }, { id: "resultados", nome: "Resultados" }, { id: "equipe", nome: "Equipe" }, { id: "config", nome: "Configurações" },
       ]} />
 
       {aba === "visao" && (
@@ -75,6 +81,10 @@ export function Organizador() {
       {aba === "chaves" && <Chaves />}
       {aba === "programacao" && <Programacao />}
       {aba === "pesagem" && <Pesagem />}
+      {aba === "financeiro" && <Financeiro />}
+      {aba === "resultados" && <ResultadosOrg />}
+      {aba === "equipe" && <EquipeEvento />}
+      {aba === "config" && <Configuracoes />}
     </>
   );
 }
@@ -92,7 +102,7 @@ function Inscritos() {
       <div className="mb-3 flex flex-wrap gap-2">
         <input className="campo max-w-sm" placeholder="Buscar por atleta, equipe ou número" value={busca} onChange={(e) => setBusca(e.target.value)} />
         <select className="campo w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="todos">Todos os pagamentos</option><option value="pago">Pagos</option><option value="pendente">Pendentes</option><option value="aguardando-autorizacao">Aguardando responsável</option>
+          <option value="todos">Todos os pagamentos</option><option value="pago">Pagos</option><option value="pendente">Pendentes</option><option value="aguardando-autorizacao">Aguardando responsável</option><option value="estornado">Estornados</option>
         </select>
         <span className="self-center text-sm text-tinta-3">{lista.length} inscrições</span>
       </div>

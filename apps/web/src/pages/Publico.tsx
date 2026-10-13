@@ -5,6 +5,7 @@ import { ANO_EVENTO, EVENTO_ID, VALOR_INSCRICAO, divisaoPorIdade, eventos, equip
 import { Abas, Faixa, Selo, Vazio } from "@/components/ui";
 import { Chave, Podio } from "@/components/Chave";
 import { hhmm, idCategoria } from "@/lib/competicao";
+import { quadroDeMedalhas } from "@/lib/resultados";
 
 const Icone = ({ d }: { d: string }) => (
   <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
@@ -77,7 +78,7 @@ export function Agenda() {
   );
 }
 
-type AbaEvento = "info" | "inscritos" | "chaves" | "programacao" | "resultados";
+type AbaEvento = "info" | "inscritos" | "chaves" | "programacao" | "resultados" | "medalhas" | "regulamento";
 
 export function Evento() {
   const { id } = useParams();
@@ -115,6 +116,7 @@ export function Evento() {
         { id: "info", nome: "Informações" }, { id: "inscritos", nome: "Inscritos", conta: dados.inscricoes.length },
         { id: "chaves", nome: "Chaves", conta: publicadas.length }, { id: "programacao", nome: "Programação" },
         { id: "resultados", nome: "Resultados", conta: concluidas.length },
+        { id: "medalhas", nome: "Quadro de medalhas" }, { id: "regulamento", nome: "Regulamento" },
       ]} />
 
       {aba === "info" && (
@@ -159,7 +161,7 @@ export function Evento() {
         </div>
       )}
 
-      {aba === "inscritos" && (
+      {aba === "inscritos" && (!dados.estado.config.inscritosPublicos ? <Vazio>A organização optou por não divulgar a lista de inscritos deste evento.</Vazio> : (
         <>
           <input className="campo mb-3 max-w-sm" placeholder="Buscar atleta ou equipe" value={busca} onChange={(e) => setBusca(e.target.value)} />
           <div className="cartao max-h-[65vh] overflow-auto">
@@ -168,14 +170,23 @@ export function Evento() {
               <tbody>
                 {inscritos.slice(0, 200).map((i) => {
                   const a = dados.atletas.get(i.atletaId)!;
-                  return <tr key={i.id}><td className="font-medium">{a.nome}</td><td>{a.equipe}</td><td>{i.modalidade}</td><td>{i.divisao}</td><td><Faixa cor={i.faixa} /></td><td>{i.peso}</td></tr>;
+                  const reservado = a.menor && dados.estado.config.ocultarMenores;
+                  const partes = a.nome.split(" ");
+                  return (
+                    <tr key={i.id}>
+                      <td className="font-medium">{reservado ? `${partes[0]} ${partes[partes.length - 1]![0]}.` : <Link to={`/atletas/${a.id}`} className="text-marinho hover:underline">{a.nome}</Link>}</td>
+                      <td><Link to={`/equipes/${encodeURIComponent(a.equipe)}`} className="hover:underline">{a.equipe}</Link></td>
+                      <td>{i.modalidade}</td><td>{i.divisao}</td><td><Faixa cor={i.faixa} /></td><td>{i.peso}</td>
+                    </tr>
+                  );
                 })}
               </tbody>
             </table>
           </div>
           {inscritos.length > 200 && <p className="mt-2 text-xs text-tinta-3">Mostrando 200 de {inscritos.length}. Use a busca para encontrar um atleta.</p>}
+          {dados.estado.config.ocultarMenores && <p className="mt-2 text-xs text-tinta-3">Menores de idade aparecem com o sobrenome abreviado e sem perfil público.</p>}
         </>
-      )}
+      ))}
 
       {aba === "chaves" && (!catSel ? <Vazio>As chaves ainda não foram publicadas. No protótipo, entre como organizador e use Chaves → Publicar todas.</Vazio> : (
         <>
@@ -234,6 +245,35 @@ export function Evento() {
           })}
         </div>
       ))}
+      {aba === "medalhas" && (() => {
+        const quadro = quadroDeMedalhas(dados);
+        return !quadro.length ? <Vazio>O quadro aparece quando a primeira categoria for encerrada.</Vazio> : (
+          <div className="cartao overflow-auto">
+            <table className="tabela">
+              <thead><tr><th>Posição</th><th>Equipe</th><th>Ouro</th><th>Prata</th><th>Bronze</th><th>Pontos</th></tr></thead>
+              <tbody>
+                {quadro.map((l, k) => (
+                  <tr key={l.equipe}><td className="font-semibold">{k + 1}º</td><td><Link to={`/equipes/${encodeURIComponent(l.equipe)}`} className="font-medium text-marinho hover:underline">{l.equipe}</Link></td>
+                    <td>{l.ouro}</td><td>{l.prata}</td><td>{l.bronze}</td><td className="font-semibold text-marinho">{l.pontos}</td></tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="px-4 py-3 text-xs text-tinta-3">Pontuação ilustrativa de 9, 3 e 1 pontos. No produto, cada organizador define o critério no regulamento.</p>
+          </div>
+        );
+      })()}
+
+      {aba === "regulamento" && (
+        <div className="cartao max-w-3xl space-y-5 p-6">
+          <div className="rounded-md bg-aviso-claro px-3 py-2 text-sm text-aviso">Texto de exemplo. No produto, o organizador escreve o regulamento e escolhe o pacote de regras da modalidade.</div>
+          {[["Inscrições", "A inscrição é individual e só é confirmada depois do pagamento. A inscrição de menor exige responsável legal identificado."],
+            ["Correções", "Correções de faixa, peso e equipe podem ser pedidas até o prazo divulgado em Informações. Depois da publicação das chaves, só a direção técnica altera uma categoria."],
+            ["Pesagem", "A pesagem acontece no ginásio, antes da primeira luta do atleta. Quem não bate o peso sai da categoria."],
+            ["Chaves e programação", "As chaves são sorteadas pelo sistema, separando atletas da mesma equipe sempre que possível. Os horários são estimativas e mudam conforme o andamento dos tatames."],
+            ["Cancelamento", "Cancelamentos até o fim do lote vigente têm reembolso integral. Depois disso, o valor vira crédito para o próximo evento da organização."],
+          ].map(([t, x]) => <div key={t}><h3 className="font-semibold">{t}</h3><p className="mt-1 text-tinta-2">{x}</p></div>)}
+        </div>
+      )}
     </>
   );
 }

@@ -3,8 +3,10 @@ import { Provedor } from "@/data/store";
 import { Entrar, LayoutLogado, LayoutPublico } from "@/components/Layout";
 import { Agenda, Evento, Inscricao } from "@/pages/Publico";
 import { Organizador } from "@/pages/Organizador";
-import { Mesa, Placar, TV } from "@/pages/Mesa";
-import { Atleta, Professor } from "@/pages/Pessoas";
+import { Arena, Mesa, Placar, TV } from "@/pages/Mesa";
+import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
+import { Cadastro, Dependentes, PaginaEquipe, Pedidos, Perfil, PerfilAtleta } from "@/pages/Conta";
+import { DadosOrganizacao, ListaEventos, Membros, NovoEvento } from "@/pages/Gestao";
 
 // na versão de página única (demonstração) não há servidor para resolver rotas
 const Roteador = import.meta.env.MODE === "pagina-unica" ? MemoryRouter : BrowserRouter;
@@ -19,6 +21,9 @@ export default function App() {
             <Route path="/" element={<Agenda />} />
             <Route path="/eventos/:id" element={<Evento />} />
             <Route path="/entrar" element={<Entrar />} />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/atletas/:id" element={<PerfilAtleta />} />
+            <Route path="/equipes/:nome" element={<PaginaEquipe />} />
           </Route>
           <Route path="/tv" element={<TV />} />
 
@@ -27,9 +32,20 @@ export default function App() {
             <Route index element={<Navigate to="/app/atleta" replace />} />
             <Route path="atleta" element={<Atleta />} />
             <Route path="inscricao/:id" element={<Inscricao />} />
+            <Route path="perfil" element={<Perfil />} />
+            <Route path="dependentes" element={<Dependentes />} />
+            <Route path="pedidos" element={<Pedidos />} />
             <Route path="equipe" element={<Professor />} />
-            <Route path="organizacao" element={<Organizador />} />
+            <Route path="equipe/atletas" element={<EquipeAtletas />} />
+            <Route path="equipe/inscrever" element={<EquipeInscrever />} />
+            <Route path="organizacao" element={<ListaEventos />} />
+            <Route path="organizacao/novo" element={<NovoEvento />} />
+            <Route path="organizacao/membros" element={<Membros />} />
+            <Route path="organizacao/dados" element={<DadosOrganizacao />} />
+            <Route path="organizacao/eventos/:id" element={<Organizador />} />
+            <Route path="organizacao/eventos/:id/:aba" element={<Organizador />} />
             <Route path="mesa" element={<Mesa />} />
+            <Route path="mesa/arena" element={<Arena />} />
             <Route path="mesa/placar/:tatame/:catId/:lutaId" element={<Placar />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

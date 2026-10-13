@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { navConta } from "@/pages/Conta";
 import { Link } from "react-router-dom";
 import { useDados } from "@/data/store";
-import { EVENTO_ID } from "@/data/seed";
+import { EVENTO_ID, VALOR_INSCRICAO, type Inscricao, type Modalidade } from "@/data/seed";
 import { EQUIPE_DO_PROFESSOR, usePessoa } from "@/data/sessao";
-import { Faixa, Indicador, Selo, Titulo, Vazio, pagamentoSelo, pesagemSelo } from "@/components/ui";
+import { Faixa, Indicador, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo, pesagemSelo } from "@/components/ui";
 import { Chave } from "@/components/Chave";
 import { hhmm, horarioDaLuta, idCategoria, nomeRodada } from "@/lib/competicao";
 
@@ -37,7 +38,8 @@ export function Atleta() {
   return (
     <div className="max-w-3xl">
       <Titulo sobre="Minha área" acoes={<Link to={`/app/inscricao/${EVENTO_ID}`} className="botao-acao">Nova inscrição</Link>}>{pessoa.nome}</Titulo>
-      {atleta && <p className="-mt-3 mb-5 text-sm text-tinta-2">{atleta.equipe} · faixa {atleta.faixa.toLowerCase()}</p>}
+      <SubNav itens={navConta} />
+      {atleta && <p className="-mt-2 mb-5 text-sm text-tinta-2">{atleta.equipe} · faixa {atleta.faixa.toLowerCase()}</p>}
       {!minhas.length && <Vazio>Você ainda não tem inscrições. Use "Nova inscrição" para se inscrever ou inscrever um dependente.</Vazio>}
       <div className="space-y-4">
         {minhas.map((i) => {
@@ -80,6 +82,114 @@ export function Atleta() {
   );
 }
 
+export const navEquipe = [
+  { para: "/app/equipe", nome: "Agenda e pendências", fim: true },
+  { para: "/app/equipe/atletas", nome: "Atletas e vínculos" },
+  { para: "/app/equipe/inscrever", nome: "Inscrição em lote" },
+];
+
+const pedidosIniciais = [
+  { nome: "Caio Valente Prado", detalhe: "Faixa azul · pediu em 09 out" },
+  { nome: "Helena Duarte Sá", detalhe: "Faixa branca · pediu em 11 out" },
+  { nome: "Otávio Lins Rego", detalhe: "Infantil · pedido feito pela responsável em 12 out" },
+];
+
+export function EquipeAtletas() {
+  const d = useDados();
+  const equipe = EQUIPE_DO_PROFESSOR;
+  const [pedidos, setPedidos] = useState(pedidosIniciais.map((p) => ({ ...p, decisao: "" })));
+  const atletas = [...d.atletas.values()].filter((a) => a.equipe === equipe);
+  return (
+    <>
+      <Titulo sobre="Equipe · você é professor">{equipe}</Titulo>
+      <SubNav itens={navEquipe} />
+      <div className="grid gap-4 lg:grid-cols-[1fr_1.5fr]">
+        <Secao titulo="Pedidos de vínculo">
+          <div className="divide-y divide-linha/70">
+            {pedidos.map((p, k) => (
+              <div key={p.nome} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+                <span><span className="font-medium">{p.nome}</span><div className="text-xs text-tinta-3">{p.detalhe}</div></span>
+                {p.decisao ? <Selo tom={p.decisao === "aprovado" ? "ok" : "neutro"}>{p.decisao}</Selo> : (
+                  <span className="flex gap-2">
+                    <button className="botao-primario !py-1 text-xs" onClick={() => setPedidos(pedidos.map((x, j) => (j === k ? { ...x, decisao: "aprovado" } : x)))}>Aprovar</button>
+                    <button className="botao-contorno !py-1 text-xs" onClick={() => setPedidos(pedidos.map((x, j) => (j === k ? { ...x, decisao: "recusado" } : x)))}>Recusar</button>
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-tinta-3">Quem diz que treina na sua equipe só passa a representá-la depois da sua confirmação. Você também confirma a faixa declarada.</p>
+        </Secao>
+        <Secao titulo={`Atletas vinculados · ${atletas.length}`}>
+          <div className="max-h-[60vh] overflow-auto">
+            <table className="tabela">
+              <thead><tr><th>Atleta</th><th>Faixa</th><th>Nascimento</th><th>Inscrições</th><th>Vínculo</th></tr></thead>
+              <tbody>
+                {atletas.map((a) => (
+                  <tr key={a.id}><td className="font-medium">{a.nome}{a.menor && <div className="text-xs font-normal text-tinta-3">menor · resp.: {a.responsavel}</div>}</td><td><Faixa cor={a.faixa} /></td><td>{a.anoNascimento}</td>
+                    <td>{d.inscricoes.filter((i) => i.atletaId === a.id).length}</td><td><Selo tom="ok">ativo</Selo></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Secao>
+      </div>
+    </>
+  );
+}
+
+export function EquipeInscrever() {
+  const d = useDados();
+  const equipe = EQUIPE_DO_PROFESSOR;
+  const [marcadas, setMarcadas] = useState<Record<string, boolean>>({});
+  const [feito, setFeito] = useState(0);
+  const linhas = [...d.atletas.values()].filter((a) => a.equipe === equipe).map((a) => ({ a, inscs: d.inscricoes.filter((i) => i.atletaId === a.id) })).filter((x) => x.inscs.length);
+  const chaves = Object.keys(marcadas).filter((k) => marcadas[k]);
+  const gerar = () => {
+    const novas: Inscricao[] = chaves.map((k, n) => {
+      const [atletaId, modalidade] = k.split("|") as [string, Modalidade];
+      const baseI = d.inscricoes.find((i) => i.atletaId === atletaId)!;
+      return { ...baseI, id: `I8${String(d.inscricoes.length + n).padStart(3, "0")}`, modalidade, pagamento: d.atletas.get(atletaId)!.menor ? "aguardando-autorizacao" : "pendente", pesagem: "nao-pesado", valor: VALOR_INSCRICAO };
+    });
+    d.despachar({ tipo: "inscrever", inscricoes: novas });
+    setFeito(novas.length); setMarcadas({});
+  };
+  return (
+    <>
+      <Titulo sobre="Equipe · você é professor">{equipe}</Titulo>
+      <SubNav itens={navEquipe} />
+      {feito > 0 && <div className="mb-4 rounded-md bg-tatame-claro px-4 py-3 text-sm text-tatame">{feito} inscrições criadas em um pedido só. Elas aparecem em <Link to="/app/equipe" className="font-medium underline">Agenda e pendências</Link> até o pagamento. As de menores aguardam a autorização do responsável.</div>}
+      <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
+        <Secao titulo="Copa Horizonte de Jiu-Jitsu 2026">
+          <p className="mb-3 text-sm text-tinta-2">Marque a modalidade que falta para cada atleta. A categoria repete a da inscrição que ele já tem.</p>
+          <div className="max-h-[58vh] overflow-auto">
+            <table className="tabela">
+              <thead><tr><th>Atleta</th><th>Categoria</th><th>Gi</th><th>No-Gi</th></tr></thead>
+              <tbody>
+                {linhas.map(({ a, inscs }) => (
+                  <tr key={a.id}>
+                    <td className="font-medium">{a.nome}</td><td className="text-xs">{inscs[0]!.divisao} · {inscs[0]!.faixa} · {inscs[0]!.peso}</td>
+                    {(["Gi", "No-Gi"] as const).map((m) => {
+                      const tem = inscs.some((i) => i.modalidade === m);
+                      const k = `${a.id}|${m}`;
+                      return <td key={m}><input type="checkbox" className="h-4 w-4" disabled={tem} checked={tem || !!marcadas[k]} onChange={(e) => setMarcadas({ ...marcadas, [k]: e.target.checked })} /></td>;
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Secao>
+        <Secao titulo="Pedido da equipe">
+          <div className="flex items-baseline justify-between"><span className="text-tinta-2">{chaves.length} novas inscrições</span><span className="text-3xl font-semibold text-marinho">R$ {chaves.length * VALOR_INSCRICAO},00</span></div>
+          <button className="botao-acao mt-4 w-full" disabled={!chaves.length} onClick={gerar}>Gerar pedido único</button>
+          <p className="mt-3 text-xs text-tinta-3">O professor paga tudo em um Pix. Cada atleta continua dono da própria inscrição e vê o status na área dele.</p>
+        </Secao>
+      </div>
+    </>
+  );
+}
+
 export function Professor() {
   const d = useDados();
   const proxima = useProximaLuta();
@@ -95,7 +205,8 @@ export function Professor() {
 
   return (
     <>
-      <Titulo sobre="Equipe · você é professor" acoes={<Link to={`/app/inscricao/${EVENTO_ID}`} className="botao-acao">Inscrever atleta</Link>}>{equipe}</Titulo>
+      <Titulo sobre="Equipe · você é professor" acoes={<Link to="/app/equipe/inscrever" className="botao-acao">Inscrever atletas</Link>}>{equipe}</Titulo>
+      <SubNav itens={navEquipe} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Indicador rotulo="Atletas inscritos" valor={atletasUnicos} detalhe={`${daEquipe.length} inscrições`} />
         <Indicador rotulo="Pendências" valor={pendentes.length} detalhe="pagamento ou autorização" />

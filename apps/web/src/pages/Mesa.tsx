@@ -37,7 +37,7 @@ export function Mesa() {
   const mudar = (k: string, v: number) => { const n = new URLSearchParams(sp); n.set(k, String(v)); setSp(n); };
   return (
     <>
-      <Titulo sobre="Mesa do tatame" acoes={<Link to={`/tv?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link>}>Tatame {tatame}</Titulo>
+      <Titulo sobre="Mesa do tatame" acoes={<><Link to="/app/mesa/arena" className="botao-contorno">Todos os tatames</Link><Link to={`/tv?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link></>}>Tatame {tatame}</Titulo>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
@@ -203,5 +203,42 @@ export function TV() {
         })}
       </div>
     </div>
+  );
+}
+
+/** Coordenação: situação de todos os tatames em uma tela, para a direção técnica. */
+export function Arena() {
+  const d = useDados();
+  const [dia, setDia] = useState(1);
+  return (
+    <>
+      <Titulo sobre="Coordenação de tatames" acoes={<Link to={`/tv?dia=${dia}`} className="botao-contorno">Abrir painel do ginásio</Link>}>Copa Horizonte 2026</Titulo>
+      <div className="mb-4 flex gap-2">{[1, 2].map((x) => <button key={x} onClick={() => setDia(x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}</div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {[1, 2, 3, 4, 5, 6].map((t) => {
+          const fila = filaDoTatame(d, dia, t);
+          const feitas = fila.filter((f) => f.vencedorId).length;
+          const pendentes = fila.filter((f) => !f.vencedorId);
+          const atual = pendentes.find((f) => f.pronta);
+          const seguinte = pendentes.filter((f) => f !== atual)[0];
+          return (
+            <div key={t} className="cartao overflow-hidden">
+              <div className="flex items-center justify-between bg-marinho px-4 py-2.5 text-white"><span className="font-semibold">Tatame {t}</span><span className="font-mono text-xs opacity-80">{feitas}/{fila.length} lutas</span></div>
+              <div className="h-1.5 bg-linha"><div className="h-full bg-tatame" style={{ width: `${fila.length ? (feitas / fila.length) * 100 : 0}%` }} /></div>
+              <div className="space-y-3 p-4 text-sm">
+                {atual ? (
+                  <div><div className="rotulo">Na vez · {hhmm(atual.horario)} · {nomeRodada(atual.rodada, atual.bloco.chave.totalRodadas)}</div>
+                    <div className="mt-1 font-medium">{d.nomeDe(atual.a)} <span className="font-normal text-tinta-3">x</span> {d.nomeDe(atual.b)}</div>
+                    <div className="text-xs text-tinta-3">{atual.bloco.categoria.nome}</div></div>
+                ) : <div className="text-tinta-3">{fila.length ? "Tatame encerrado." : "Sem lutas neste dia."}</div>}
+                {seguinte && <div className="border-t border-linha/70 pt-3"><div className="rotulo">Em seguida · {hhmm(seguinte.horario)}</div><div className="mt-1 text-tinta-2">{d.nomeDe(seguinte.a)} x {d.nomeDe(seguinte.b)}</div></div>}
+                <Link to={`/app/mesa?dia=${dia}&tatame=${t}`} className="botao-contorno w-full">Abrir mesa do tatame</Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 max-w-3xl text-xs text-tinta-3">No produto, esta tela mostra o atraso de cada tatame e permite mover uma categoria para um tatame livre.</p>
+    </>
   );
 }

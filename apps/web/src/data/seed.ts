@@ -19,7 +19,7 @@ export interface Atleta {
   responsavel?: string;
 }
 
-export type StatusPagamento = "pago" | "pendente" | "aguardando-autorizacao";
+export type StatusPagamento = "pago" | "pendente" | "aguardando-autorizacao" | "estornado";
 export type StatusPesagem = "nao-pesado" | "ok" | "nao-bateu";
 
 export interface Inscricao {
