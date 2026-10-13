@@ -6,6 +6,7 @@ import { gerarChave, montarCategorias, montarProgramacao, resolver, type Bloco, 
 export type Persona = "atleta" | "professor" | "organizador" | "diretor" | "mesario" | "admin";
 
 export interface Parceiro { id: string; nome: string; url: string; logo: string; ativo: boolean; }
+export interface Remanejo { tatame: number; origem: number; motivo: string; quem: string; quando: string; }
 export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
 
 export interface Membro { nome: string; email: string; papel: string; escopo: string; situacao: "ativo" | "convite enviado"; }
@@ -23,6 +24,8 @@ interface Estado {
   parceiros: Parceiro[];
   orgsSuspensas: Record<string, boolean>;
   auditoria: RegistroAuditoria[];
+  /** lutas levadas de um tatame para outro durante o evento, com motivo e autor */
+  remanejadas: Record<string, Remanejo>;
   capaEvento: string;
   sessao: Persona | null;
   novosAtletas: Atleta[];
@@ -52,7 +55,7 @@ const vazio: Estado = {
     { id: "p3", nome: "Tatames Litoral", url: "", logo: "", ativo: true },
     { id: "p4", nome: "Instituto Guarda Viva", url: "", logo: "", ativo: true },
   ],
-  orgsSuspensas: {}, auditoria: [],
+  orgsSuspensas: {}, auditoria: [], remanejadas: {},
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
@@ -74,6 +77,7 @@ type Acao =
   | { tipo: "parceiro-mudar"; id: string; campos: Partial<Parceiro> }
   | { tipo: "parceiro-remover"; id: string }
   | { tipo: "org-suspender"; nome: string; valor: boolean }
+  | { tipo: "remanejar"; chave: string; remanejo: Remanejo | null }
   | { tipo: "auditar"; registro: RegistroAuditoria }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
@@ -112,6 +116,7 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "parceiro-mudar": return { ...e, parceiros: e.parceiros.map((p) => (p.id === a.id ? { ...p, ...a.campos } : p)) };
     case "parceiro-remover": return { ...e, parceiros: e.parceiros.filter((p) => p.id !== a.id) };
     case "org-suspender": return { ...e, orgsSuspensas: { ...e.orgsSuspensas, [a.nome]: a.valor } };
+    case "remanejar": { const r = { ...e.remanejadas }; if (a.remanejo) r[a.chave] = a.remanejo; else delete r[a.chave]; return { ...e, remanejadas: r }; }
     case "auditar": return { ...e, auditoria: [a.registro, ...e.auditoria].slice(0, 100) };
     case "entrar": return { ...e, sessao: a.persona };
     case "sair": return { ...e, sessao: null };
@@ -119,7 +124,7 @@ function reduzir(e: Estado, a: Acao): Estado {
   }
 }
 
-const CHAVE_LOCAL = "arena-prototipo-v6";
+const CHAVE_LOCAL = "arena-prototipo-v7";
 function carregar(): Estado {
   try {
     const bruto = localStorage.getItem(CHAVE_LOCAL);
