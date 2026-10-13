@@ -8,6 +8,7 @@ import { chaveDoResultado, hhmm, horarioDaLuta, nomeRodada } from "@/lib/competi
 import { quadroDeMedalhas } from "@/lib/resultados";
 
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+const TIPOS = ["Falta de luz", "Acidente ou atendimento médico", "Incidente disciplinar", "Problema de equipamento", "Atraso ou paralisação", "Outro"];
 const hora = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "não registrado");
 const dataHora = (iso: string) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
@@ -182,10 +183,22 @@ export function SumulaDoCampeonato() {
       <h3 className="mb-2 mt-8 text-sm font-semibold">Casos extraordinários</h3>
       {d.estado.ocorrencias.length ? (
         <table className="tabela text-sm">
-          <thead><tr><th>Tipo</th><th>Início</th><th>Fim</th><th>Onde</th><th>Parecer</th><th>Registrado por</th><th className="nao-imprimir" /></tr></thead>
-          <tbody>{d.estado.ocorrencias.map((o) => <tr key={o.id}><td className="font-medium">{o.tipo}</td><td>{o.inicio || "·"}</td><td>{o.fim || "·"}</td><td>{o.tatame}</td><td>{o.descricao}</td><td>{o.quem}</td><td className="nao-imprimir"><button className="text-xs text-perigo hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-remover", id: o.id })}>remover</button></td></tr>)}</tbody>
+          <thead><tr><th>Tipo</th><th>Início</th><th>Fim</th><th>Onde</th><th>Parecer</th><th>Relatado por</th><th>Situação</th></tr></thead>
+          <tbody>{d.estado.ocorrencias.map((o) => (
+            <tr key={o.id} className={o.situacao === "recusada" ? "nao-imprimir opacity-60" : ""}>
+              <td className="font-medium">{o.tipo}</td><td>{o.inicio || "·"}</td><td>{o.fim || "·"}</td><td>{o.tatame}</td><td>{o.descricao}</td><td>{o.quem}</td>
+              <td>
+                <div>{o.situacao === "aprovada" ? "Aprovada" : o.situacao === "pendente" ? "Aguardando a organização" : "Não aprovada"}</div>
+                <div className="nao-imprimir mt-1 flex flex-wrap gap-2 text-xs">
+                  {o.situacao !== "aprovada" && <button className="text-tatame hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-situacao", id: o.id, situacao: "aprovada" })}>aprovar</button>}
+                  {o.situacao !== "recusada" && <button className="text-perigo hover:underline" onClick={() => d.despachar({ tipo: "ocorrencia-situacao", id: o.id, situacao: "recusada" })}>não aprovar</button>}
+                </div>
+              </td>
+            </tr>
+          ))}</tbody>
         </table>
       ) : <p className="text-sm text-tinta-3">Nenhum caso extraordinário registrado.</p>}
+      <p className="nao-imprimir mt-2 text-xs text-tinta-3">Relatos dos mesários chegam aqui aguardando a organização. Os não aprovados ficam guardados no registro, mas não saem na súmula impressa.</p>
       <NovaOcorrencia />
 
       <h3 className="mb-2 mt-8 text-sm font-semibold">Lutas que mudaram de tatame</h3>
@@ -196,29 +209,53 @@ export function SumulaDoCampeonato() {
   );
 }
 
-const TIPOS = ["Falta de luz", "Acidente ou atendimento médico", "Incidente disciplinar", "Problema de equipamento", "Atraso ou paralisação", "Outro"];
 
-/** Formulário da organização para registrar um caso extraordinário na súmula do campeonato. */
-function NovaOcorrencia() {
+/** Formulário de caso extraordinário. A organização registra direto; o relato do mesário fica aguardando aprovação. */
+export function NovaOcorrencia({ doTatame, aoSalvar }: { doTatame?: number; aoSalvar?: () => void }) {
   const d = useDados();
   const pessoa = usePessoa();
-  const [f, setF] = useState({ tipo: TIPOS[0]!, descricao: "", inicio: "", fim: "", tatame: "Evento todo" });
+  const onde = doTatame ? `Tatame ${doTatame}` : "Evento todo";
+  const [f, setF] = useState({ tipo: TIPOS[0]!, descricao: "", inicio: "", fim: "", tatame: onde });
   const mudar = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
   const salvar = () => {
-    d.despachar({ tipo: "ocorrencia", ocorrencia: { ...f, descricao: f.descricao.trim(), id: `oc-${Date.now()}`, quem: pessoa.nome, registradaEm: new Date().toISOString() } });
-    setF({ tipo: TIPOS[0]!, descricao: "", inicio: "", fim: "", tatame: "Evento todo" });
+    d.despachar({ tipo: "ocorrencia", ocorrencia: { ...f, descricao: f.descricao.trim(), id: `oc-${Date.now()}`, quem: `${pessoa.nome}${doTatame ? ` (mesário, Tatame ${doTatame})` : ""}`, registradaEm: new Date().toISOString(), situacao: doTatame ? "pendente" : "aprovada" } });
+    setF({ tipo: TIPOS[0]!, descricao: "", inicio: "", fim: "", tatame: onde });
+    aoSalvar?.();
   };
   return (
-    <div className="nao-imprimir mt-3 rounded-md border border-dashed border-linha bg-papel p-3">
-      <div className="mb-2 text-sm font-medium">Registrar caso extraordinário</div>
+    <div className="nao-imprimir mt-3 rounded-md border border-dashed border-linha bg-papel p-3 text-tinta">
+      <div className="mb-2 text-sm font-medium">{doTatame ? "Relatar ocorrência à organização" : "Registrar caso extraordinário"}</div>
       <div className="grid gap-2 sm:grid-cols-4">
         <select id="oc-tipo" className="campo" value={f.tipo} onChange={(e) => mudar("tipo", e.target.value)}>{TIPOS.map((t) => <option key={t}>{t}</option>)}</select>
-        <select id="oc-onde" className="campo" value={f.tatame} onChange={(e) => mudar("tatame", e.target.value)}>{["Evento todo", ...[1, 2, 3, 4, 5, 6].map((t) => `Tatame ${t}`), "Área de pesagem", "Arquibancada"].map((t) => <option key={t}>{t}</option>)}</select>
+        {doTatame ? <div className="campo bg-white text-tinta-2">{onde}</div> : <select id="oc-onde" className="campo" value={f.tatame} onChange={(e) => mudar("tatame", e.target.value)}>{["Evento todo", ...[1, 2, 3, 4, 5, 6].map((t) => `Tatame ${t}`), "Área de pesagem", "Arquibancada"].map((t) => <option key={t}>{t}</option>)}</select>}
         <label className="flex items-center gap-2 text-xs text-tinta-2">Início<input id="oc-inicio" type="time" className="campo" value={f.inicio} onChange={(e) => mudar("inicio", e.target.value)} /></label>
         <label className="flex items-center gap-2 text-xs text-tinta-2">Fim<input id="oc-fim" type="time" className="campo" value={f.fim} onChange={(e) => mudar("fim", e.target.value)} /></label>
       </div>
-      <textarea id="oc-descricao" className="campo mt-2" rows={2} placeholder="Parecer: o que aconteceu, quem foi afetado e que providência foi tomada." value={f.descricao} onChange={(e) => mudar("descricao", e.target.value)} />
-      <button id="oc-salvar" className="botao-primario mt-2" disabled={!f.descricao.trim()} onClick={salvar}>Adicionar à súmula</button>
+      <textarea id="oc-descricao" className="campo mt-2" rows={2} placeholder="O que aconteceu, quem foi afetado e que providência foi tomada." value={f.descricao} onChange={(e) => mudar("descricao", e.target.value)} />
+      <button id="oc-salvar" className="botao-primario mt-2" disabled={!f.descricao.trim()} onClick={salvar}>{doTatame ? "Enviar relato" : "Adicionar à súmula"}</button>
     </div>
+  );
+}
+
+/** Botão do mesário: abre o relato e mostra os que ele já enviou, com a resposta da organização. */
+export function RelatarOcorrencia({ tatame, escuro }: { tatame: number; escuro?: boolean }) {
+  const d = useDados();
+  const [aberto, setAberto] = useState(false);
+  const meus = d.estado.ocorrencias.filter((o) => o.tatame === `Tatame ${tatame}`);
+  return (
+    <>
+      <button id="relatar-ocorrencia" className={escuro ? "rounded border border-white/30 px-3 py-1.5 text-xs hover:bg-white/10" : "botao-contorno"} onClick={() => setAberto(true)}>Relatar ocorrência{meus.length ? ` (${meus.length})` : ""}</button>
+      {aberto && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={() => setAberto(false)}>
+          <div className="cartao max-h-[90vh] w-full max-w-2xl overflow-auto p-5 text-tinta" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-semibold">Ocorrências do Tatame {tatame}</h2>
+            <p className="text-sm text-tinta-2">Falta de luz, acidente, incidente ou qualquer coisa fora do normal. O relato vai para a organização, que aprova ou não a entrada na súmula do campeonato.</p>
+            <NovaOcorrencia doTatame={tatame} />
+            {meus.length > 0 && <div className="mt-4 space-y-2">{meus.map((o) => <div key={o.id} className="rounded-md border border-linha p-2 text-sm"><div className="flex justify-between gap-2"><b>{o.tipo}</b><span className={o.situacao === "aprovada" ? "text-tatame" : o.situacao === "recusada" ? "text-perigo" : "text-tinta-3"}>{o.situacao === "aprovada" ? "aprovada" : o.situacao === "pendente" ? "aguardando a organização" : "não aprovada"}</span></div><div className="text-tinta-2">{o.descricao}</div></div>)}</div>}
+            <button className="botao-contorno mt-4" onClick={() => setAberto(false)}>Fechar</button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -19,7 +19,9 @@ export interface Sumula {
   lances: { t: number; lado: 0 | 1; texto: string }[];
 }
 /** Caso extraordinário do evento (falta de luz, acidente, incidente...), registrado pela organização. */
-export interface Ocorrencia { id: string; tipo: string; descricao: string; inicio: string; fim: string; tatame: string; quem: string; registradaEm: string; }
+export interface Ocorrencia { id: string; tipo: string; descricao: string; inicio: string; fim: string; tatame: string; quem: string; registradaEm: string;
+  /** relato do mesário entra como pendente; a organização aprova ou recusa */
+  situacao: "aprovada" | "pendente" | "recusada"; }
 export interface Remanejo { tatame: number; origem: number; motivo: string; quem: string; quando: string; }
 export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
 
@@ -96,6 +98,7 @@ type Acao =
   | { tipo: "remanejar"; chave: string; remanejo: Remanejo | null }
   | { tipo: "ocorrencia"; ocorrencia: Ocorrencia }
   | { tipo: "ocorrencia-remover"; id: string }
+  | { tipo: "ocorrencia-situacao"; id: string; situacao: Ocorrencia["situacao"] }
   | { tipo: "auditar"; registro: RegistroAuditoria }
   | { tipo: "entrar"; persona: Persona }
   | { tipo: "sair" }
@@ -138,6 +141,7 @@ function reduzir(e: Estado, a: Acao): Estado {
     case "org-suspender": return { ...e, orgsSuspensas: { ...e.orgsSuspensas, [a.nome]: a.valor } };
     case "sincronizar": return a.estado;
     case "ocorrencia": return { ...e, ocorrencias: [...e.ocorrencias, a.ocorrencia] };
+    case "ocorrencia-situacao": return { ...e, ocorrencias: e.ocorrencias.map((o) => (o.id === a.id ? { ...o, situacao: a.situacao } : o)) };
     case "ocorrencia-remover": return { ...e, ocorrencias: e.ocorrencias.filter((o) => o.id !== a.id) };
     case "remanejar": { const r = { ...e.remanejadas }; if (a.remanejo) r[a.chave] = a.remanejo; else delete r[a.chave]; return { ...e, remanejadas: r }; }
     case "auditar": return { ...e, auditoria: [a.registro, ...e.auditoria].slice(0, 100) };

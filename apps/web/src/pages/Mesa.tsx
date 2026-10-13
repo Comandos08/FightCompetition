@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useDados, type Contexto } from "@/data/store";
 import { EVENTO_ID } from "@/data/seed";
 import { TATAME_DO_MESARIO, usePessoa } from "@/data/sessao";
+import { RelatarOcorrencia } from "@/pages/Sumulas";
 import { enderecoDaTela, publicarTela, useTela, type Marcador } from "@/data/telaPublica";
 import { Campo, Secao, Selo, SubNav, Titulo, Vazio } from "@/components/ui";
 import { regrasIbjjf } from "@engine";
@@ -88,7 +89,7 @@ export function Mesa() {
         {[1, 2].map((x) => <button key={x} onClick={() => mudar("dia", x)} className={dia === x ? "botao-primario" : "botao-contorno"}>{x === 1 ? "Sábado · Gi" : "Domingo · No-Gi"}</button>)}
         <span className="mx-1 h-6 w-px bg-linha" />
         {soMeuTatame ? <span className="text-sm text-tinta-2">Você foi escalado para o Tatame {tatame}.</span> : [1, 2, 3, 4, 5, 6].map((t) => <button key={t} onClick={() => mudar("tatame", t)} className={tatame === t ? "botao-primario" : "botao-contorno"}>T{t}</button>)}
-        <span className="ml-auto" /><PuxarLuta dia={dia} tatame={tatame} />
+        <span className="ml-auto" /><RelatarOcorrencia tatame={tatame} /><PuxarLuta dia={dia} tatame={tatame} />
         <label className="flex items-center gap-2 text-sm text-tinta-2"><input type="checkbox" checked={mostrarFeitas} onChange={(e) => setMostrarFeitas(e.target.checked)} /> Mostrar encerradas</label>
       </div>
       <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-linha"><div className="h-full bg-tatame transition-all" style={{ width: `${fila.length ? (feitas / fila.length) * 100 : 0}%` }} /></div>
@@ -414,6 +415,7 @@ export function Placar() {
         <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-xs">Luta {rotulo}</span>
         <span className="min-w-0 flex-1 truncate text-sm text-white/70">{cat.nome} · {nomeRodada(luta.rodada, chave.totalRodadas)}</span>
         <span className="text-xs uppercase tracking-wide text-white/40">Visão do mesário</span>
+        <RelatarOcorrencia tatame={noTatame} escuro />
         <button className="rounded border border-white/30 px-3 py-1.5 text-xs hover:bg-white/10" onClick={() => window.open(enderecoDaTela(noTatame), `tela-tatame-${noTatame}`, "popup,width=1280,height=720")}>Abrir tela do público</button>
       </div>
       {/* o mesmo placar que o público vê, na proporção do vídeo de referência */}
