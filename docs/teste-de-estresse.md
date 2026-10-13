@@ -28,4 +28,5 @@ O estresse termina quando as frentes 1 a 4 não revelam lacuna nova por duas rod
 | 13/10/2026 | 3 | Categoria com 3 atletas usava eliminação simples com bye; o livro manda usar a chave de três | Corrigido no motor |
 | 13/10/2026 | 3 | Tempos de luta, categorias de idade, punições e combatividade eram ilustrativos | Corrigido com o livro de regras |
 | 13/10/2026 | 2 | Inscrição não reaproveitava dependentes; atleta novo aparecia com histórico inventado; nome longo era cortado no telão | Corrigido |
-| 13/10/2026 | 3 | Com as categorias de idade oficiais, 262 de 374 categorias ficam com um atleta só | Aberto: falta a ferramenta de juntar categorias |
+| 13/10/2026 | 3 | Com as categorias de idade oficiais, 262 de 374 categorias ficam com um atleta só | Corrigido: fusão sugerida pelo motor; o plano automático resolve 130 das 283 e as demais ficam para decisão caso a caso |
+| 13/10/2026 | 3 | Horários não consideravam descanso mínimo nem atraso; luta em andamento se perdia ao fechar o placar; pesagem não registrava o peso | Corrigido |

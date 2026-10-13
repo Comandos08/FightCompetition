@@ -1,4 +1,4 @@
-import { gerarChaveDeTres, gerarEliminatoriaSimples, resolverChave, type ChaveEliminatoria, type ChaveResolvida, type Resultado } from "@engine";
+import { gerarChaveDeTres, gerarEliminatoriaSimples, horariosDaChave, regrasIbjjf, resolverChave, type ChaveEliminatoria, type ChaveResolvida, type Resultado } from "@engine";
 import { divisoes, minutosDeLuta, type Atleta, type Inscricao, type Modalidade } from "@/data/seed";
 
 export interface Categoria {
@@ -77,7 +77,7 @@ export function resolver(cat: Categoria, chave: ChaveEliminatoria, resultados: R
 
 export const TATAMES = 6;
 export const INICIO_MIN = 9 * 60;
-const TRANSICAO_MIN = 3;
+export const TRANSICAO_MIN = 3;
 
 export interface Bloco {
   categoria: Categoria;
@@ -86,14 +86,18 @@ export interface Bloco {
   dia: 1 | 2;
   inicio: number;
   fim: number;
+  /** minuto previsto de cada luta, já com o descanso mínimo dos atletas e o atraso registrado no tatame */
+  horarios: Record<string, number>;
 }
 
 /**
  * Programação simples do protótipo: Gi no dia 1, No-Gi no dia 2; crianças primeiro;
  * cada chave roda inteira em sequência no tatame com menor carga.
- * Ainda não respeita descanso nem conflito de atleta em duas categorias.
+ * Dentro da chave, cada luta respeita o descanso mínimo dos atletas (Regulamento Geral da IBJJF, art. 1.4).
+ * `atrasos` soma os minutos de atraso registrados em cada tatame de cada dia.
  */
-export function montarProgramacao(categorias: Categoria[], chaves: Map<string, ChaveEliminatoria>): Bloco[] {
+export const chaveDoAtraso = (dia: number, tatame: number) => `${dia}-${tatame}`;
+export function montarProgramacao(categorias: Categoria[], chaves: Map<string, ChaveEliminatoria>, atrasos: Record<string, number> = {}): Bloco[] {
   // crianças primeiro, depois os masters do mais velho ao mais novo, e o adulto por último
   const nomes = divisoes.map((x) => x.nome);
   const ordemDivisao = [...nomes.filter((n) => !n.startsWith("Master") && n !== "Adulto"), ...nomes.filter((n) => n.startsWith("Master")).reverse(), "Adulto"];
@@ -106,18 +110,20 @@ export function montarProgramacao(categorias: Categoria[], chaves: Map<string, C
     for (const categoria of doDia) {
       const chave = chaves.get(categoria.id)!;
       const tatame = carga.indexOf(Math.min(...carga));
-      const inicio = carga[tatame]!;
-      const fim = inicio + chave.lutas.length * (categoria.minutos + TRANSICAO_MIN);
-      carga[tatame] = fim;
-      blocos.push({ categoria, chave, tatame: tatame + 1, dia, inicio, fim });
+      const h = horariosDaChave(chave, { minutos: categoria.minutos, transicao: TRANSICAO_MIN, descanso: (antesDaFinal) => regrasIbjjf.descansoMinimo(categoria.minutos, antesDaFinal) });
+      const atraso = atrasos[chaveDoAtraso(dia, tatame + 1)] ?? 0;
+      const base = carga[tatame]!;
+      carga[tatame] = base + h.duracao;
+      const horarios: Record<string, number> = {};
+      for (const [id, t] of Object.entries(h.inicio)) horarios[id] = base + atraso + t;
+      blocos.push({ categoria, chave, tatame: tatame + 1, dia, inicio: base + atraso, fim: base + atraso + h.duracao, horarios });
     }
   }
   return blocos;
 }
 
 export function horarioDaLuta(bloco: Bloco, lutaId: string): number {
-  const indice = bloco.chave.lutas.findIndex((l) => l.id === lutaId);
-  return bloco.inicio + indice * (bloco.categoria.minutos + TRANSICAO_MIN);
+  return bloco.horarios[lutaId] ?? bloco.inicio;
 }
 
 export const hhmm = (min: number) => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(Math.round(min % 60)).padStart(2, "0")}`;

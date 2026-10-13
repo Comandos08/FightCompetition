@@ -6,6 +6,7 @@ import { Entrar, LayoutLogado, LayoutPublico } from "@/components/Layout";
 import { Agenda, Evento, Inscricao } from "@/pages/Publico";
 import { Organizador } from "@/pages/Organizador";
 import { SumulaDaLuta, SumulaDoCampeonato } from "@/pages/Sumulas";
+import { Modelos } from "@/pages/Modelos";
 import { Arena, DadosDoMesario, Mesa, Placar, TelaDoTatame, TV } from "@/pages/Mesa";
 import { Atleta, EquipeAtletas, EquipeInscrever, Professor } from "@/pages/Pessoas";
 import { Cadastro, Dependentes, Pedidos, Perfil } from "@/pages/Conta";
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="organizacao/ranking" element={<RankingDaOrganizacao />} />
             <Route path="organizacao/membros" element={<Membros />} />
             <Route path="organizacao/dados" element={<DadosOrganizacao />} />
+            <Route path="organizacao/modelos" element={<Modelos />} />
             <Route path="organizacao/eventos/:id" element={<Organizador />} />
             <Route path="organizacao/eventos/:id/sumula" element={<SumulaDoCampeonato />} />
             <Route path="organizacao/eventos/:id/:aba" element={<Organizador />} />

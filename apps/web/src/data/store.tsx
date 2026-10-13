@@ -27,6 +27,9 @@ export interface Sumula {
 export interface Ocorrencia { id: string; tipo: string; descricao: string; inicio: string; fim: string; tatame: string; quem: string; registradaEm: string;
   /** relato do mesário entra como pendente; a organização aprova ou recusa */
   situacao: "aprovada" | "pendente" | "recusada"; }
+export interface PesoMedido { quilos: number; quimono: "liso" | "trancado"; limite: number | null; quem: string; }
+/** Tabela de categorias que a organização salva e reaproveita em novos eventos. */
+export interface ModeloDeCategorias { id: string; nome: string; baseadoEm: string; criadoEm: string; /** limites de peso alterados: "idade|sexo|classe" → quilos */ pesos: Record<string, number>; }
 export interface Remanejo { tatame: number; origem: number; motivo: string; quem: string; quando: string; }
 export interface RegistroAuditoria { quando: string; quem: string; acao: string; }
 
@@ -49,6 +52,10 @@ interface Estado {
   remanejadas: Record<string, Remanejo>;
   sumulas: Record<string, Sumula>;
   ocorrencias: Ocorrencia[];
+  /** minutos de atraso registrados por dia e tatame ("1-3") */
+  atrasos: Record<string, number>;
+  pesosMedidos: Record<string, PesoMedido>;
+  modelos: ModeloDeCategorias[];
   /** árbitro central escalado em cada tatame, informado pela mesa */
   arbitros: Record<string, string>;
   capaEvento: string;
@@ -80,13 +87,17 @@ const vazio: Estado = {
     { id: "p3", nome: "Tatames Litoral", url: "", logo: "", ativo: true },
     { id: "p4", nome: "Instituto Guarda Viva", url: "", logo: "", ativo: true },
   ],
-  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {}, ocorrencias: [], arbitros: {},
+  orgsSuspensas: {}, auditoria: [], remanejadas: {}, sumulas: {}, ocorrencias: [], arbitros: {}, atrasos: {}, pesosMedidos: {}, modelos: [],
   sessao: null, novosAtletas: [], novasInscricoes: [], pagamentos: {}, pesagens: {}, destino: {}, sorteios: {}, publicadas: {}, resultados: {} };
 
 type Acao =
   | { tipo: "inscrever"; atleta?: Atleta; inscricoes: Inscricao[] }
   | { tipo: "pagamento"; id: string; status: StatusPagamento }
-  | { tipo: "pesagem"; id: string; status: StatusPesagem }
+  | { tipo: "pesagem"; id: string; status: StatusPesagem; medida?: PesoMedido }
+  | { tipo: "desfundir"; inscricaoIds: string[] }
+  | { tipo: "atraso"; chave: string; minutos: number }
+  | { tipo: "modelo"; modelo: ModeloDeCategorias }
+  | { tipo: "modelo-remover"; id: string }
   | { tipo: "fundir"; inscricaoIds: string[]; categoriaId: string }
   | { tipo: "sortear"; categoriaId: string }
   | { tipo: "publicar"; categoriaIds: string[]; valor: boolean }
@@ -123,7 +134,11 @@ function reduzir(e: Estado, a: Acao): Estado {
       return { ...e, novosAtletas: a.atleta ? [...e.novosAtletas, { ...a.atleta, conta }] : e.novosAtletas, novasInscricoes: [...e.novasInscricoes, ...a.inscricoes.map((i) => ({ ...i, conta }))] };
     }
     case "pagamento": return { ...e, pagamentos: { ...e.pagamentos, [a.id]: a.status } };
-    case "pesagem": return { ...e, pesagens: { ...e.pesagens, [a.id]: a.status } };
+    case "pesagem": return { ...e, pesagens: { ...e.pesagens, [a.id]: a.status }, pesosMedidos: a.medida ? { ...e.pesosMedidos, [a.id]: a.medida } : e.pesosMedidos };
+    case "desfundir": { const destino = { ...e.destino }; for (const id of a.inscricaoIds) delete destino[id]; return { ...e, destino }; }
+    case "atraso": return { ...e, atrasos: { ...e.atrasos, [a.chave]: Math.max(0, a.minutos) } };
+    case "modelo": return { ...e, modelos: [...e.modelos.filter((m) => m.id !== a.modelo.id), a.modelo] };
+    case "modelo-remover": return { ...e, modelos: e.modelos.filter((m) => m.id !== a.id) };
     case "fundir": {
       const destino = { ...e.destino };
       for (const id of a.inscricaoIds) destino[id] = a.categoriaId;
@@ -220,7 +235,7 @@ export function Provedor({ children }: { children: ReactNode }) {
       const chave = gerarChave(c, atletas, estado.sorteios[c.id] ?? 0);
       if (chave) { chaves.set(c.id, chave); resolvidas.set(c.id, resolver(c, chave, estado.resultados)); }
     }
-    const blocos = montarProgramacao(categorias, chaves);
+    const blocos = montarProgramacao(categorias, chaves, estado.atrasos);
     const nomeDe = (id?: string) => (id ? atletas.get(inscricaoPorId.get(id)?.atletaId ?? "")?.nome ?? "?" : "A definir");
     const equipeDe = (id?: string) => (id ? atletas.get(inscricaoPorId.get(id)?.atletaId ?? "")?.equipe ?? "" : "");
     return { atletas, inscricoes, inscricaoPorId, categorias, categoriaPorId, chaves, resolvidas, blocos, estado, despachar, nomeDe, equipeDe };

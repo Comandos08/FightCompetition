@@ -72,15 +72,20 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Preço, taxa e provedor de pagamento não bloqueiam o desenvolvimento | Fundador | Serão definidos depois; as telas seguem com valores de exemplo |
 | 13/10/2026 | Dados pessoais seguem LGPD e GDPR; avatares padrão são de banco gratuito | Fundador | Encerra as pendências jurídicas do protótipo |
 | 13/10/2026 | Quando o protótipo estiver completo, o projeto é criado no Lovable em sequência lógica e conectado a este repositório do GitHub; o fundador avisa | Fundador | Define o momento da construção |
+| 13/10/2026 | Fusão de categorias: o motor sugere primeiro o peso mais próximo (até duas classes) na mesma idade e faixa, depois a idade vizinha no mesmo peso, sem cruzar sexo, modalidade ou faixa nem sair do bloco de idade (crianças, juvenis, adulto com masters). A categoria que fica é a de peso mais alto; na idade, a mais velha entre crianças e juvenis e a mais nova entre adulto e masters. O plano automático só usa o peso imediatamente vizinho; o resto é escolha da organização, desfazível até a chave ser publicada | Claude | Modelo simples pedido pelo fundador; o regulamento permite ao atleta subir de peso e, nos masters, descer de idade |
+| 13/10/2026 | Pesagem registra o peso medido e o tipo de quimono (até 15 anos) e compara com o limite da categoria em que o atleta vai lutar, já considerando fusões. Quem passa do limite sai da chave e a tela mostra em que classe caberia | Claude | Tabela de pesos no motor |
+| 13/10/2026 | Programação respeita o descanso mínimo dentro de cada chave (tempo de uma luta; o dobro antes da final, art. 1.4). A mesa registra o atraso do tatame e os horários previstos de todas as telas acompanham; luta trazida de outro tatame entra na vez e empurra as seguintes | Claude | Horário previsto é a informação mais consultada no dia |
+| 13/10/2026 | O placar grava a luta em andamento no aparelho da mesa; ao reabrir, oferece continuar de onde parou ou começar do zero | Claude | Fechar a tela ou recarregar não pode apagar uma luta |
+| 13/10/2026 | Modelos de categorias por organização: a tabela da IBJJF é o padrão, a organização cria modelos a partir dela e ajusta os limites de peso; o evento novo escolhe o modelo. No protótipo as faixas e os tempos ainda não são editáveis e o evento de demonstração continua usando o padrão | Claude | Requisito do fundador em 13/10 |
 
 ## Em aberto
 
-- Modelos de categorias por organização: tela para criar, salvar e reaproveitar a tabela de idades, faixas e pesos em novos eventos.
+- Modelos de categorias: editar faixas e tempos de luta, e aplicar o modelo escolhido ao evento (hoje só os pesos se editam e o evento de demonstração usa o padrão).
+- Programação: intercalar chaves no mesmo tatame para aproveitar o tempo de descanso (hoje cada chave roda inteira, com espera entre as lutas).
 - Escala de árbitros: hoje o mesário digita o árbitro central do tatame; falta a escala feita pela organização e a troca de árbitro durante o dia.
 - LGPD e GDPR na construção: base legal e consentimento do responsável para menores, exportação e exclusão de dados a pedido, registro de acesso.
 
 - Logo: o arquivo recebido traz a palavra ARENA como texto na fonte Neoverse Sans, que não está no projeto. Falta a versão com o texto convertido em curvas, ou a licença da fonte para a web. Até lá o cabeçalho usa o símbolo oficial com a palavra em Inter.
-- Na pesagem, registrar o peso medido e o tipo de quimono (liso ou trançado, até 15 anos) e comparar com o limite; hoje a pesagem só marca aprovado ou reprovado.
 - Provedor de pagamento e enquadramento do repasse (não bloqueia).
 - Preço por inscrição e taxa da plataforma (não bloqueia; as telas de financeiro e plano mostram valores de exemplo).
 - Quais formatos de chave entram primeiro no motor além da eliminatória simples.
@@ -88,6 +93,4 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Registro do método de vitória por luta (pontos, finalização e qual, vantagens, decisão): exige que a mesa informe isso a cada luta; decidir o nível de detalhe.
 - Redes sociais e vídeos no perfil do atleta; loja de produtos (fora de escopo por enquanto).
 - Tela do público em outro aparelho: no protótipo a sincronia vale entre janelas do mesmo navegador (um computador com dois monitores). Entre aparelhos diferentes depende do tempo real do Supabase, na construção.
-- Se o operador fecha o placar no meio da luta, o estado da luta se perde; no produto ele precisa ficar gravado.
-- Como o produto ajuda o organizador a juntar categorias: com as categorias de idade oficiais, a maioria fica com um atleta só.
 - Desclassificações em semifinais e finais (Regulamento Geral, art. 2.4): exigem distinguir falta técnica de disciplinar no resultado.
