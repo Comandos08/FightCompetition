@@ -39,6 +39,7 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Não há ranking único da plataforma por enquanto; fica como aposta futura, com fórmula baseada em lutas e não em medalhas | Claude | Somar medalhas de eventos com regras e níveis diferentes não se sustenta; a validar com o fundador |
 | 13/10/2026 | Desempenho na área logada: o atleta vê o próprio cartel e posições, o professor vê os alunos (inclusive menores) e a organização define a regra e acompanha o próprio ranking | Fundador (direção) e Claude (execução) | Cada papel enxerga o recorte que lhe pertence |
 | 13/10/2026 | Faixa "Seja um competidor" na página inicial, chamando para criar o perfil de atleta | Fundador (referência) e Claude (execução) | Converte o visitante atraído pelo ranking em conta |
+| 13/10/2026 | Avatar padrão passa a ser uma silhueta neutra em cinza, uma para homens e outra para mulheres; substitui os avatares coloridos gerados por código | Fundador (pediu padrão claro, com referência) e Claude (desenho próprio) | Um padrão único é mais limpo. As silhuetas foram redesenhadas em vez de usar os arquivos de referência, cuja licença é desconhecida |
 
 ## Em aberto
 
