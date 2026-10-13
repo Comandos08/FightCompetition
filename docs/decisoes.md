@@ -21,6 +21,8 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 | 13/10/2026 | Protótipo cobre todas as rotas previstas: cadastro e entrada, perfil esportivo, dependentes, pedidos, perfil público de atleta e de equipe, quadro de medalhas, regulamento, vínculos e inscrição em lote da equipe, lista e criação de eventos, financeiro, resultados, equipe de trabalho, configurações, membros e coordenação de tatames | Fundador (pedido) e Claude (escopo das telas) | Ver o produto inteiro antes de construir banco e login. Telas novas seguem o bloco 1 do caderno funcional |
 | 13/10/2026 | Menores aparecem com sobrenome abreviado na lista pública e sem perfil público, por padrão; o organizador pode mudar | Claude | Proteção por padrão; depende da revisão jurídica |
 | 13/10/2026 | Pontuação do quadro de medalhas (9, 3 e 1) e textos de regulamento, lotes e cancelamento são ilustrativos | Claude | Nenhuma regra esportiva ou comercial foi definida; servem para mostrar a tela |
+| 13/10/2026 | Foto do atleta, imagem do evento e mapa de localização entram no produto. No protótipo, as imagens ficam só no navegador de quem enviou e o mapa é um desenho com botão "Como chegar" | Fundador (pedido) e Claude (execução) | Sem servidor não há onde guardar arquivo, e a página de demonstração não carrega mapas de terceiros |
+| 13/10/2026 | Foto de atleta menor não é pública por padrão; depende de autorização do responsável | Claude | Mesmo critério do perfil público de menores; a validar na revisão jurídica |
 
 ## Em aberto
 
@@ -34,3 +36,4 @@ Cada linha diz o que foi decidido, por quem e por quê. Mudar uma decisão acres
 - Revisão jurídica para dados de menores.
 - Preço por inscrição e taxa da plataforma (as telas de financeiro e plano mostram valores de exemplo).
 - Quais formatos de chave entram primeiro no motor além da eliminatória simples.
+- Provedor de mapa (Google Maps é pago acima da franquia; OpenStreetMap é gratuito) e regra de moderação de imagens enviadas.

@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { coresFaixa } from "@/data/seed";
+import { useDados } from "@/data/store";
+import { lerImagem } from "@/lib/imagem";
 
 export function Faixa({ cor, comNome = true }: { cor: string; comNome?: boolean }) {
   return (
@@ -86,4 +88,27 @@ export function Campo({ rotulo, children, dica }: { rotulo: string; children: Re
 
 export function Secao({ titulo, acao, children }: { titulo: string; acao?: ReactNode; children: ReactNode }) {
   return <section className="cartao p-6"><div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">{titulo}</h2>{acao}</div>{children}</section>;
+}
+
+/** Foto do atleta; sem foto, mostra as iniciais. */
+export function Avatar({ atletaId, nome, className = "h-28 w-28 text-3xl" }: { atletaId?: string; nome: string; className?: string }) {
+  const { estado } = useDados();
+  const foto = atletaId ? estado.fotos[atletaId] : "";
+  return foto
+    ? <img src={foto} alt={`Foto de ${nome}`} className={`rounded-lg object-cover ${className}`} />
+    : <div className={`grid place-items-center rounded-lg bg-marinho-claro font-semibold text-marinho ${className}`}>{nome.split(" ").map((x) => x[0]).slice(0, 2).join("")}</div>;
+}
+
+/** Botão de envio de imagem: reduz o arquivo no navegador antes de guardar. */
+export function EnviarImagem({ rotulo, ladoMaximo, aoEnviar, id }: { rotulo: string; ladoMaximo: number; aoEnviar: (url: string) => void; id: string }) {
+  const entrada = useRef<HTMLInputElement>(null);
+  const [erro, setErro] = useState("");
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <input ref={entrada} id={id} type="file" accept="image/*" className="hidden"
+        onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; try { aoEnviar(await lerImagem(f, ladoMaximo)); setErro(""); } catch (x) { setErro((x as Error).message); } }} />
+      <button type="button" className="botao-contorno !py-1.5 text-xs" onClick={() => entrada.current?.click()}>{rotulo}</button>
+      {erro && <span className="text-xs text-perigo">{erro}</span>}
+    </span>
+  );
 }

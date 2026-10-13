@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDados } from "@/data/store";
 import { usePessoa } from "@/data/sessao";
 import { ANO_EVENTO, EVENTO_ID, divisaoPorIdade, equipes, type Atleta } from "@/data/seed";
-import { Campo, Faixa, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo } from "@/components/ui";
+import { Avatar, Campo, EnviarImagem, Faixa, Secao, Selo, SubNav, Titulo, Vazio, pagamentoSelo } from "@/components/ui";
 import { quadroDeMedalhas, lutasDoAtleta } from "@/lib/resultados";
 import { nomeRodada } from "@/lib/competicao";
 
@@ -30,6 +30,16 @@ export function Perfil() {
       <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
         <Secao titulo="Dados pessoais">
           <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Avatar atletaId={pessoa.atletaId} nome={pessoa.nome} className="h-20 w-20 text-2xl" />
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  <EnviarImagem id="perfil-foto" rotulo={pessoa.atletaId && d.estado.fotos[pessoa.atletaId] ? "Trocar foto" : "Enviar foto"} ladoMaximo={360} aoEnviar={(url) => pessoa.atletaId && d.despachar({ tipo: "foto", atletaId: pessoa.atletaId, url })} />
+                  {pessoa.atletaId && d.estado.fotos[pessoa.atletaId] && <button className="botao-contorno !py-1.5 text-xs" onClick={() => d.despachar({ tipo: "foto", atletaId: pessoa.atletaId!, url: "" })}>Remover</button>}
+                </div>
+                <p className="mt-2 text-xs text-tinta-3">{pessoa.atletaId ? "Aparece no seu perfil público e no placar. Foto de menor só aparece com autorização do responsável." : "Nesta conta de demonstração não há perfil de atleta ligado."}</p>
+              </div>
+            </div>
             <Campo rotulo="Nome completo"><input id="perfil-nome" className="campo" defaultValue={pessoa.nome} onChange={() => setSalvo(false)} /></Campo>
             <Campo rotulo="Nome de competição" dica="É o nome que aparece nas chaves e nos resultados."><input id="perfil-apelido" className="campo" defaultValue={pessoa.nome.split(" ").slice(0, 2).join(" ")} onChange={() => setSalvo(false)} /></Campo>
             <div className="grid grid-cols-2 gap-3">
@@ -197,7 +207,7 @@ export function PerfilAtleta() {
       <h1 className="mb-5 text-2xl font-semibold sm:text-3xl">{a.nome}</h1>
       <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
         <div className="cartao p-6">
-          <div className="mx-auto mb-5 grid h-28 w-28 place-items-center rounded-lg bg-marinho-claro text-3xl font-semibold text-marinho">{a.nome.split(" ").map((x) => x[0]).slice(0, 2).join("")}</div>
+          <div className="mb-5 flex justify-center"><Avatar atletaId={a.id} nome={a.nome} /></div>
           {[["Equipe", <Link key="e" to={`/equipes/${encodeURIComponent(a.equipe)}`} className="text-marinho hover:underline">{a.equipe}</Link>], ["Faixa", <Faixa key="f" cor={a.faixa} />], ["Divisão", divisaoPorIdade(ANO_EVENTO - a.anoNascimento)?.nome ?? ""], ["Inscrições", String(inscricoes.length)]].map(([k, v]) => (
             <div key={String(k)} className="flex items-center justify-between border-b border-linha/70 py-2.5 text-sm last:border-0"><span className="text-tinta-3">{k}</span><span className="font-medium">{v}</span></div>
           ))}
