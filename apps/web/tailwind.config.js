@@ -22,7 +22,7 @@ export default {
         display: ['"Inter"', "system-ui", "sans-serif"],
         sans: ['"Inter"', "system-ui", "sans-serif"],
         mono: ['"Inter"', "system-ui", "sans-serif"],
-        placar: ['"Barlow Condensed"', '"Arial Narrow"', "system-ui", "sans-serif"],
+        placar: ['"Sofia Sans Extra Condensed"', '"Arial Narrow"', "system-ui", "sans-serif"],
       },
       boxShadow: { cartao: "0 1px 2px rgba(26,68,125,.04), 0 6px 20px -10px rgba(26,68,125,.14)" },
     },
