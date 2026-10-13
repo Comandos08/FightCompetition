@@ -1,4 +1,7 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router-dom";
+
+// na versão de página única (demonstração) não há servidor para resolver rotas
+const Roteador = import.meta.env.MODE === "pagina-unica" ? MemoryRouter : BrowserRouter;
 import { Provedor } from "@/data/store";
 import { Layout } from "@/components/Layout";
 import { Agenda, Evento, Inscricao } from "@/pages/Publico";
@@ -9,7 +12,7 @@ import { Atleta, Professor } from "@/pages/Pessoas";
 export default function App() {
   return (
     <Provedor>
-      <BrowserRouter>
+      <Roteador>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Agenda />} />
@@ -24,7 +27,7 @@ export default function App() {
             <Route path="*" element={<Agenda />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </Roteador>
     </Provedor>
   );
 }
