@@ -1,6 +1,10 @@
 import type { ChaveEliminatoria, ChaveResolvida, Origem } from "@engine";
 import { useDados } from "@/data/store";
-import { nomeRodada } from "@/lib/competicao";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { hhmm, horarioDaLuta, nomeRodada } from "@/lib/competicao";
+import { lutasDoAtleta } from "@/lib/resultados";
+import { Avatar } from "@/components/ui";
 
 interface Props {
   chave: ChaveEliminatoria;
@@ -8,61 +12,119 @@ interface Props {
   aoAbrirLuta?: (lutaId: string) => void;
 }
 
-/** Desenha a chave como árvore: cada luta fica à direita das lutas que a alimentam. */
+/** Desenha a chave em dois lados que se encontram na final, como nas chaves impressas de torneio. */
 export function Chave({ chave, resolvida, aoAbrirLuta }: Props) {
-  const { nomeDe, equipeDe } = useDados();
+  const d = useDados();
+  const { nomeDe, equipeDe } = d;
   const definicao = new Map(chave.lutas.map((l) => [l.id, l]));
   const estado = new Map(resolvida.lutas.map((l) => [l.id, l]));
+  const bloco = d.blocos.find((b) => b.chave === chave);
+  const [cartao, setCartao] = useState<{ id: string; x: number; y: number } | null>(null);
 
-  const Lado = ({ id, vencedor, bye }: { id?: string; vencedor: boolean; bye?: boolean }) => (
-    <div className={`flex items-center justify-between gap-2 px-2.5 py-1.5 ${vencedor ? "bg-tatame-claro" : ""}`}>
+  const Lado = ({ id, vencedor, bye, cor }: { id?: string; vencedor: boolean; bye?: boolean; cor: string }) => (
+    <div className={`flex items-center justify-between gap-2 border-l-[3px] px-2.5 py-1.5 ${id ? cor : "border-transparent"} ${vencedor ? "bg-tatame-claro" : ""}`}
+      onMouseEnter={(e) => { if (!id) return; const r = e.currentTarget.getBoundingClientRect(); setCartao({ id, x: Math.min(r.left + 24, window.innerWidth - 300), y: r.bottom + 4 }); }}
+      onMouseLeave={() => setCartao(null)}>
       <div className="min-w-0">
-        <div className={`truncate text-[13px] leading-tight ${id ? (vencedor ? "font-semibold" : "") : "italic text-tinta-3"}`}>{nomeDe(id)}</div>
+        <div className={`truncate text-[13px] leading-tight ${id ? (vencedor ? "font-semibold text-marinho" : "font-medium text-marinho") : "italic text-tinta-3"}`}>{nomeDe(id)}</div>
         {id && <div className="truncate text-[10px] text-tinta-3">{equipeDe(id)}{bye ? " · bye" : ""}</div>}
       </div>
       {vencedor && <span className="font-mono text-[10px] font-semibold text-tatame">V</span>}
     </div>
   );
 
-  const No = ({ origem }: { origem: Origem }) => {
+  const No = ({ origem, espelhado }: { origem: Origem; espelhado?: boolean }) => {
     if (origem.tipo === "participante") return null;
     const def = definicao.get(origem.lutaId)!;
     const est = estado.get(origem.lutaId)!;
     const temFilhos = def.ladoA.tipo === "vencedor" || def.ladoB.tipo === "vencedor";
+    const indice = chave.lutas.findIndex((l) => l.id === def.id) + 1;
     return (
-      <div className="flex items-center">
+      <div className={`flex items-center ${espelhado ? "flex-row-reverse" : ""}`}>
         {temFilhos && (
           <div className="flex flex-col justify-around gap-3 self-stretch">
-            <div className="flex flex-1 items-center justify-end"><No origem={def.ladoA} /></div>
-            <div className="flex flex-1 items-center justify-end"><No origem={def.ladoB} /></div>
+            <div className={`flex flex-1 items-center ${espelhado ? "justify-start" : "justify-end"}`}><No origem={def.ladoA} espelhado={espelhado} /></div>
+            <div className={`flex flex-1 items-center ${espelhado ? "justify-start" : "justify-end"}`}><No origem={def.ladoB} espelhado={espelhado} /></div>
           </div>
         )}
         {temFilhos && <div className="h-px w-4 bg-linha" />}
-        <button
-          onClick={() => aoAbrirLuta?.(def.id)}
-          disabled={!aoAbrirLuta}
-          className={`w-52 shrink-0 overflow-hidden rounded-md border bg-white text-left transition ${est.pronta ? "border-ouro shadow-cartao" : "border-linha"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}
-        >
-          <div className="flex items-center justify-between border-b border-linha/70 bg-papel/60 px-2.5 py-0.5">
-            <span className="font-mono text-[10px] text-tinta-3">{def.id} · {nomeRodada(def.rodada, chave.totalRodadas)}</span>
-            {est.metodo && <span className="font-mono text-[10px] text-tinta-3">{est.metodo}</span>}
-            {est.pronta && <span className="font-mono text-[10px] font-semibold text-ouro-escuro">pronta</span>}
+        <div className="w-52 shrink-0">
+          <div className="mb-0.5 flex items-center justify-between px-0.5 text-[10px] text-tinta-3">
+            <span>Luta {indice}{bloco ? ` · Tatame ${bloco.tatame} · ${hhmm(horarioDaLuta(bloco, def.id))}` : ""}</span>
+            {est.metodo ? <span>{est.metodo}</span> : est.pronta ? <span className="font-semibold text-ouro-escuro">pronta</span> : <span>{nomeRodada(def.rodada, chave.totalRodadas)}</span>}
           </div>
-          <Lado id={est.a} vencedor={!!est.vencedorId && est.vencedorId === est.a} bye={def.ladoA.tipo === "participante" && def.rodada > 1} />
-          <div className="h-px bg-linha/70" />
-          <Lado id={est.b} vencedor={!!est.vencedorId && est.vencedorId === est.b} bye={def.ladoB.tipo === "participante" && def.rodada > 1} />
-        </button>
+          <button
+            onClick={() => aoAbrirLuta?.(def.id)}
+            disabled={!aoAbrirLuta}
+            className={`w-full overflow-hidden rounded-md border bg-papel/70 text-left transition ${est.pronta ? "border-ouro shadow-cartao" : "border-linha"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}
+          >
+            <Lado id={est.a} cor="border-marinho" vencedor={!!est.vencedorId && est.vencedorId === est.a} bye={def.ladoA.tipo === "participante" && def.rodada > 1} />
+            <div className="h-px bg-linha/70" />
+            <Lado id={est.b} cor="border-perigo" vencedor={!!est.vencedorId && est.vencedorId === est.b} bye={def.ladoB.tipo === "participante" && def.rodada > 1} />
+          </button>
+        </div>
       </div>
+    );
+  };
+
+  const final = definicao.get(chave.finalId)!;
+  const doisLados = chave.totalRodadas >= 3 && final.ladoA.tipo === "vencedor" && final.ladoB.tipo === "vencedor";
+
+  const Resumo = () => {
+    if (!cartao) return null;
+    const insc = d.inscricaoPorId.get(cartao.id);
+    const atleta = insc && d.atletas.get(insc.atletaId);
+    if (!atleta) return null;
+    const reservado = atleta.menor && d.estado.config.ocultarMenores;
+    const feitas = lutasDoAtleta(d, atleta.id).filter((l) => l.venceu !== undefined);
+    const v = feitas.filter((l) => l.venceu).length;
+    return createPortal(
+      <div className="pointer-events-none fixed z-50 flex w-72 items-center gap-3 rounded-lg border border-linha bg-white p-3 shadow-lg" style={{ left: cartao.x, top: cartao.y }}>
+        <Avatar atletaId={reservado ? undefined : atleta.id} nome={atleta.nome} className="h-16 w-16 shrink-0 text-xl" />
+        <div className="min-w-0">
+          <div className="truncate text-sm font-semibold uppercase tracking-tight">{atleta.nome}</div>
+          <div className="truncate text-xs text-tinta-3">{atleta.equipe} · faixa {atleta.faixa.toLowerCase()}</div>
+          <div className="mt-1.5 flex gap-3 text-xs"><span><b>{feitas.length}</b> lutas</span><span className="text-tatame"><b>{v}</b> V</span><span className="text-perigo"><b>{feitas.length - v}</b> D</span></div>
+        </div>
+      </div>,
+      document.body,
     );
   };
 
   return (
     <div className="overflow-x-auto pb-2">
       <div className="inline-block min-w-full p-1">
-        <No origem={{ tipo: "vencedor", lutaId: chave.finalId }} />
+        {doisLados ? (
+          <div className="flex items-center justify-between gap-0">
+            <No origem={final.ladoA} />
+            <div className="h-px w-4 shrink-0 bg-linha" />
+            <div className="shrink-0"><div className="mb-1 text-center text-[11px] font-semibold uppercase tracking-wide text-marinho">Final</div><NoFinal /></div>
+            <div className="h-px w-4 shrink-0 bg-linha" />
+            <No origem={final.ladoB} espelhado />
+          </div>
+        ) : <No origem={{ tipo: "vencedor", lutaId: chave.finalId }} />}
       </div>
+      <Resumo />
     </div>
   );
+
+  function NoFinal() {
+    const est = estado.get(final.id)!;
+    return (
+      <div className="w-52">
+        <div className="mb-0.5 flex items-center justify-between px-0.5 text-[10px] text-tinta-3">
+          <span>Luta {chave.lutas.length}{bloco ? ` · Tatame ${bloco.tatame} · ${hhmm(horarioDaLuta(bloco, final.id))}` : ""}</span>
+          {est.metodo ? <span>{est.metodo}</span> : est.pronta ? <span className="font-semibold text-ouro-escuro">pronta</span> : null}
+        </div>
+        <button onClick={() => aoAbrirLuta?.(final.id)} disabled={!aoAbrirLuta}
+          className={`w-full overflow-hidden rounded-md border-2 bg-white text-left ${est.pronta ? "border-ouro" : "border-marinho/40"} ${aoAbrirLuta ? "hover:border-tinta" : "cursor-default"}`}>
+          <Lado id={est.a} cor="border-marinho" vencedor={!!est.vencedorId && est.vencedorId === est.a} />
+          <div className="h-px bg-linha/70" />
+          <Lado id={est.b} cor="border-perigo" vencedor={!!est.vencedorId && est.vencedorId === est.b} />
+        </button>
+      </div>
+    );
+  }
 }
 
 export function Podio({ resolvida }: { resolvida: ChaveResolvida }) {
